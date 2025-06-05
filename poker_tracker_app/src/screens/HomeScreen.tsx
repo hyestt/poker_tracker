@@ -14,13 +14,13 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <Text style={styles.title}>Poker Tracker</Text>
       <Card style={styles.summaryCard}>
         <Text style={styles.summaryText}>${stats.totalProfit}</Text>
-        <Text style={styles.subText}>總盈虧</Text>
-        <Text style={styles.sessionText}>{stats.totalSessions} 場次</Text>
+        <Text style={styles.subText}>Total Profit/Loss</Text>
+        <Text style={styles.sessionText}>{stats.totalSessions} Sessions</Text>
       </Card>
-      <Button title="+ 新增手牌" onPress={() => navigation.navigate('NewSession')} />
-      <Button title="查看歷史紀錄" onPress={() => navigation.navigate('History')} style={{backgroundColor: theme.colors.card}} textStyle={{color: theme.colors.primary}} />
-      <Text style={styles.sectionTitle}>近期活動</Text>
-      {recentHands.length === 0 && <Text style={styles.empty}>尚無紀錄</Text>}
+      <Button title="+ New Hand" onPress={() => navigation.navigate('NewSession')} />
+      <Button title="View History" onPress={() => navigation.navigate('History')} style={{backgroundColor: theme.colors.card}} textStyle={{color: theme.colors.primary}} />
+      <Text style={styles.sectionTitle}>Recent Activity</Text>
+      {recentHands.length === 0 && <Text style={styles.empty}>No records yet</Text>}
       {recentHands.map((hand, idx) => (
         <Card key={hand.id}>
           <Text style={{color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss, fontWeight: 'bold'}}>
