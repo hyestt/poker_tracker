@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Card } from '../components/Card';
@@ -11,7 +11,7 @@ const sortOptions = [
 ];
 
 export const HistoryScreen: React.FC = () => {
-  const { hands, sessions, fetchHands, fetchSessions } = useSessionStore();
+  const { hands, sessions, fetchHands, fetchSessions, deleteHand } = useSessionStore();
   const [sortKey, setSortKey] = useState('date');
 
   useEffect(() => {
@@ -20,6 +20,20 @@ export const HistoryScreen: React.FC = () => {
   }, []);
 
   const getSession = (id: string) => sessions.find(s => s.id === id);
+
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "刪除紀錄",
+      "確定要刪除這筆手牌紀錄嗎？",
+      [
+        {
+          text: "取消",
+          style: "cancel"
+        },
+        { text: "確定", onPress: () => deleteHand(id) }
+      ]
+    );
+  };
 
   const sortedHands = [...hands].sort((a, b) => {
     if (sortKey === 'date') return b.date.localeCompare(a.date);
@@ -54,6 +68,9 @@ export const HistoryScreen: React.FC = () => {
                 <Text style={styles.date}>{session?.location} / {hand.date.slice(0, 16)}</Text>
               </View>
               <Text style={styles.detail}>{hand.details}</Text>
+              <TouchableOpacity onPress={() => handleDelete(hand.id)} style={styles.deleteButton}>
+                <Text style={styles.deleteButtonText}>刪除</Text>
+              </TouchableOpacity>
             </Card>
           );
         })}
@@ -109,5 +126,16 @@ const styles = StyleSheet.create({
     color: theme.colors.gray,
     textAlign: 'center',
     marginVertical: theme.spacing.md,
+  },
+  deleteButton: {
+    marginTop: theme.spacing.sm,
+    padding: theme.spacing.xs,
+    backgroundColor: theme.colors.loss,
+    borderRadius: theme.radius.button,
+    alignSelf: 'flex-end',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: theme.font.size.small,
   },
 }); 

@@ -113,3 +113,23 @@ npm start
 
 八、建議備份
 - 建議將 poker_tracker_backend/poker_tracker.db 定期備份，避免資料遺失。 
+
+九、修復記錄
+Date: 2025-06-06 08:58:28
+User Query: 幫我添加一個刪除的功能，讓我可以刪掉過去的手牌記錄
+Summary of changes:
+1. Modified poker_tracker_app/src/screens/HistoryScreen.tsx to add a delete button for each hand record.
+2. The delete button triggers a confirmation dialog.
+3. If confirmed, the deleteHand function from poker_tracker_app/src/viewmodels/sessionStore.ts is called to delete the hand record.
+
+Date: 2025-01-27 09:00:00
+User Query: 沒看到可以刪除的按鈕
+Summary of fixes:
+1. 修復API_URL設定：將localhost改為實際IP地址(192.168.1.28:8080)以解決iOS模擬器連線問題
+2. 在HomeScreen的Recent Activity加上刪除按鈕：
+   - 新增Alert確認對話框
+   - 新增handleDelete函數
+   - 重新設計手牌項目布局，加上刪除按鈕
+   - 更新相關樣式設定
+3. 確認後端正在運行，重新啟動前端套用修改
+---

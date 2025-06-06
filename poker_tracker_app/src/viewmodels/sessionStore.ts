@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Session, Hand, Stats } from '../models';
 
-const API_URL = 'http://localhost:8080'; // 根據實際後端位址調整
+const API_URL = 'http://192.168.1.28:8080'; // 修復為實際IP，避免iOS模擬器連線問題
 
 interface State {
   sessions: Session[];

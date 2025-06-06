@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { stats, sessions, hands, fetchSessions, fetchHands, fetchStats } = useSessionStore();
+  const { stats, sessions, hands, fetchSessions, fetchHands, fetchStats, deleteHand } = useSessionStore();
   const recentHands = hands.slice(-5).reverse();
 
   useEffect(() => {
@@ -14,6 +14,20 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     fetchHands();
     fetchStats();
   }, []);
+
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "刪除紀錄",
+      "確定要刪除這筆手牌紀錄嗎？",
+      [
+        {
+          text: "取消",
+          style: "cancel"
+        },
+        { text: "確定", onPress: () => deleteHand(id) }
+      ]
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -29,10 +43,17 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {recentHands.length === 0 && <Text style={styles.empty}>No records yet</Text>}
       {recentHands.map((hand, idx) => (
         <Card key={hand.id}>
-          <Text style={{color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss, fontWeight: 'bold'}}>
-            {hand.result >= 0 ? '+' : ''}{hand.result}
-          </Text>
-          <Text style={styles.handDetail}>{hand.details}</Text>
+          <View style={styles.handRow}>
+            <View style={styles.handInfo}>
+              <Text style={{color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss, fontWeight: 'bold'}}>
+                {hand.result >= 0 ? '+' : ''}{hand.result}
+              </Text>
+              <Text style={styles.handDetail}>{hand.details}</Text>
+            </View>
+            <TouchableOpacity onPress={() => handleDelete(hand.id)} style={styles.deleteButton}>
+              <Text style={styles.deleteButtonText}>刪除</Text>
+            </TouchableOpacity>
+          </View>
         </Card>
       ))}
     </ScrollView>
@@ -86,5 +107,24 @@ const styles = StyleSheet.create({
     color: theme.colors.gray,
     textAlign: 'center',
     marginVertical: theme.spacing.md,
+  },
+  handRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  handInfo: {
+    flex: 1,
+  },
+  deleteButton: {
+    padding: theme.spacing.xs,
+    backgroundColor: theme.colors.loss,
+    borderRadius: theme.radius.button,
+    marginLeft: theme.spacing.sm,
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontSize: theme.font.size.small,
+    fontWeight: 'bold',
   },
 }); 
