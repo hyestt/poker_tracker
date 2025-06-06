@@ -1,0 +1,115 @@
+Poker Tracker 專案環境安裝與技術棧說明
+
+一、技術棧總覽
+
+前端（React Native）
+- 語言：TypeScript
+- 框架：React Native 0.79.3
+- 狀態管理：zustand 5.x
+- 導航：@react-navigation/native, @react-navigation/bottom-tabs, @react-navigation/stack
+- UI：自訂組件 + React Native 內建
+- 測試：Jest
+- 開發工具：Metro, Xcode, CocoaPods
+
+後端（Golang）
+- 語言：Go 1.24.3
+- Web 框架：標準 net/http
+- 資料庫：SQLite（github.com/mattn/go-sqlite3）
+- UUID：github.com/google/uuid
+
+二、主要環境與工具版本
+
+| 工具/語言         | 推薦版本/實際版本      | 安裝建議/說明                |
+|-------------------|-----------------------|------------------------------|
+| Node.js           | v20.15.0              | brew install node            |
+| npm               | 10.7.0                | 隨 Node.js 安裝              |
+| Go                | 1.24.3                | brew install go              |
+| Python3           | 3.9.6                 | macOS 內建/brew install python |
+| Ruby              | 2.6.10                | macOS 內建                   |
+| CocoaPods         | 1.16.2                | sudo gem install cocoapods   |
+| Xcode             | 16.4                  | App Store 下載               |
+| Homebrew          | 4.5.4                 | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" |
+
+三、前端 Library 依賴（package.json）
+
+主要依賴：
+- react: 19.0.0
+- react-native: 0.79.3
+- zustand: ^5.0.5
+- @react-navigation/native: ^7.1.10
+- @react-navigation/bottom-tabs: ^7.3.14
+- @react-navigation/stack: ^7.3.3
+- react-native-gesture-handler: ^2.25.0
+- react-native-safe-area-context: ^5.4.1
+- react-native-screens: ^4.11.1
+
+開發依賴：
+- typescript: 5.0.4
+- @babel/core: ^7.25.2
+- @babel/preset-env: ^7.25.3
+- @babel/runtime: ^7.25.0
+- @react-native-community/cli: ^18.0.0
+- @react-native-community/cli-platform-android: 18.0.0
+- @react-native-community/cli-platform-ios: 18.0.0
+- @react-native/babel-preset: 0.79.3
+- @react-native/eslint-config: 0.79.3
+- @react-native/metro-config: 0.79.3
+- @react-native/typescript-config: 0.79.3
+- eslint: ^8.19.0
+- jest: ^29.6.3
+- prettier: 2.8.8
+
+四、後端 Library 依賴（go.mod）
+- github.com/google/uuid v1.6.0
+- github.com/mattn/go-sqlite3 v1.14.28
+
+五、全新環境安裝步驟
+
+1. 安裝 Homebrew（如未安裝）
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+2. 安裝 Node.js、Go、Python3
+brew install node go python
+
+3. 安裝 Ruby（macOS 內建，通常不用裝）
+
+4. 安裝 CocoaPods
+sudo gem install cocoapods
+
+5. 安裝 Xcode（App Store 下載最新版）
+
+6. 安裝前端依賴
+cd poker_tracker_app
+npm install
+# 或 yarn install（如有用 yarn）
+
+7. 安裝 iOS 依賴
+cd ios
+pod install
+cd ..
+
+8. 安裝後端依賴
+cd ../poker_tracker_backend
+go mod tidy
+
+六、啟動專案
+
+啟動後端
+cd poker_tracker_backend
+go run main.go
+
+啟動前端 Metro
+cd ../poker_tracker_app
+npm start
+
+執行 iOS App
+- 用 Xcode 開啟 poker_tracker_app/ios/PokerTrackerApp.xcworkspace
+- 選擇模擬器或真機，點擊「Run」
+
+七、常見問題
+- API_URL 設定：iOS 模擬器請用你 Mac 的本機 IP（如 http://192.168.x.x:8080），不要用 localhost。
+- 權限問題：如遇權限錯誤，請用 sudo 或確認目錄權限。
+- Java/Android：如需 Android 開發，請另外安裝 Java JDK 17+ 與 Android Studio。
+
+八、建議備份
+- 建議將 poker_tracker_backend/poker_tracker.db 定期備份，避免資料遺失。 
