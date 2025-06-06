@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Card } from '../components/Card';
 
 export const StatsScreen: React.FC = () => {
-  const { stats } = useSessionStore();
+  const { stats, fetchStats } = useSessionStore();
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>

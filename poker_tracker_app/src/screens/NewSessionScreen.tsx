@@ -13,9 +13,9 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   const [bigBlind, setBigBlind] = useState('');
   const [currency, setCurrency] = useState('USD ($)');
   const [effectiveStack, setEffectiveStack] = useState('');
-  const { addSession } = useSessionStore();
+  const { addSession, fetchHands, fetchStats } = useSessionStore();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const session: Session = {
       id: Date.now().toString(),
       location,
@@ -25,7 +25,9 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       currency,
       effectiveStack: parseInt(effectiveStack),
     };
-    addSession(session);
+    await addSession(session);
+    await fetchHands();
+    await fetchStats();
     navigation.navigate('RecordHand', { sessionId: session.id });
   };
 

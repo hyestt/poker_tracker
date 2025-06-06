@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
@@ -6,8 +6,14 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { stats, sessions, hands } = useSessionStore();
+  const { stats, sessions, hands, fetchSessions, fetchHands, fetchStats } = useSessionStore();
   const recentHands = hands.slice(-5).reverse();
+
+  useEffect(() => {
+    fetchSessions();
+    fetchHands();
+    fetchStats();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>

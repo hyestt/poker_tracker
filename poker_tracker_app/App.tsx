@@ -29,6 +29,12 @@ function HomeStack() {
   );
 }
 
+const ProfileScreen = () => (
+  <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+    <Text>Profile (Coming Soon)</Text>
+  </View>
+);
+
 export default function App() {
   return (
     <NavigationContainer>
@@ -36,7 +42,7 @@ export default function App() {
         <Tab.Screen name="Home" component={HomeStack} />
         <Tab.Screen name="History" component={HistoryScreen} />
         <Tab.Screen name="Stats" component={StatsScreen} />
-        <Tab.Screen name="Profile" component={() => <View style={{flex:1,justifyContent:'center',alignItems:'center'}}><Text>Profile (Coming Soon)</Text></View>} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
@@ -11,8 +11,13 @@ const sortOptions = [
 ];
 
 export const HistoryScreen: React.FC = () => {
-  const { hands, sessions } = useSessionStore();
+  const { hands, sessions, fetchHands, fetchSessions } = useSessionStore();
   const [sortKey, setSortKey] = useState('date');
+
+  useEffect(() => {
+    fetchHands();
+    fetchSessions();
+  }, []);
 
   const getSession = (id: string) => sessions.find(s => s.id === id);
 

@@ -1,17 +1,23 @@
 import { create } from 'zustand';
 import { Session, Hand, Stats } from '../models';
 
+const API_URL = 'http://localhost:8080'; // 根據實際後端位址調整
+
 interface State {
   sessions: Session[];
   hands: Hand[];
   stats: Stats;
-  addSession: (session: Session) => void;
-  addHand: (hand: Hand) => void;
+  fetchSessions: () => Promise<void>;
+  addSession: (session: Session) => Promise<void>;
+  deleteSession: (id: string) => Promise<void>;
+  fetchHands: () => Promise<void>;
+  addHand: (hand: Hand) => Promise<void>;
+  deleteHand: (id: string) => Promise<void>;
+  fetchStats: () => Promise<void>;
   getHandsBySession: (sessionId: string) => Hand[];
-  calculateStats: () => void;
 }
 
-export const useSessionStore = create<State>((set: any, get: any) => ({
+export const useSessionStore = create<State>((set, get) => ({
   sessions: [],
   hands: [],
   stats: {
@@ -22,42 +28,50 @@ export const useSessionStore = create<State>((set: any, get: any) => ({
     byStakes: {},
     byLocation: {},
   },
-  addSession: (session: Session) => set((state: State) => ({ sessions: [...state.sessions, session] })),
-  addHand: (hand: Hand) => set((state: State) => ({ hands: [...state.hands, hand] })),
-  getHandsBySession: (sessionId: string) => get().hands.filter((h: Hand) => h.sessionId === sessionId),
-  calculateStats: () => {
-    const { hands, sessions } = get();
-    const totalProfit = hands.reduce((sum: number, h: Hand) => sum + h.result, 0);
-    const totalSessions = sessions.length;
-    const winSessions = sessions.filter((s: Session) => {
-      const sessionHands = hands.filter((h: Hand) => h.sessionId === s.id);
-      return sessionHands.reduce((sum: number, h: Hand) => sum + h.result, 0) > 0;
-    }).length;
-    const winRate = totalSessions ? Math.round((winSessions / totalSessions) * 100) : 0;
-    const avgSession = totalSessions ? Math.round((totalProfit / totalSessions) * 100) / 100 : 0;
-    // By Stakes
-    const byStakes: Record<string, number> = {};
-    sessions.forEach((s: Session) => {
-      const key = `$${s.smallBlind}/${s.bigBlind}`;
-      const sessionHands = hands.filter((h: Hand) => h.sessionId === s.id);
-      byStakes[key] = (byStakes[key] || 0) + sessionHands.reduce((sum: number, h: Hand) => sum + h.result, 0);
-    });
-    // By Location
-    const byLocation: Record<string, number> = {};
-    sessions.forEach((s: Session) => {
-      const sessionHands = hands.filter((h: Hand) => h.sessionId === s.id);
-      byLocation[s.location] = (byLocation[s.location] || 0) + sessionHands.reduce((sum: number, h: Hand) => sum + h.result, 0);
-    });
-    set((state: State) => ({
-      stats: {
-        ...state.stats,
-        totalProfit,
-        totalSessions,
-        winRate,
-        avgSession,
-        byStakes,
-        byLocation,
-      },
-    }));
+  fetchSessions: async () => {
+    const res = await fetch(`${API_URL}/sessions`);
+    const data = await res.json();
+    set({ sessions: data });
   },
+  addSession: async (session: Session) => {
+    await fetch(`${API_URL}/sessions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(session),
+    });
+    await get().fetchSessions();
+  },
+  deleteSession: async (id: string) => {
+    await fetch(`${API_URL}/sessions?id=${id}`, {
+      method: 'DELETE',
+    });
+    await get().fetchSessions();
+  },
+  fetchHands: async () => {
+    const res = await fetch(`${API_URL}/hands`);
+    const data = await res.json();
+    set({ hands: data });
+  },
+  addHand: async (hand: Hand) => {
+    await fetch(`${API_URL}/hands`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hand),
+    });
+    await get().fetchHands();
+    await get().fetchStats();
+  },
+  deleteHand: async (id: string) => {
+    await fetch(`${API_URL}/hands?id=${id}`, {
+      method: 'DELETE',
+    });
+    await get().fetchHands();
+    await get().fetchStats();
+  },
+  fetchStats: async () => {
+    const res = await fetch(`${API_URL}/stats`);
+    const data = await res.json();
+    set({ stats: data });
+  },
+  getHandsBySession: (sessionId: string) => get().hands.filter((h: Hand) => h.sessionId === sessionId),
 })); 

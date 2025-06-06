@@ -6,6 +6,7 @@ import (
 	"poker_tracker_backend/db"
 	"poker_tracker_backend/models"
 	"github.com/google/uuid"
+	"database/sql"
 )
 
 func CreateHand(w http.ResponseWriter, r *http.Request) {

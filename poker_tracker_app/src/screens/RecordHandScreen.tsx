@@ -10,9 +10,9 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const { sessionId } = route.params;
   const [details, setDetails] = useState('');
   const [result, setResult] = useState('');
-  const { addHand } = useSessionStore();
+  const { addHand, fetchHands, fetchStats } = useSessionStore();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const hand: Hand = {
       id: Date.now().toString(),
       sessionId,
@@ -20,7 +20,9 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       result: parseInt(result),
       date: new Date().toISOString(),
     };
-    addHand(hand);
+    await addHand(hand);
+    await fetchHands();
+    await fetchStats();
     navigation.goBack();
   };
 
