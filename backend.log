@@ -1,1 +1,41 @@
-services/openai_service.go:8:2: //go:build comment without // +build comment
+🎯 Poker Tracker Backend Starting...
+====================================
+
+✅ OpenAI API Key loaded: sk-proj-Y7...
+🤖 AI analysis features enabled!
+
+🔍 Checking port 8080...
+✅ Port 8080 is available
+
+🗄️  Initializing database...
+✅ Database ready
+
+🛣️  Registering routes...
+✅ Routes registered
+
+🚀 Server Configuration:
+   📍 Address: http://localhost:8080
+   📍 Network: http://192.168.1.28:8080
+   🗄️  Database: poker_tracker.db
+
+📱 API Endpoints:
+   GET  /hands     - List hands
+   POST /hands     - Create hand
+   POST /analyze   - AI analysis
+   GET  /sessions  - List sessions
+   GET  /stats     - Statistics
+
+💡 Frontend Connection:
+   Make sure your React Native app points to:
+   http://192.168.1.28:8080
+
+💰 Cost Info:
+   AI Analysis: ~$0.0003-0.0008 per request
+   Model: GPT-4o-mini
+
+🎉 Server ready! Happy poker tracking! 🃏
+=====================================
+🔄 Starting HTTP server on :8080...
+
+Successfully loaded prompt from file
+Successfully loaded prompt from file

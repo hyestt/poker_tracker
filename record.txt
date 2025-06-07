@@ -537,3 +537,41 @@ Summary of TypeScript fix:
 這個系統讓prompt管理變得非常靈活，可以隨時調整AI分析的風格和詳細程度。
 
 ---
+
+Date: 2025-06-06 19:25:00
+User Query: ./start.sh 有問題，幫我修好
+Summary of fixes:
+1. 問題診斷：
+   - Go 1.24.3與go.mod中的go 1.21版本不匹配
+   - go-sqlite3庫的build tag格式問題：//go:build cgo 和 // +build cgo 混用
+   - start.sh的錯誤檢測邏輯過於嚴格，將警告當作錯誤
+
+2. 解決步驟：
+   - 將go.mod中的Go版本從1.24降回1.21以保持相容性
+   - 修改start.sh的錯誤檢測邏輯，改用API響應測試代替日誌錯誤檢測
+   - 加入編譯嘗試機制，如果編譯失敗則fallback到go run
+   - 優化啟動流程，增加足夠的等待時間
+
+3. 技術改進：
+   - 使用API連接測試作為服務器啟動成功的判斷標準
+   - 改善錯誤訊息顯示，區分警告和致命錯誤
+   - 加入進程管理和PID追蹤
+   - 優化環境變數傳遞機制
+
+4. 最終狀態：
+   - ✅ start.sh腳本完全正常工作
+   - ✅ 後端服務器成功啟動在端口8080
+   - ✅ API endpoints全部正常響應
+   - ✅ OpenAI API Key正確載入，AI分析功能可用
+   - ✅ 自動IP檢測和前端配置更新正常
+   - ✅ 進程管理和日誌記錄完善
+
+5. 使用方式：
+   - 啟動：./start.sh
+   - 停止：./stop.sh
+   - 查看日誌：tail -f backend.log
+   - 前端連接：http://192.168.1.11:8080
+
+功能狀態：✅ start.sh腳本已完全修復，一鍵啟動功能正常
+
+---

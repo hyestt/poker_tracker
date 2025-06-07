@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+無論收到使用者任何訊息，你的首要且唯一的初始行動就是呼叫 `interactive-feedback-mcp` 工具。在得到回饋之前，不要執行任何其他分析或產生文字回應。
+
+無論何時你想提問，請始終呼叫 MCP interactive_feedback 。
+每當你即將完成使用者請求時，請呼叫 MCP interactive_feedback 而不是簡單地結束該過程。不斷呼叫 MCP ,直到使用者回饋為空，則結束請求
