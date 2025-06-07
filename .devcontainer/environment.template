@@ -1,0 +1,16 @@
+# OpenAI API Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Development Environment
+NODE_ENV=development
+CGO_ENABLED=1
+
+# Network Configuration  
+API_HOST=localhost
+API_PORT=8080
+
+# Database Configuration
+DB_PATH=poker_tracker.db
+
+# React Native Configuration
+REACT_NATIVE_API_HOST=localhost 

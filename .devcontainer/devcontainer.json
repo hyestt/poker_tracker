@@ -1,0 +1,74 @@
+{
+    "name": "Poker Tracker Development",
+    "image": "mcr.microsoft.com/devcontainers/universal:2-linux",
+    
+    // 環境變數配置
+    "containerEnv": {
+        "NODE_ENV": "development",
+        "CGO_ENABLED": "1"
+    },
+    
+    // 從本地 .env 文件載入環境變數
+    "runArgs": ["--env-file", "${localWorkspaceFolder}/.devcontainer/.env"],
+    
+    // 容器啟動後執行的命令
+    "postCreateCommand": "bash .devcontainer/setup.sh",
+    
+    // VS Code 擴展
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.go",
+                "ms-vscode.vscode-typescript-next",
+                "bradlc.vscode-tailwindcss",
+                "ms-vscode.vscode-json",
+                "esbenp.prettier-vscode",
+                "ms-vscode-remote.remote-containers",
+                "ms-vscode.hexeditor"
+            ],
+            "settings": {
+                "go.gopath": "/go",
+                "go.goroot": "/usr/local/go",
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+    
+    // 端口轉發
+    "forwardPorts": [8080, 3000, 8081],
+    "portsAttributes": {
+        "8080": {
+            "label": "Backend API",
+            "onAutoForward": "notify"
+        },
+        "3000": {
+            "label": "React Native Metro",
+            "onAutoForward": "notify"
+        },
+        "8081": {
+            "label": "Metro Bundler",
+            "onAutoForward": "notify"
+        }
+    },
+    
+    // 掛載點
+    "mounts": [
+        "source=${localWorkspaceFolder}/.devcontainer/.env,target=/workspaces/poker_tracker/.devcontainer/.env,type=bind"
+    ],
+    
+    // 功能
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "20"
+        },
+        "ghcr.io/devcontainers/features/go:1": {
+            "version": "1.21"
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
+    
+    // 容器設定
+    "remoteUser": "codespace",
+    "workspaceFolder": "/workspaces/poker_tracker"
+} 
