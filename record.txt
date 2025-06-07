@@ -490,4 +490,50 @@ Summary of TypeScript fix:
 
 功能狀態：✅ TypeScript編譯錯誤已修復，模組引用正常工作
 
+## Chat Log - 2025-06-06 17:25 - Prompt Management System
+
+### 問題：用戶想要編輯OpenAI的prompt並獨立管理
+
+#### 解決方案：建立完整的prompt管理系統
+
+1. **建立prompt文件夾結構**：
+   - `be_poker/prompts/hand_analysis.txt` - 標準分析(400-600字)
+   - `be_poker/prompts/hand_analysis_detailed.txt` - 詳細分析(800-1000字)  
+   - `be_poker/prompts/hand_analysis_simple.txt` - 簡單分析(200字)
+
+2. **建立prompt管理器**：
+   - `be_poker/services/prompt_manager.go` - 讀取和處理prompt文件
+   - 支援變數替換：{{HAND_DETAILS}}, {{RESULT}}
+   - 錯誤處理和fallback機制
+
+3. **更新OpenAI服務**：
+   - `be_poker/services/openai_service.go` - 整合prompt管理器
+   - 自動讀取prompt文件
+   - 包含fallback prompt防止錯誤
+
+4. **建立編輯工具**：
+   - `edit_prompt.sh` - 一鍵prompt編輯器
+   - 列出所有可用prompt文件
+   - 支援直接打開編輯
+
+#### 關鍵優勢：
+- ✅ prompt與代碼分離，易於維護
+- ✅ 支援多種prompt模板(標準/詳細/簡單)
+- ✅ 變數替換系統，動態內容注入
+- ✅ 完整的錯誤處理機制
+- ✅ 一鍵編輯工具，提升開發效率
+
+#### 使用方法：
+1. 編輯prompt：`./edit_prompt.sh hand_analysis.txt`
+2. 查看所有prompt：`./edit_prompt.sh`
+3. 直接編輯：`nano be_poker/prompts/hand_analysis.txt`
+
+#### 技術實現：
+- Go的ioutil.ReadFile讀取文件
+- strings.ReplaceAll進行變數替換
+- filepath.Join處理路徑
+- 錯誤處理與fallback策略
+
+這個系統讓prompt管理變得非常靈活，可以隨時調整AI分析的風格和詳細程度。
+
 ---
