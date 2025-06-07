@@ -8,6 +8,11 @@ import { Card } from '../components/Card';
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { stats, sessions, hands, fetchSessions, fetchHands, fetchStats, deleteHand, analyzeHand } = useSessionStore();
   const recentHands = hands.slice(-5).reverse();
+  
+  // 計算有實際手牌記錄的 sessions 數量
+  const activeSessions = sessions.filter(session => 
+    hands.some(hand => hand.sessionId === session.id)
+  );
 
   useEffect(() => {
     fetchSessions();
@@ -44,10 +49,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <Card style={styles.summaryCard}>
         <Text style={styles.summaryText}>${stats.totalProfit}</Text>
         <Text style={styles.subText}>Total Profit/Loss</Text>
-        <Text style={styles.sessionText}>{stats.totalSessions} Sessions</Text>
+        <Text style={styles.sessionText}>{activeSessions.length} Sessions</Text>
       </Card>
-      <Button title="+ New Hand" onPress={() => navigation.navigate('NewSession')} />
-      <Button title="View History" onPress={() => navigation.navigate('History')} style={{backgroundColor: theme.colors.card}} textStyle={{color: theme.colors.primary}} />
+      
+      <View style={styles.buttonContainer}>
+        <Button title="+ New Hand" onPress={() => navigation.navigate('NewSession')} />
+        <Button title="View History" onPress={() => navigation.navigate('History')} style={{backgroundColor: theme.colors.card}} textStyle={{color: theme.colors.primary}} />
+      </View>
+      
       <Text style={styles.sectionTitle}>Recent Activity</Text>
       {recentHands.length === 0 && <Text style={styles.empty}>No records yet</Text>}
       {recentHands.map((hand, idx) => (
@@ -108,10 +117,13 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     marginTop: theme.spacing.xs,
   },
+  buttonContainer: {
+    marginBottom: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
   sectionTitle: {
     fontSize: theme.font.size.subtitle,
     fontWeight: '700',
-    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.sm,
     color: theme.colors.text,
   },
@@ -137,7 +149,8 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xs,
     backgroundColor: theme.colors.loss,
     borderRadius: theme.radius.button,
-    marginLeft: theme.spacing.sm,
+    minWidth: 60,
+    alignItems: 'center',
   },
   deleteButtonText: {
     color: '#fff',
@@ -150,14 +163,15 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
   },
   buttonGroup: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     gap: theme.spacing.xs,
   },
   analyzeButton: {
     padding: theme.spacing.xs,
     backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.button,
-    marginLeft: theme.spacing.sm,
+    minWidth: 80,
+    alignItems: 'center',
   },
   analyzeButtonText: {
     color: '#fff',

@@ -575,3 +575,29 @@ Summary of fixes:
 功能狀態：✅ start.sh腳本已完全修復，一鍵啟動功能正常
 
 ---
+
+Date: 2025-01-27 11:00:00
+User Query: React Native 建置錯誤修復
+Summary of fixes:
+1. 修復 AsyncStorage 依賴問題：
+   - 安裝缺少的 @react-native-async-storage/async-storage 套件
+   - 執行 pod install 重新配置 iOS 依賴
+   - 成功解決 RNCAsyncStorage.mm 檔案找不到的錯誤
+
+2. 更新 React Native CLI：
+   - 更新 @react-native-community/cli 到最新版本
+   - 解決版本警告問題
+
+3. 建置流程優化：
+   - 使用 --reset-cache 清理 Metro 快取
+   - 重新安裝所有 iOS pods 依賴
+   - 成功啟動 iOS 應用程式和後端伺服器
+
+4. 技術細節：
+   - AsyncStorage 是 React Native 的本地儲存解決方案
+   - 需要原生 iOS/Android 模組支援
+   - 使用最新的 @react-native-community/cli 確保相容性
+
+問題根因：專案缺少必要的第三方套件依賴，導致建置時找不到對應的原生模組檔案
+
+---
