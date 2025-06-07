@@ -8,6 +8,7 @@ type Session struct {
 	BigBlind      int    `json:"bigBlind"`
 	Currency      string `json:"currency"`
 	EffectiveStack int   `json:"effectiveStack"`
+	TableSize     int    `json:"tableSize"`
 }
 
 type Hand struct {

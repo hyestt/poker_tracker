@@ -6,6 +6,7 @@ export interface Session {
   bigBlind: number;
   currency: string;
   effectiveStack: number;
+  tableSize?: number;
 }
 
 export interface Hand {
