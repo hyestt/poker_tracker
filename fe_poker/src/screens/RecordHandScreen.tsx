@@ -2,20 +2,28 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import { CustomPicker } from '../components/CustomPicker';
+import { PokerCardPicker } from '../components/PokerCardPicker';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { Hand } from '../models';
 
 export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { sessionId } = route.params;
+  const [holeCards, setHoleCards] = useState('');
+  const [position, setPosition] = useState('');
   const [details, setDetails] = useState('');
   const [result, setResult] = useState('');
   const { addHand, fetchHands, fetchStats } = useSessionStore();
+
+  const positions = ['UTG', 'UTG+1', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 
   const handleSave = async () => {
     const hand: Hand = {
       id: Date.now().toString(),
       sessionId,
+      holeCards,
+      position,
       details,
       result: parseInt(result),
       date: new Date().toISOString(),
@@ -31,17 +39,42 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       <Text style={styles.title}>Record Hand</Text>
       
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.label}>Hand Details</Text>
-        <TextInput
-          style={styles.detailsInput}
-          value={details}
-          onChangeText={setDetails}
-          placeholder="Enter detailed hand description..."
-          placeholderTextColor={theme.colors.gray}
-          multiline={true}
-          numberOfLines={8}
-          textAlignVertical="top"
-        />
+        <View style={styles.topSection}>
+          <View style={styles.fieldRow}>
+            <PokerCardPicker
+              title="Hole Cards"
+              value={holeCards}
+              onValueChange={setHoleCards}
+            />
+          </View>
+
+          <View style={styles.fieldRow}>
+            <CustomPicker
+              title="Position"
+              options={positions}
+              value={position}
+              onValueChange={setPosition}
+              onOptionsChange={() => {}} // Position options are fixed
+              placeholder="選擇位置"
+              allowCustom={false}
+              allowDelete={false}
+            />
+          </View>
+
+          <View style={styles.fieldColumn}>
+            <Text style={styles.label}>Hand Details</Text>
+            <TextInput
+              style={styles.detailsInput}
+              value={details}
+              onChangeText={setDetails}
+              placeholder="Enter detailed hand description..."
+              placeholderTextColor={theme.colors.gray}
+              multiline={true}
+              numberOfLines={8}
+              textAlignVertical="top"
+            />
+          </View>
+        </View>
         
         <View style={styles.spacer} />
         
@@ -81,6 +114,31 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'space-between',
   },
+  topSection: {
+    flex: 1,
+  },
+  fieldRow: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  fieldColumn: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
   label: {
     fontSize: theme.font.size.body,
     fontWeight: '600',
@@ -103,7 +161,14 @@ const styles = StyleSheet.create({
     minHeight: theme.spacing.lg,
   },
   bottomSection: {
-    paddingTop: theme.spacing.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.md,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   resultInput: {
     marginBottom: theme.spacing.md,

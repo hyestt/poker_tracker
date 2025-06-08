@@ -12,6 +12,8 @@ export interface Session {
 export interface Hand {
   id: string;
   sessionId: string;
+  holeCards?: string;
+  position?: string;
   details: string;
   result: number;
   date: string;
