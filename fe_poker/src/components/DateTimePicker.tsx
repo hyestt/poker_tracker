@@ -71,9 +71,9 @@ export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
   const PickerComponent = () => (
     <TouchableOpacity style={styles.picker} onPress={openPicker}>
       <Text style={[styles.pickerText, !value && styles.placeholderText]}>
-        {value || '選擇日期和時間'}
+        {value || 'Select date and time'}
       </Text>
-      <Text style={styles.arrow}>📅</Text>
+      <Text style={styles.arrow}>▼</Text>
     </TouchableOpacity>
   );
 
@@ -96,26 +96,26 @@ export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
           >
             <View style={styles.overlay}>
               <View style={styles.modal}>
-                <Text style={styles.modalTitle}>選擇 {title}</Text>
-                
-                <View style={styles.modeButtons}>
-                  <TouchableOpacity
-                    style={[styles.modeButton, mode === 'date' && styles.activeModeButton]}
-                    onPress={() => setMode('date')}
-                  >
-                    <Text style={[styles.modeButtonText, mode === 'date' && styles.activeModeButtonText]}>
-                      日期
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.modeButton, mode === 'time' && styles.activeModeButton]}
-                    onPress={() => setMode('time')}
-                  >
-                    <Text style={[styles.modeButtonText, mode === 'time' && styles.activeModeButtonText]}>
-                      時間
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                              <Text style={styles.modalTitle}>Select {title}</Text>
+              
+              <View style={styles.modeButtons}>
+                <TouchableOpacity
+                  style={[styles.modeButton, mode === 'date' && styles.activeModeButton]}
+                  onPress={() => setMode('date')}
+                >
+                  <Text style={[styles.modeButtonText, mode === 'date' && styles.activeModeButtonText]}>
+                    Date
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modeButton, mode === 'time' && styles.activeModeButton]}
+                  onPress={() => setMode('time')}
+                >
+                  <Text style={[styles.modeButtonText, mode === 'time' && styles.activeModeButtonText]}>
+                    Time
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
                 <DateTimePicker
                   value={tempDate}
@@ -127,10 +127,10 @@ export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
 
                 <View style={styles.buttonRow}>
                   <TouchableOpacity style={styles.button} onPress={handleCancel}>
-                    <Text style={styles.cancelButtonText}>取消</Text>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleConfirm}>
-                    <Text style={styles.confirmButtonText}>確認</Text>
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -154,26 +154,26 @@ export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
         >
           <View style={styles.overlay}>
             <View style={styles.modal}>
-              <Text style={styles.modalTitle}>選擇日期和時間</Text>
-              
-              <View style={styles.modeButtons}>
-                <TouchableOpacity
-                  style={[styles.modeButton, mode === 'date' && styles.activeModeButton]}
-                  onPress={() => setMode('date')}
-                >
-                  <Text style={[styles.modeButtonText, mode === 'date' && styles.activeModeButtonText]}>
-                    日期
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modeButton, mode === 'time' && styles.activeModeButton]}
-                  onPress={() => setMode('time')}
-                >
-                  <Text style={[styles.modeButtonText, mode === 'time' && styles.activeModeButtonText]}>
-                    時間
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                          <Text style={styles.modalTitle}>Select Date and Time</Text>
+            
+            <View style={styles.modeButtons}>
+              <TouchableOpacity
+                style={[styles.modeButton, mode === 'date' && styles.activeModeButton]}
+                onPress={() => setMode('date')}
+              >
+                <Text style={[styles.modeButtonText, mode === 'date' && styles.activeModeButtonText]}>
+                  Date
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modeButton, mode === 'time' && styles.activeModeButton]}
+                onPress={() => setMode('time')}
+              >
+                <Text style={[styles.modeButtonText, mode === 'time' && styles.activeModeButtonText]}>
+                  Time
+                </Text>
+              </TouchableOpacity>
+            </View>
 
               <DateTimePicker
                 value={tempDate}
@@ -185,10 +185,10 @@ export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
 
               <View style={styles.buttonRow}>
                 <TouchableOpacity style={styles.button} onPress={handleCancel}>
-                  <Text style={styles.cancelButtonText}>取消</Text>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleConfirm}>
-                  <Text style={styles.confirmButtonText}>確認</Text>
+                  <Text style={styles.confirmButtonText}>Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   titleText: {
-    fontSize: theme.font.size.subtitle,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
     flex: 0.3,
@@ -219,11 +219,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: theme.colors.card,
+    backgroundColor: theme.colors.inputBg,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.input,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
     minHeight: 48,
   },
@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
   },
   arrow: {
     fontSize: 16,
+    color: theme.colors.gray,
     marginLeft: theme.spacing.sm,
   },
   overlay: {

@@ -12,6 +12,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { NewSessionScreen } from './src/screens/NewSessionScreen';
 import { RecordHandScreen } from './src/screens/RecordHandScreen';
+import { EditHandScreen } from './src/screens/EditHandScreen';
+import { EditSessionScreen } from './src/screens/EditSessionScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { StatsScreen } from './src/screens/StatsScreen';
 import { View, Text } from 'react-native';
@@ -25,6 +27,18 @@ function HomeStack() {
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session' }} />
       <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand' }} />
+      <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
+      <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
+    </Stack.Navigator>
+  );
+}
+
+function HistoryStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="HistoryMain" component={HistoryScreen} options={{ title: 'History' }} />
+      <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
+      <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
     </Stack.Navigator>
   );
 }
@@ -40,7 +54,7 @@ export default function App() {
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen name="Home" component={HomeStack} />
-        <Tab.Screen name="History" component={HistoryScreen} />
+        <Tab.Screen name="History" component={HistoryStack} />
         <Tab.Screen name="Stats" component={StatsScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
       </Tab.Navigator>

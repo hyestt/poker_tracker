@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"poker_tracker_backend/db"
 	"poker_tracker_backend/models"
@@ -13,14 +14,28 @@ import (
 
 func CreateHand(w http.ResponseWriter, r *http.Request) {
 	var hand models.Hand
-	_ = json.NewDecoder(r.Body).Decode(&hand)
-	hand.ID = uuid.New().String()
-	stmt, _ := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-	_, err := stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := json.NewDecoder(r.Body).Decode(&hand); err != nil {
+		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	
+	// 調試信息
+	fmt.Printf("DEBUG CreateHand: HoleCards='%s', Position='%s'\n", hand.HoleCards, hand.Position)
+	
+	hand.ID = uuid.New().String()
+	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate)
+	if err != nil {
+		http.Error(w, "Database insert error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	// 返回完整的hand對象，包括新添加的欄位
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(hand)
 }
 
@@ -40,9 +55,14 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	hands := []models.Hand{}
 	for rows.Next() {
 		var h models.Hand
-		_ = rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate)
+		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate)
+		if err != nil {
+			http.Error(w, "Scan error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 		hands = append(hands, h)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(hands)
 }
 
@@ -52,10 +72,44 @@ func GetHand(w http.ResponseWriter, r *http.Request) {
 	var h models.Hand
 	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate)
 	if err != nil {
-		http.Error(w, "Hand not found", http.StatusNotFound)
+		http.Error(w, "Hand not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
+	
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(h)
+}
+
+func UpdateHand(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	var hand models.Hand
+	if err := json.NewDecoder(r.Body).Decode(&hand); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	
+	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, position = ?, details = ?, result = ?, date = ? WHERE id = ?`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	_, err = stmt.Exec(hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	// 返回更新後的手牌
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date FROM hands WHERE id = ?`, id)
+	var updatedHand models.Hand
+	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Position, &updatedHand.Details, &updatedHand.Result, &updatedHand.Date, &updatedHand.Analysis, &updatedHand.AnalysisDate)
+	if err != nil {
+		http.Error(w, "Failed to retrieve updated hand", http.StatusInternalServerError)
+		return
+	}
+	
+	json.NewEncoder(w).Encode(updatedHand)
 }
 
 func DeleteHand(w http.ResponseWriter, r *http.Request) {

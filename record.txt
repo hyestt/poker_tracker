@@ -198,6 +198,69 @@ Summary of 404 error debugging and resolution:
 2. 解決步驟：
    - 發現舊進程佔用端口8080，使用lsof -ti:8080找到並kill
    - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
+
+Date: 2025-06-08 13:00:00
+User Query: 新增一個edit button
+Summary of edit button implementation:
+1. 前端修改：
+   - 在App.tsx中添加EditHandScreen到navigation stack
+   - 為HistoryScreen創建HistoryStack以支援navigation
+   - 在HomeScreen和HistoryScreen添加Edit按鈕
+   - 添加相應的按鈕樣式（editButton, editButtonText, buttonGroup）
+
+2. 後端API擴展：
+   - 在handlers/hand.go中添加UpdateHand函數
+   - 在routes/routes.go中添加PUT方法支援/hand路由
+   - 支援通過/hand?id=xxx進行GET和PUT操作
+
+3. 前端Store更新：
+   - 在sessionStore.ts中添加getHand和updateHand函數
+   - 修正API調用路徑為/hand?id=xxx格式
+
+4. 資料庫結構修復：
+   - 發現hands表缺少hole_cards和position欄位
+   - 使用ALTER TABLE添加缺失欄位：
+     - ALTER TABLE hands ADD COLUMN hole_cards TEXT;
+     - ALTER TABLE hands ADD COLUMN position TEXT;
+
+5. 功能特色：
+   - Edit按鈕顯示在HomeScreen和HistoryScreen的每個手牌記錄旁
+   - 點擊Edit按鈕導航到EditHandScreen
+   - EditHandScreen能正確載入並顯示之前輸入的值
+   - 支援編輯hole cards, position, details, result
+   - 更新後自動返回上一頁並刷新數據
+
+Date: 2025-06-08 13:30:00
+User Query: 將home做成類似截圖的格式，要可以filter當前手牌
+Summary of HomeScreen redesign:
+1. 全新UI設計：
+   - 模仿截圖設計，包含header、Record New Hand按鈕、filter功能
+   - 撲克牌圖示顯示（支援4種花色，紅心♥、方塊♦、梅花♣、黑桃♠）
+   - 時間顯示（minutes ago, hours ago, days ago格式）
+   - BB（大盲）金額計算和顯示
+
+2. Filter和Sort功能：
+   - 新增filter選項：All Hands, Recent, Profitable, Losses
+   - Sort選項：Date, Amount, Location
+   - 動態篩選和排序手牌記錄
+
+3. EditSessionScreen實現：
+   - 創建EditSessionScreen用於編輯session設定
+   - 添加getSession和updateSession API函數
+   - 後端UpdateSession handler和路由支援
+   - 能載入並編輯現有session的所有欄位
+
+4. 撲克牌視覺化：
+   - 解析hole cards格式（如AcKc, 7dAs）
+   - 渲染小型撲克牌圖示
+   - 紅色（紅心♥、方塊♦）vs 黑色（梅花♣、黑桃♠）花色區分
+   - 顯示牌面和位置信息
+
+5. 改善的手牌顯示：
+   - 左側：撲克牌圖示
+   - 中間：手牌描述和時間
+   - 右側：金額和BB數據
+   - 觸控編輯功能整合
    - 移除重複的路由註冊避免衝突
    - 更新main.go使用log.Fatal來顯示服務器錯誤
 
@@ -669,5 +732,166 @@ Summary of UI improvements:
 - 更好的用戶體驗（自動確認）
 - 一致的英文界面
 - 符合Apple設計標準的間距和字體
+
+---
+
+Date: 2025-01-27 22:55:00
+User Query: 點擊filter以後還是沒有出現其他的選項
+Summary of fixes:
+1. 問題診斷：
+   - 用戶回報點擊 Filter 按鈕後沒有出現選項的問題
+   - 發現 HomeScreen 中有兩套 filter 系統：Basic Filter (Alert) 和 Session Filter (Modal)
+   - 確認後端 API 正常運行，有豐富的 sessions 和 hands 資料
+
+2. 修復步驟：
+   - 改善 Session Filter Modal 的實現，增加 presentationStyle="overFullScreen"
+   - 將 Modal 的 overlay 和 content 改為 TouchableOpacity，支援點擊外部關閉
+   - 增加陰影效果和最小高度，提升視覺效果
+   - 為空資料狀態添加友好提示訊息
+   - 修復 JSX 標籤關閉問題
+
+3. 技術改進：
+   - 使用 TouchableOpacity 包裝 Modal 內容，支援事件傳播控制
+   - 添加 shadowColor, shadowOffset, shadowOpacity, shadowRadius 提升 UI
+   - 為每個 filter 區塊添加空狀態處理
+   - 確保 Modal 在所有情況下都能正確顯示和關閉
+
+4. 測試結果：
+   - ✅ 後端 API 正常運行 (PID 76690)
+   - ✅ Sessions API 返回豐富資料 (17+ sessions)
+   - ✅ Hands API 正常工作
+   - ✅ Filter Modal 現在應該能正確顯示選項
+   - ✅ 支援 Location, Blinds, Session Date 三種過濾方式
+
+5. Filter 功能說明：
+   - Basic Filter: 左側 "All Hands" 按鈕，使用 Alert 顯示 All/Recent/Profitable/Losses 選項
+   - Session Filter: 右側 "🎯 Filter" 按鈕，使用 Modal 顯示 Location/Blinds/Date 過濾選項
+   - Date Range Filter: 中間 "📅 Date" 按鈕，用於設定日期範圍
+   - 所有 filter 可以組合使用，提供靈活的資料篩選
+
+功能狀態：✅ Filter 功能已修復，Modal 應該能正確顯示所有可用的過濾選項
+
+6. 進一步改進 - 下拉式選單設計：
+   - 根據用戶回饋，將 Modal 改為更直觀的下拉式選單
+   - 使用 Apple 風格的下拉選單設計，支援多選和清除功能
+   - 添加旋轉箭頭動畫，提升用戶體驗
+   - 支援點擊外部自動關閉下拉選單
+   - 添加 ScrollView 支援大量選項的滾動
+   - 使用 checkmark (✓) 標示已選擇的選項
+   - 改善視覺層次和陰影效果
+
+7. 新的 Filter UI 特色：
+   - 下拉式選單：點擊 "🎯 Filter" 按鈕展開選項
+   - 分類顯示：Location 和 Blinds 分別顯示
+   - 多選支援：可以同時選擇多個過濾條件
+   - 視覺回饋：選中項目有背景色和 checkmark
+   - 一鍵清除：Clear All 按鈕快速重置所有過濾
+   - 自動關閉：點擊外部或滾動列表時自動關閉
+
+功能狀態：✅ Filter 功能已升級為 Apple 風格的下拉式選單，提供更好的用戶體驗
+
+8. 最終優化 - 整合 Date 到 Filter：
+   - 根據用戶要求，將 Date 選項整合到 Filter 下拉選單中
+   - 移除獨立的 Date 按鈕，簡化 UI 界面
+   - 現在 Filter 下拉選單包含：Location、Blinds、Session Date 三個分類
+   - 移除了複雜的 dateRange 功能，改用簡單的 session date 過濾
+   - 清理了不再需要的函數：showDateRangePicker, showSessionFilter, showLocationFilter 等
+   - 統一所有過濾功能到一個下拉選單中
+
+9. 最終 Filter 功能特色：
+   - 單一入口：只有一個 "🎯 Filter" 按鈕
+   - 三種過濾：Location、Blinds、Session Date
+   - 點擊展開：只有點擊後才顯示選項
+   - 多選支援：可同時選擇多個條件
+   - 視覺回饋：選中項目有 checkmark 和背景色
+   - 一鍵清除：Clear All 快速重置
+   - 狀態顯示：有選擇時按鈕顯示 "🎯 Active"
+
+功能狀態：✅ Filter 功能已完全整合，提供簡潔統一的過濾體驗
+
+10. 最終實現 - iOS 風格模態框：
+    - 根據用戶截圖要求，重新實現為 iOS 原生風格的模態框
+    - 使用底部滑出的 Modal，符合 iOS 設計規範
+    - 添加 "Session Filter" 標題和 "Clear All" / "Apply" 按鈕
+    - 使用臨時狀態 (tempSessionFilter) 實現預覽功能
+    - 只有點擊 Apply 才會真正應用過濾條件
+    - 支援 Location、Blinds、Session Date 三種過濾選項
+    - 每個選項都有 checkmark 視覺回饋
+
+11. iOS 風格特色：
+    - 底部滑出動畫：animationType="slide"
+    - 半透明背景：rgba(0, 0, 0, 0.5)
+    - 圓角頂部：borderTopLeftRadius, borderTopRightRadius
+    - 陰影效果：shadowColor, shadowOffset, shadowOpacity
+    - 雙按鈕設計：Clear All (灰色邊框) + Apply (藍色背景)
+    - 滾動內容：ScrollView 支援大量選項
+    - 預覽模式：修改不會立即生效，需點擊 Apply
+
+功能狀態：✅ Filter 功能已完成，提供完整的 iOS 原生體驗
+
+12. UI 優化 - 增加模態框高度：
+    - 根據用戶要求，將 Session Filter 模態框高度從 80% 增加到 85%
+    - 移除 maxHeight 和 minHeight 限制，使用固定的 height: '85%'
+    - 增加 filter option 的 padding 和 minHeight (50px)，提升觸控體驗
+    - 增加 filter section 之間的間距 (xl spacing)
+    - 增加 Clear All 和 Apply 按鈕的高度 (minHeight: 50px)
+    - 添加 modalContent 的 paddingVertical，讓內容更舒展
+
+13. 最終 UI 特色：
+    - 大型模態框：佔據 85% 螢幕高度
+    - 舒適間距：所有元素都有充足的空間
+    - 易於觸控：按鈕和選項都有 50px 最小高度
+    - 清晰分層：section 之間有明顯的間距區分
+    - 專業外觀：符合 iOS Human Interface Guidelines
+
+功能狀態：✅ Filter 功能 UI 已優化，提供更好的用戶體驗和視覺效果
+
+14. 順序調整 - Session Date 優先：
+    - 根據用戶要求，將 Session Date 移到 Session Filter 的第一個位置
+    - 新的順序：Session Date → Location → Blinds
+    - 這樣的排序更符合用戶的使用習慣，日期通常是最重要的過濾條件
+    - 保持所有功能不變，只是重新排列顯示順序
+
+15. 最終 Filter 順序：
+    1. Session Date：按照 session 的日期過濾
+    2. Location：按照遊戲地點過濾 (Live Casino, Online, Home Game 等)
+    3. Blinds：按照盲注大小過濾 (1/2, 25/50 等)
+
+功能狀態：✅ Filter 功能已完成，順序已優化為用戶偏好的排列
+
+Date: 2025-01-27 15:00:00
+User Query: 幫我把filter的介面改成點擊以後才出現的dropdown menu
+Summary of dropdown filter implementation:
+1. 移除 Alert.alert 彈窗過濾選項：
+   - 移除 showFilterOptions 中的 Alert.alert 實現
+   - 改為切換 dropdown 狀態的函數
+
+2. 實現 iOS 風格的 dropdown menu：
+   - 新增 showFilterDropdown state 控制顯示/隱藏
+   - 新增 filterDropdownContainer 提供相對定位
+   - 新增 filterDropdown 樣式：絕對定位、陰影效果、圓角
+   - 新增 filterDropdownItem 樣式：適當的 padding、邊框分隔
+   - 新增選中狀態樣式：背景色、文字色、checkmark
+
+3. Apple iOS 設計標準特色：
+   - 箭頭旋轉動畫：點擊時 ▼ 轉為 ▲
+   - 陰影效果：shadowColor、shadowOffset、shadowOpacity
+   - 圓角設計：borderRadius 使用 theme.radius.card
+   - 選中視覺回饋：藍色背景、白色文字、✓ checkmark
+   - 適當間距：使用 theme.spacing 統一間距
+
+4. 技術實現：
+   - 使用 position: 'absolute' 實現覆蓋效果
+   - 使用 zIndex 確保正確的層級關係
+   - 移除 CSS transition（React Native 不支援）
+   - 修正重複的樣式名稱衝突（filterSection → filterButton）
+
+5. 用戶體驗：
+   - 點擊按鈕展開/收合選項
+   - 選擇選項後自動關閉 dropdown
+   - 清楚的選中狀態標示
+   - 流暢的互動體驗
+
+功能狀態：✅ Filter 介面已改為點擊展開的 dropdown menu，符合 Apple iOS 設計標準
 
 ---

@@ -16,6 +16,10 @@ interface State {
   analyzeHand: (id: string) => Promise<string>;
   fetchStats: () => Promise<void>;
   getHandsBySession: (sessionId: string) => Hand[];
+  getHand: (id: string) => Promise<Hand>;
+  updateHand: (hand: Hand) => Promise<void>;
+  getSession: (id: string) => Promise<Session>;
+  updateSession: (session: Session) => Promise<void>;
 }
 
 export const useSessionStore = create<State>((set, get) => ({
@@ -91,4 +95,38 @@ export const useSessionStore = create<State>((set, get) => ({
     set({ stats: data });
   },
   getHandsBySession: (sessionId: string) => get().hands.filter((h: Hand) => h.sessionId === sessionId),
+  getHand: async (id: string): Promise<Hand> => {
+    const res = await fetch(`${API_URL}/hand?id=${id}`);
+    if (!res.ok) {
+      throw new Error('Hand not found');
+    }
+    const data = await res.json();
+    return data;
+  },
+  updateHand: async (hand: Hand) => {
+    await fetch(`${API_URL}/hand?id=${hand.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hand),
+    });
+    await get().fetchHands();
+    await get().fetchStats();
+  },
+  getSession: async (id: string): Promise<Session> => {
+    const res = await fetch(`${API_URL}/session?id=${id}`);
+    if (!res.ok) {
+      throw new Error('Session not found');
+    }
+    const data = await res.json();
+    return data;
+  },
+  updateSession: async (session: Session) => {
+    await fetch(`${API_URL}/session?id=${session.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(session),
+    });
+    await get().fetchSessions();
+    await get().fetchStats();
+  },
 })); 

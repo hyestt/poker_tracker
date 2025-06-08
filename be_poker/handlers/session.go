@@ -44,6 +44,38 @@ func GetSession(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(s)
 }
 
+func UpdateSession(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	var session models.Session
+	if err := json.NewDecoder(r.Body).Decode(&session); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	
+	stmt, err := db.DB.Prepare(`UPDATE sessions SET location = ?, date = ?, small_blind = ?, big_blind = ?, currency = ?, effective_stack = ?, table_size = ? WHERE id = ?`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	_, err = stmt.Exec(session.Location, session.Date, session.SmallBlind, session.BigBlind, session.Currency, session.EffectiveStack, session.TableSize, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	// 返回更新後的session
+	row := db.DB.QueryRow(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6) FROM sessions WHERE id = ?`, id)
+	var updatedSession models.Session
+	err = row.Scan(&updatedSession.ID, &updatedSession.Location, &updatedSession.Date, &updatedSession.SmallBlind, &updatedSession.BigBlind, &updatedSession.Currency, &updatedSession.EffectiveStack, &updatedSession.TableSize)
+	if err != nil {
+		http.Error(w, "Failed to retrieve updated session", http.StatusInternalServerError)
+		return
+	}
+	
+	json.NewEncoder(w).Encode(updatedSession)
+}
+
 func DeleteSession(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	_, err := db.DB.Exec(`DELETE FROM sessions WHERE id = ?`, id)

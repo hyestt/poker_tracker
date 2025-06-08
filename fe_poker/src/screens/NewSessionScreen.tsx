@@ -33,6 +33,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
     setCurrency(prefs.lastCurrency || '🇺🇸 USD');
     setTableSize(prefs.lastTableSize || '6');
     setBlinds(prefs.lastBlinds || '1/2');
+    setEffectiveStack('100'); // Set default value to 100
     
     // Set current date and time as default
     const now = new Date();
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   fieldTitle: {
-    fontSize: theme.font.size.subtitle,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
     flex: 0.3,

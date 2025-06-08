@@ -14,8 +14,8 @@ type Session struct {
 type Hand struct {
 	ID           string `json:"id"`
 	SessionID    string `json:"sessionId"`
-	HoleCards    string `json:"holeCards,omitempty"`    // 手牌
-	Position     string `json:"position,omitempty"`     // 位置
+	HoleCards    string `json:"holeCards"`    // 手牌
+	Position     string `json:"position"`     // 位置
 	Details      string `json:"details"`
 	Result       int    `json:"result"`
 	Date         string `json:"date"`

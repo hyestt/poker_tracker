@@ -208,7 +208,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                     style={styles.addCustomButton}
                     onPress={() => setShowCustomInput(true)}
                   >
-                    <Text style={styles.addCustomText}>+ 新增自訂選項</Text>
+                    <Text style={styles.addCustomText}>+ Add Custom Option</Text>
                   </TouchableOpacity>
                 ) : (
                   <View style={styles.customInputContainer}>
@@ -216,7 +216,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                       style={styles.customInput}
                       value={customValue}
                       onChangeText={setCustomValue}
-                      placeholder="輸入自訂選項"
+                      placeholder="Enter custom option"
                       autoFocus
                     />
                     <View style={styles.customButtonsRow}>
@@ -227,13 +227,13 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                           setCustomValue('');
                         }}
                       >
-                        <Text style={styles.cancelText}>取消</Text>
+                        <Text style={styles.cancelText}>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.customButton, styles.addButton]}
                         onPress={handleAddCustom}
                       >
-                        <Text style={styles.addText}>新增</Text>
+                        <Text style={styles.addText}>Add</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   titleText: {
-    fontSize: theme.font.size.small,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
     flex: 0.3,
@@ -271,12 +271,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     borderRadius: theme.radius.input,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.spacing.xs,
-    minHeight: 40,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    minHeight: 48,
   },
   pickerText: {
-    fontSize: theme.font.size.small,
+    fontSize: theme.font.size.body,
     color: theme.colors.text,
     flex: 1,
   },
@@ -284,9 +284,9 @@ const styles = StyleSheet.create({
     color: theme.colors.gray,
   },
   arrow: {
-    fontSize: 12,
+    fontSize: 16,
     color: theme.colors.gray,
-    marginLeft: theme.spacing.xs,
+    marginLeft: theme.spacing.sm,
   },
   overlay: {
     flex: 1,

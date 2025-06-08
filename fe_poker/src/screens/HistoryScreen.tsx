@@ -10,7 +10,7 @@ const sortOptions = [
   { key: 'location', label: 'Location' },
 ];
 
-export const HistoryScreen: React.FC = () => {
+export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { hands, sessions, fetchHands, fetchSessions, deleteHand } = useSessionStore();
   const [sortKey, setSortKey] = useState('date');
 
@@ -68,9 +68,14 @@ export const HistoryScreen: React.FC = () => {
                 <Text style={styles.date}>{session?.location} / {hand.date.slice(0, 16)}</Text>
               </View>
               <Text style={styles.detail}>{hand.details}</Text>
-              <TouchableOpacity onPress={() => handleDelete(hand.id)} style={styles.deleteButton}>
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
+              <View style={styles.buttonGroup}>
+                <TouchableOpacity onPress={() => navigation.navigate('EditHand', { handId: hand.id })} style={styles.editButton}>
+                  <Text style={styles.editButtonText}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDelete(hand.id)} style={styles.deleteButton}>
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
             </Card>
           );
         })}
@@ -128,14 +133,35 @@ const styles = StyleSheet.create({
     marginVertical: theme.spacing.md,
   },
   deleteButton: {
-    marginTop: theme.spacing.sm,
     padding: theme.spacing.xs,
     backgroundColor: theme.colors.loss,
     borderRadius: theme.radius.button,
-    alignSelf: 'flex-end',
+    minWidth: 60,
+    alignItems: 'center',
   },
   deleteButtonText: {
     color: '#fff',
     fontSize: theme.font.size.small,
+    fontWeight: 'bold',
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
+  },
+  editButton: {
+    padding: theme.spacing.xs,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.button,
+    minWidth: 60,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  editButtonText: {
+    color: theme.colors.primary,
+    fontSize: theme.font.size.small,
+    fontWeight: 'bold',
   },
 }); 

@@ -17,7 +17,14 @@ func RegisterRoutes() {
 		}
 	})
 
-	http.HandleFunc("/session", handlers.GetSession)
+	http.HandleFunc("/session", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handlers.GetSession(w, r)
+		case http.MethodPut:
+			handlers.UpdateSession(w, r)
+		}
+	})
 
 	http.HandleFunc("/hands", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -30,7 +37,14 @@ func RegisterRoutes() {
 		}
 	})
 
-	http.HandleFunc("/hand", handlers.GetHand)
+	http.HandleFunc("/hand", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handlers.GetHand(w, r)
+		case http.MethodPut:
+			handlers.UpdateHand(w, r)
+		}
+	})
 
 	// 測試路由
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
