@@ -30,7 +30,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
     
     // Set default values from last choices or defaults
     setLocation(prefs.lastLocation || '');
-    setCurrency(prefs.lastCurrency || 'USD ($)');
+    setCurrency(prefs.lastCurrency || '🇺🇸 USD');
     setTableSize(prefs.lastTableSize || '6');
     setBlinds(prefs.lastBlinds || '1/2');
     
@@ -106,15 +106,13 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   if (!preferences) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>載入中...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>New Session Setup</Text>
-      
       <Card style={styles.section}>
         <CustomPicker
           title="Location"
@@ -122,7 +120,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           value={location}
           onValueChange={setLocation}
           onOptionsChange={updateLocationOptions}
-          placeholder="選擇地點"
+          placeholder="Select location"
         />
       </Card>
 
@@ -141,9 +139,8 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           value={blinds}
           onValueChange={setBlinds}
           onOptionsChange={updateBlindsOptions}
-          placeholder="選擇盲注 (e.g. 1/2)"
+          placeholder="Select blinds (e.g. 1/2)"
         />
-        <Text style={styles.helperText}>格式：小盲注/大盲注 (例如: 1/2, 0.5/1)</Text>
       </Card>
 
       <Card style={styles.section}>
@@ -153,7 +150,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           value={currency}
           onValueChange={setCurrency}
           onOptionsChange={updateCurrencyOptions}
-          placeholder="選擇貨幣"
+          placeholder="Select currency"
         />
       </Card>
 
@@ -170,7 +167,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             const sizesOnly = newOptions.map(option => option.replace(' Players', ''));
             updateTableSizeOptions(sizesOnly);
           }}
-          placeholder="選擇桌子大小"
+          placeholder="Select table size"
         />
       </Card>
 
@@ -181,7 +178,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             <Input 
               value={effectiveStack} 
               onChangeText={setEffectiveStack} 
-              placeholder="起始籌碼數量" 
+              placeholder="Starting stack amount" 
               keyboardType="numeric" 
             />
           </View>
@@ -199,7 +196,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    padding: theme.spacing.md,
+    padding: theme.spacing.sm,
   },
   loadingContainer: {
     flex: 1,
@@ -211,16 +208,9 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     color: theme.colors.text,
   },
-  title: {
-    fontSize: theme.font.size.title,
-    fontWeight: '700',
-    marginBottom: theme.spacing.lg,
-    color: theme.colors.primary,
-    textAlign: 'center',
-  },
   section: {
-    marginBottom: theme.spacing.md,
-    padding: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+    padding: theme.spacing.sm,
   },
   horizontalContainer: {
     flexDirection: 'row',
@@ -243,7 +233,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   buttonContainer: {
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
 }); 

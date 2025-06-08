@@ -35,30 +35,29 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Record Hand</Text>
-      
+    <View style={styles.container}>      
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.topSection}>
-          <View style={styles.fieldRow}>
-            <PokerCardPicker
-              title="Hole Cards"
-              value={holeCards}
-              onValueChange={setHoleCards}
-            />
-          </View>
-
-          <View style={styles.fieldRow}>
-            <CustomPicker
-              title="Position"
-              options={positions}
-              value={position}
-              onValueChange={setPosition}
-              onOptionsChange={() => {}} // Position options are fixed
-              placeholder="選擇位置"
-              allowCustom={false}
-              allowDelete={false}
-            />
+          <View style={styles.horizontalRow}>
+            <View style={styles.halfField}>
+              <PokerCardPicker
+                title="Hole Cards"
+                value={holeCards}
+                onValueChange={setHoleCards}
+              />
+            </View>
+            <View style={styles.halfField}>
+              <CustomPicker
+                title="Position"
+                options={positions}
+                value={position}
+                onValueChange={setPosition}
+                onOptionsChange={() => {}} // Position options are fixed
+                placeholder="Select position"
+                allowCustom={false}
+                allowDelete={false}
+              />
+            </View>
           </View>
 
           <View style={styles.fieldColumn}>
@@ -98,14 +97,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    padding: theme.spacing.md,
-  },
-  title: {
-    fontSize: theme.font.size.title,
-    fontWeight: '700',
-    marginBottom: theme.spacing.md,
-    color: theme.colors.primary,
-    textAlign: 'center',
+    padding: theme.spacing.xs,
   },
   scrollContainer: {
     flex: 1,
@@ -117,11 +109,16 @@ const styles = StyleSheet.create({
   topSection: {
     flex: 1,
   },
-  fieldRow: {
+  horizontalRow: {
+    flexDirection: 'row',
+    marginBottom: theme.spacing.xs,
+    gap: theme.spacing.xs,
+  },
+  halfField: {
+    flex: 1,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+    padding: theme.spacing.xs,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -131,8 +128,8 @@ const styles = StyleSheet.create({
   fieldColumn: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
+    padding: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -148,7 +145,7 @@ const styles = StyleSheet.create({
   detailsInput: {
     backgroundColor: theme.colors.inputBg,
     borderRadius: theme.radius.input,
-    padding: theme.spacing.md,
+    padding: theme.spacing.xs,
     fontSize: theme.font.size.body,
     color: theme.colors.text,
     minHeight: 200,
@@ -158,12 +155,12 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
-    minHeight: theme.spacing.lg,
+    minHeight: theme.spacing.sm,
   },
   bottomSection: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
-    padding: theme.spacing.md,
+    padding: theme.spacing.xs,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -171,9 +168,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   resultInput: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
   },
   saveButton: {
-    marginTop: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
   },
 }); 

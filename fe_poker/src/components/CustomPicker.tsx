@@ -34,12 +34,12 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
 
   const handleDeleteOption = (optionToDelete: string) => {
     Alert.alert(
-      '刪除選項',
-      `確定要刪除「${optionToDelete}」嗎？`,
+      'Delete Option',
+      `Are you sure you want to delete "${optionToDelete}"?`,
       [
-        { text: '取消', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: '刪除',
+          text: 'Delete',
           style: 'destructive',
           onPress: () => {
             const newOptions = options.filter(option => option !== optionToDelete);
@@ -63,9 +63,9 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
       setShowCustomInput(false);
       setIsVisible(false);
     } else if (options.includes(customValue.trim())) {
-      Alert.alert('錯誤', '此選項已存在');
+      Alert.alert('Error', 'This option already exists');
     } else {
-      Alert.alert('錯誤', '請輸入有效的選項');
+      Alert.alert('Error', 'Please enter a valid option');
     }
   };
 
@@ -120,7 +120,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
             onPress={() => setIsVisible(false)}
           >
             <View style={styles.modal}>
-              <Text style={styles.modalTitle}>選擇 {title}</Text>
+              <Text style={styles.modalTitle}>Select {title}</Text>
               
               <FlatList
                 data={options}
@@ -137,7 +137,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                       style={styles.addCustomButton}
                       onPress={() => setShowCustomInput(true)}
                     >
-                      <Text style={styles.addCustomText}>+ 新增自訂選項</Text>
+                      <Text style={styles.addCustomText}>+ Add Custom Option</Text>
                     </TouchableOpacity>
                   ) : (
                     <View style={styles.customInputContainer}>
@@ -145,7 +145,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                         style={styles.customInput}
                         value={customValue}
                         onChangeText={setCustomValue}
-                        placeholder="輸入自訂選項"
+                        placeholder="Enter custom option"
                         autoFocus
                       />
                       <View style={styles.customButtonsRow}>
@@ -156,13 +156,13 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                             setCustomValue('');
                           }}
                         >
-                          <Text style={styles.cancelText}>取消</Text>
+                          <Text style={styles.cancelText}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={[styles.customButton, styles.addButton]}
                           onPress={handleAddCustom}
                         >
-                          <Text style={styles.addText}>新增</Text>
+                          <Text style={styles.addText}>Add</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -191,7 +191,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
           onPress={() => setIsVisible(false)}
         >
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>選擇選項</Text>
+            <Text style={styles.modalTitle}>Select Option</Text>
             
             <FlatList
               data={options}
@@ -252,10 +252,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
   },
   titleText: {
-    fontSize: theme.font.size.subtitle,
+    fontSize: theme.font.size.small,
     fontWeight: '600',
     color: theme.colors.text,
     flex: 0.3,
@@ -267,16 +267,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: theme.colors.card,
+    backgroundColor: theme.colors.inputBg,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.input,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    minHeight: 48,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    minHeight: 40,
   },
   pickerText: {
-    fontSize: theme.font.size.body,
+    fontSize: theme.font.size.small,
     color: theme.colors.text,
     flex: 1,
   },
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   arrow: {
     fontSize: 12,
     color: theme.colors.gray,
-    marginLeft: theme.spacing.sm,
+    marginLeft: theme.spacing.xs,
   },
   overlay: {
     flex: 1,
@@ -297,15 +297,15 @@ const styles = StyleSheet.create({
   modal: {
     backgroundColor: 'white',
     borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
+    padding: theme.spacing.md,
     margin: theme.spacing.lg,
     maxHeight: '70%',
     minWidth: '80%',
   },
   modalTitle: {
-    fontSize: theme.font.size.subtitle,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
     textAlign: 'center',
     color: theme.colors.text,
   },
@@ -315,19 +315,23 @@ const styles = StyleSheet.create({
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 2,
+    marginBottom: theme.spacing.xs,
   },
   option: {
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.radius.button,
     flex: 1,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.input,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   selectedOption: {
     backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   optionText: {
-    fontSize: theme.font.size.body,
+    fontSize: theme.font.size.small,
     color: theme.colors.text,
   },
   selectedOptionText: {
@@ -335,58 +339,53 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   deleteButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
     marginLeft: theme.spacing.xs,
+    padding: theme.spacing.xs,
   },
   deleteText: {
     fontSize: 16,
   },
   customSection: {
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray,
-    paddingTop: theme.spacing.md,
+    borderTopColor: theme.colors.border,
+    paddingTop: theme.spacing.sm,
   },
   addCustomButton: {
-    backgroundColor: theme.colors.card,
-    borderWidth: 1,
-    borderColor: theme.colors.primary,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.button,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
     alignItems: 'center',
   },
   addCustomText: {
-    color: theme.colors.primary,
-    fontSize: theme.font.size.body,
+    color: 'white',
+    fontSize: theme.font.size.small,
     fontWeight: '600',
   },
   customInputContainer: {
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   customInput: {
-    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: theme.colors.gray,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.input,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    fontSize: theme.font.size.body,
-    color: theme.colors.text,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    fontSize: theme.font.size.small,
   },
   customButtonsRow: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   customButton: {
     flex: 1,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
     borderRadius: theme.radius.button,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: theme.colors.gray,
+    borderColor: theme.colors.border,
   },
   addButton: {
     backgroundColor: theme.colors.primary,
@@ -394,11 +393,11 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: theme.colors.gray,
-    fontSize: theme.font.size.body,
+    fontSize: theme.font.size.small,
   },
   addText: {
     color: 'white',
-    fontSize: theme.font.size.body,
+    fontSize: theme.font.size.small,
     fontWeight: '600',
   },
 }); 

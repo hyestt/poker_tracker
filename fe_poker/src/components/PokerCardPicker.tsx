@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native';
 import { theme } from '../theme';
 
@@ -49,6 +49,15 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
     }
     
     setSelectedCards(newSelectedCards);
+    
+    // Auto confirm when 2 cards are selected
+    if (newSelectedCards.length === 2) {
+      setTimeout(() => {
+        const holeCards = newSelectedCards.join(' ');
+        onValueChange(holeCards);
+        setIsVisible(false);
+      }, 200);
+    }
   };
 
   const handleConfirm = () => {
@@ -100,10 +109,9 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
         </View>
       ) : (
         <Text style={[styles.pickerText, styles.placeholderText]}>
-          選擇手牌
+          Select Cards
         </Text>
       )}
-      <Text style={styles.arrow}>🃏</Text>
     </TouchableOpacity>
   );
 
@@ -125,9 +133,9 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
         >
           <View style={styles.overlay}>
             <View style={styles.modal}>
-              <Text style={styles.modalTitle}>選擇手牌 (最多2張)</Text>
+              <Text style={styles.modalTitle}>Select Hole Cards (max 2)</Text>
               <Text style={styles.selectedInfo}>
-                已選擇: {selectedCards.length}/2
+                Selected: {selectedCards.length}/2
               </Text>
 
               <FlatList
@@ -141,13 +149,13 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
 
               <View style={styles.buttonRow}>
                 <TouchableOpacity style={styles.button} onPress={handleCancel}>
-                  <Text style={styles.cancelButtonText}>取消</Text>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.button, styles.confirmButton]} 
                   onPress={handleConfirm}
                 >
-                  <Text style={styles.confirmButtonText}>確認</Text>
+                  <Text style={styles.confirmButtonText}>Confirm</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -169,9 +177,9 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
       >
         <View style={styles.overlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>選擇手牌 (最多2張)</Text>
+            <Text style={styles.modalTitle}>Select Hole Cards (max 2)</Text>
             <Text style={styles.selectedInfo}>
-              已選擇: {selectedCards.length}/2
+              Selected: {selectedCards.length}/2
             </Text>
 
             <FlatList
@@ -185,13 +193,13 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
 
             <View style={styles.buttonRow}>
               <TouchableOpacity style={styles.button} onPress={handleCancel}>
-                <Text style={styles.cancelButtonText}>取消</Text>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.button, styles.confirmButton]} 
                 onPress={handleConfirm}
               >
-                <Text style={styles.confirmButtonText}>確認</Text>
+                <Text style={styles.confirmButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -206,10 +214,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
   },
   titleText: {
-    fontSize: theme.font.size.subtitle,
+    fontSize: theme.font.size.small,
     fontWeight: '600',
     color: theme.colors.text,
     flex: 0.3,
@@ -225,12 +233,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.gray,
     borderRadius: theme.radius.input,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    minHeight: 48,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    minHeight: 40,
   },
   pickerText: {
-    fontSize: theme.font.size.body,
+    fontSize: theme.font.size.small,
     color: theme.colors.text,
     flex: 1,
   },
@@ -252,10 +260,6 @@ const styles = StyleSheet.create({
   miniCardText: {
     fontSize: 12,
     fontWeight: '600',
-  },
-  arrow: {
-    fontSize: 16,
-    marginLeft: theme.spacing.sm,
   },
   overlay: {
     flex: 1,

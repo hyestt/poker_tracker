@@ -15,11 +15,11 @@ const PREFERENCES_KEY = 'user_preferences';
 
 const defaultPreferences: UserPreferences = {
   lastLocation: '',
-  lastCurrency: 'USD ($)',
+  lastCurrency: '🇺🇸 USD',
   lastTableSize: '6',
   lastBlinds: '1/2',
   customLocations: ['Live Casino', 'Home Game', 'Online', 'Club'],
-  customCurrencies: ['USD ($)', 'EUR (€)', 'GBP (£)', 'JPY (¥)', 'CNY (¥)'],
+  customCurrencies: ['🇺🇸 USD', '🇪🇺 EUR', '🇬🇧 GBP', '🇯🇵 JPY', '🇨🇳 CNY'],
   customTableSizes: ['2', '4', '6', '8', '9', '10'],
   customBlinds: ['0.5/1', '1/2', '1/3', '2/5', '5/10', '10/20', '25/50'],
 };

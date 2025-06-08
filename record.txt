@@ -643,3 +643,31 @@ Summary of improvements:
 - 提高資料一致性：標準化的選項格式
 
 ---
+
+Date: 2025-01-27 11:00:00
+User Query: 1. 將hole card跟position這兩個選項並排成一行 2. 移除Record Hand上方的藍色標題 3. 將所有的padding都改小
+Summary of UI improvements:
+1. RecordHandScreen布局優化：
+   - 移除"Record Hand"藍色標題
+   - 將Hole Cards和Position並排在同一行
+   - 減少所有padding從md(16px)改為xs(4px)
+   - 縮小字體大小
+   
+2. PokerCardPicker組件改進：
+   - 選擇第二張牌後自動確認並關閉選擇器
+   - 移除箭頭圖標
+   - 將所有中文改為英文
+   - 縮小字體和間距
+   
+3. CustomPicker組件優化：
+   - 縮小字體和padding
+   - 改善視覺設計
+   - 統一樣式風格
+
+改進特色：
+- 更緊湊的UI設計
+- 更好的用戶體驗（自動確認）
+- 一致的英文界面
+- 符合Apple設計標準的間距和字體
+
+---
