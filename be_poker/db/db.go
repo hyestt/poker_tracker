@@ -35,6 +35,8 @@ func createTables() {
 	handTable := `CREATE TABLE IF NOT EXISTS hands (
 		id TEXT PRIMARY KEY,
 		session_id TEXT,
+		hole_cards TEXT,
+		position TEXT,
 		details TEXT,
 		result INTEGER,
 		date TEXT,

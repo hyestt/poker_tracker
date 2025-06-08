@@ -601,3 +601,45 @@ Summary of fixes:
 問題根因：專案缺少必要的第三方套件依賴，導致建置時找不到對應的原生模組檔案
 
 ---
+
+Date: 2025-01-27 11:30:00
+User Query: New Session Setup 介面全面改版為下拉式選單
+Summary of improvements:
+1. 創建自訂下拉式選單組件 (CustomPicker.tsx)：
+   - 支援模態對話框式選擇介面
+   - 內建 "Add Custom Option" 功能
+   - 美觀的 Apple Design 風格介面
+   - 支援搜尋和選擇功能
+
+2. 建立使用者偏好設定系統 (UserPreferences.ts)：
+   - 使用 AsyncStorage 儲存使用者上次選擇
+   - 支援自訂選項的永久儲存
+   - 智能預設值載入機制
+   - 分類儲存：location, currency, tableSize, blinds
+
+3. 重新設計 NewSessionScreen：
+   - 所有選項改為下拉式選單
+   - 整合盲注為單一欄位 (格式: "1/2")
+   - 自動載入上次選擇作為預設值
+   - 自動設定當前日期時間
+   - 支援每個欄位的自訂新增功能
+
+4. 主要功能特色：
+   - 記憶使用者偏好：所有選擇都會被記住並在下次使用
+   - 可擴展選項：使用者可以為每個欄位新增自訂選項
+   - 盲注合併：Small/Big blind 合併為 "1/2" 格式
+   - Apple 風格 UI：符合 iOS 設計規範的介面
+
+5. 技術實作：
+   - MVVM 架構設計
+   - TypeScript 完整型別支援
+   - AsyncStorage 本地資料持久化
+   - React Native Modal 和 FlatList 最佳化
+
+使用者體驗提升：
+- 減少重複輸入：記住上次選擇
+- 增加自訂彈性：可新增個人化選項
+- 簡化操作流程：下拉選單比按鈕群組更直觀
+- 提高資料一致性：標準化的選項格式
+
+---

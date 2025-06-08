@@ -15,8 +15,8 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 	var hand models.Hand
 	_ = json.NewDecoder(r.Body).Decode(&hand)
 	hand.ID = uuid.New().String()
-	stmt, _ := db.DB.Prepare(`INSERT INTO hands (id, session_id, details, result, date, analysis, analysis_date) VALUES (?, ?, ?, ?, ?, ?, ?)`)
-	_, err := stmt.Exec(hand.ID, hand.SessionID, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate)
+	stmt, _ := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	_, err := stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -29,9 +29,9 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 	var err error
 	if sessionId != "" {
-		rows, err = db.DB.Query(`SELECT id, session_id, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date FROM hands WHERE session_id = ?`, sessionId)
+		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date FROM hands WHERE session_id = ?`, sessionId)
 	} else {
-		rows, err = db.DB.Query(`SELECT id, session_id, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date FROM hands`)
+		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date FROM hands`)
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -40,7 +40,7 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	hands := []models.Hand{}
 	for rows.Next() {
 		var h models.Hand
-		_ = rows.Scan(&h.ID, &h.SessionID, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate)
+		_ = rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate)
 		hands = append(hands, h)
 	}
 	json.NewEncoder(w).Encode(hands)
@@ -48,9 +48,9 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 
 func GetHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, session_id, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date FROM hands WHERE id = ?`, id)
 	var h models.Hand
-	err := row.Scan(&h.ID, &h.SessionID, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate)
+	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate)
 	if err != nil {
 		http.Error(w, "Hand not found", http.StatusNotFound)
 		return
