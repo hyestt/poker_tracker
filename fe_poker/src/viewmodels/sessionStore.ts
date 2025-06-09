@@ -14,6 +14,7 @@ interface State {
   addHand: (hand: Hand) => Promise<void>;
   deleteHand: (id: string) => Promise<void>;
   analyzeHand: (id: string) => Promise<string>;
+  toggleFavorite: (id: string) => Promise<boolean>;
   fetchStats: () => Promise<void>;
   getHandsBySession: (sessionId: string) => Hand[];
   getHand: (id: string) => Promise<Hand>;
@@ -55,6 +56,8 @@ export const useSessionStore = create<State>((set, get) => ({
   fetchHands: async () => {
     const res = await fetch(`${API_URL}/hands`);
     const data = await res.json();
+    console.log('DEBUG: fetchHands data sample:', data.slice(0, 2));
+    console.log('DEBUG: First hand favorite type:', typeof data[0]?.favorite, 'value:', data[0]?.favorite);
     set({ hands: data });
   },
   addHand: async (hand: Hand) => {
@@ -128,5 +131,35 @@ export const useSessionStore = create<State>((set, get) => ({
     });
     await get().fetchSessions();
     await get().fetchStats();
+  },
+  toggleFavorite: async (id: string): Promise<boolean> => {
+    console.log(`Making request to: ${API_URL}/toggle-favorite`);
+    console.log(`Request payload:`, { handId: id });
+    
+    const response = await fetch(`${API_URL}/toggle-favorite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handId: id }),
+    });
+    
+    console.log(`Response status: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Response error: ${errorText}`);
+      throw new Error(`Failed to toggle favorite: ${response.status} ${errorText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Response data:', data);
+    console.log('Before fetchHands, current hands count:', get().hands.length);
+    await get().fetchHands(); // 重新獲取更新的數據
+    console.log('After fetchHands, updated hands count:', get().hands.length);
+    
+    // Debug: 檢查特定手牌的更新狀態
+    const updatedHand = get().hands.find(h => h.id === id);
+    console.log('Updated hand favorite status:', updatedHand?.favorite);
+    
+    return data.favorite;
   },
 })); 

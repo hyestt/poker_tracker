@@ -54,5 +54,8 @@ func RegisterRoutes() {
 	// 暫時註釋掉analyze路由
 	http.HandleFunc("/analyze", handlers.AnalyzeHand)
 
+	// 切換最愛狀態
+	http.HandleFunc("/toggle-favorite", handlers.ToggleFavorite)
+
 	http.HandleFunc("/stats", handlers.GetStats)
 } 

@@ -199,6 +199,188 @@ Summary of 404 error debugging and resolution:
    - 發現舊進程佔用端口8080，使用lsof -ti:8080找到並kill
    - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
 
+Date: 2025-01-27 11:00:00
+User Query: 幫我加上一個my favorate 功能
+Summary of My Favorites feature implementation:
+1. 資料庫擴展：
+   - 在hands表中新增favorite欄位(INTEGER DEFAULT 0)
+   - 使用ALTER TABLE添加新欄位
+
+2. 後端模型更新：
+   - models/models.go的Hand struct加入Favorite bool欄位
+   - 更新所有SQL查詢包含favorite欄位
+   - 新增ToggleFavorite API endpoint (/toggle-favorite)
+   - 支援切換最愛狀態的POST請求
+
+3. 前端功能實現：
+   - models.ts的Hand interface加入favorite?: boolean欄位
+   - sessionStore加入toggleFavorite函數
+   - HomeScreen加入最愛星號顯示和點擊切換功能
+   - 新增"My Favorites ⭐"篩選選項
+   - 星號顏色：已收藏為金色(#FFD700)，未收藏為灰色(#CCCCCC)
+
+4. UI/UX改進：
+   - 在手牌項目的position區域加入可點擊的星號按鈕
+   - 加入favoriteButton和favoriteIcon樣式
+   - 支援篩選顯示僅最愛的手牌記錄
+   - 錯誤處理：切換失敗時顯示錯誤提示
+
+5. 技術細節：
+   - 使用TouchableOpacity包裝星號實現點擊功能
+   - 後端返回新的最愛狀態確保前端同步
+   - 重新啟動後端服務器應用資料庫變更
+
+6. 問題修復：
+   - 修復點擊事件衝突：使用e.stopPropagation()防止事件冒泡被外層TouchableOpacity攔截
+   - 增加hitSlop擴大可點擊區域，改善用戶體驗
+   - 優化按鈕樣式：增加padding、設定minWidth/minHeight確保足夠的點擊區域
+   - 移除成功提示Alert，讓切換操作更流暢
+
+Date: 2025-01-27 11:00:00
+User Query: 幫我把prompte改成這個 - You are a professional GTO poker coach...
+Summary of GTO prompt implementation:
+1. 創建新的 GTO prompt：
+   - 新增 be_poker/prompts/gto_analysis.txt
+   - 專業 GTO poker coach 角色定位
+   - 分析四個街道：Preflop, Flop, Turn, River
+   - 每個街道包含行動頻率和兩種反饋訊息
+   - 嚴格 JSON 格式輸出
+
+2. 修改 prompt 管理器：
+   - 更新 be_poker/services/prompt_manager.go
+   - GetHandAnalysisPrompt 函數改用 gto_analysis.txt
+
+3. 優化 OpenAI 設定：
+   - 增加 MaxTokens 從 500 到 800 (支援 JSON 格式)
+   - 降低 Temperature 從 0.7 到 0.3 (提高一致性)
+   - 保持使用 GPT-4o-mini 模型
+
+功能特色：
+- GTO (Game Theory Optimal) 分析方法
+- 結構化 JSON 輸出格式
+- 四個街道詳細分析
+- 行動頻率百分比建議
+- 短/長兩種反饋格式
+
+Date: 2025-01-27 11:15:00
+User Query: 輸入的Club A and club J，但是顯示的是spade A, spade J - hole card顯示不一致
+Summary of hole cards display fix:
+1. 問題診斷：
+   - 資料庫中存在兩種格式：舊格式"AcKc"(字母) 和 新格式"A♠ Q♠"(符號)
+   - HomeScreen.tsx 中 renderCardIcons 函數只處理舊格式
+   - 新格式被錯誤解析，導致非 c/d/h 的花色都顯示為黑桃
+
+2. 修復方案：
+   - 更新 fe_poker/src/screens/HomeScreen.tsx 中的 renderCardIcons 函數
+   - 添加格式檢測邏輯：檢查是否包含花色符號
+   - 支援兼容兩種格式的解析
+   - 正確處理新格式的花色顏色判斷
+
+3. 邏輯改進：
+   - 新格式：直接分割空格，取最後一個字符為花色符號
+   - 舊格式：保持原有字母到符號的轉換邏輯
+   - 顏色判斷：紅色(♥♦) vs 黑色(♠♣)
+
+功能修復：
+- 解決輸入梅花顯示黑桃的問題
+- 向後兼容舊資料格式
+- 確保 hole cards 顯示一致性
+
+Date: 2025-01-27 11:30:00
+User Query: 這裡出現錯誤，出現了一個NaN Day Ago
+Summary of NaN date fix:
+1. 問題診斷：
+   - 資料庫中有記錄的 date 欄位為空值或 NULL
+   - getTimeAgo 函數沒有處理無效日期的情況
+   - new Date('') 返回 Invalid Date，導致後續計算產生 NaN
+
+2. 修復方案：
+   - 更新 fe_poker/src/screens/HomeScreen.tsx 中的 getTimeAgo 函數
+   - 添加空值和無效日期的檢查
+   - 返回友好的錯誤訊息："Unknown date" 或 "Invalid date"
+
+3. 資料庫修復：
+   - 執行 SQL 更新所有空白日期欄位
+   - 設定預設日期為 '2025-06-06T00:00:00.000Z'
+   - 確保所有手牌記錄都有有效的時間戳記
+
+功能改進：
+- 防止因無效日期導致的 UI 錯誤
+- 提供更好的錯誤處理和使用者體驗
+- 保證時間顯示的穩定性
+
+Date: 2025-01-27 11:35:00
+User Query: 只需要保留hole card picture, 但是文字的部份Ex. A club, J club可以移除掉
+Summary of UI cleanup - remove hole cards text description:
+1. 修改內容：
+   - 移除 HomeScreen 中手牌列表的文字描述
+   - 保留左側的卡片圖標 (renderCardIcons)
+   - 保留分析指示器 (✨)
+   - 保留時間顯示 (timeAgo)
+
+2. UI 簡化：
+   - 更乾淨的手牌列表介面
+   - 減少視覺雜訊，聚焦於重要資訊
+   - 卡片圖標已足夠表達手牌資訊
+
+3. 保持功能：
+   - 點擊編輯功能保持不變
+   - 長按選單功能保持不變
+   - 所有其他互動保持完整
+
+改進效果：
+- 界面更簡潔明瞭
+- 卡片圖標成為主要識別元素
+- 提升視覺體驗和可讀性
+
+Date: 2025-01-27 11:40:00
+User Query: 在卡片圖標的旁邊加上Hero Position，把幾分鐘以前的文字放到卡片圖標的下方
+Summary of layout redesign - position and time rearrangement:
+1. 布局重新設計：
+   - 左側：卡片圖標 + 時間 (卡片下方)
+   - 中間：位置 (BB, UTG 等) + 分析指示器
+   - 右側：金額 + BB 數值 (保持不變)
+
+2. 結構改進：
+   - 新增 cardsAndTimeContainer：垂直排列卡片和時間
+   - 新增 positionRow：水平排列位置和分析指示器
+   - 新增 positionText：位置文字樣式
+   - 新增 fallbackText：備用文字 (沒有位置時顯示手牌詳情)
+
+3. 樣式優化：
+   - timeAgo 移到卡片下方，居中對齊
+   - positionText 粗體顯示，突出位置資訊
+   - 保持分析指示器 (✨) 在位置旁邊
+
+視覺改進：
+- 更清晰的資訊層次
+- 位置資訊更突出
+- 時間資訊與卡片關聯更緊密
+- 整體布局更加均衡美觀
+
+Date: 2025-01-27 11:45:00
+User Query: 把幾分鐘以前的文字放到result金額的下方
+Summary of time display relocation:
+1. 時間位置調整：
+   - 從左側卡片圖標下方移動到右側金額下方
+   - 移除 cardsAndTimeContainer 結構
+   - 時間現在顯示在 Amount → BB → Time 的垂直順序
+
+2. 布局簡化：
+   - 左側：僅顯示卡片圖標
+   - 中間：位置 + 分析指示器
+   - 右側：金額 + BB + 時間
+
+3. 樣式調整：
+   - timeAgo 文字對齊改為 textAlign: 'right'
+   - 保持右側區域的整體對齊一致性
+
+布局改進：
+- 時間資訊與金額資訊更緊密關聯
+- 左側卡片圖標更簡潔突出
+- 右側區域資訊更完整集中
+- 整體視覺平衡更佳
+
 Date: 2025-06-08 13:00:00
 User Query: 新增一個edit button
 Summary of edit button implementation:

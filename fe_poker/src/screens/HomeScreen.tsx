@@ -10,6 +10,7 @@ const filterOptions = [
   { key: 'recent', label: 'Recent' },
   { key: 'profitable', label: 'Profitable' },
   { key: 'losses', label: 'Losses' },
+  { key: 'favorites', label: 'My Favorites ⭐' },
 ];
 
 const sortOptions = [
@@ -18,7 +19,7 @@ const sortOptions = [
 ];
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { stats, sessions, hands, fetchSessions, fetchHands, fetchStats, deleteHand, analyzeHand } = useSessionStore();
+  const { stats, sessions, hands, fetchSessions, fetchHands, fetchStats, deleteHand, analyzeHand, toggleFavorite } = useSessionStore();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -86,6 +87,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       case 'losses':
         filtered = filtered.filter(hand => hand.result < 0);
         break;
+      case 'favorites':
+        filtered = filtered.filter(hand => hand.favorite);
+        break;
       default:
         break;
     }
@@ -131,6 +135,20 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       Alert.alert("AI Analysis Result", analysis, [{ text: "OK" }]);
     } catch (error) {
       Alert.alert("Analysis Failed", error instanceof Error ? error.message : "Unknown error");
+    }
+  };
+
+  const handleToggleFavorite = async (id: string) => {
+    try {
+      console.log('=== FAVORITE BUTTON CLICKED ===');
+      console.log('Toggling favorite for hand:', id);
+      const newFavoriteStatus = await toggleFavorite(id);
+      console.log('Toggle successful, new status:', newFavoriteStatus);
+      // 成功時不顯示Alert，讓用戶體驗更流暢
+      // UI會自動更新星號狀態
+    } catch (error) {
+      console.error('Toggle favorite error:', error);
+      Alert.alert("Error", `Failed to toggle favorite: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -208,8 +226,19 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // Format time ago
   const getTimeAgo = (dateStr: string) => {
+    // Handle empty or invalid date strings
+    if (!dateStr || dateStr.trim() === '') {
+      return 'Unknown date';
+    }
+    
     const now = new Date();
     const handDate = new Date(dateStr);
+    
+    // Check if the date is valid
+    if (isNaN(handDate.getTime())) {
+      return 'Invalid date';
+    }
+    
     const diffMs = now.getTime() - handDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
@@ -236,16 +265,36 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const renderCardIcons = (holeCards: string | undefined) => {
     if (!holeCards) return null;
     
-    // Parse cards like "AcKc" or "7d As"
-    const cards = holeCards.replace(/\s+/g, '').match(/.{2}/g) || [];
+    // Parse cards - handle both formats: "AcKc" and "A♠ Q♠"
+    let cards: string[] = [];
+    
+    if (holeCards.includes('♠') || holeCards.includes('♥') || holeCards.includes('♦') || holeCards.includes('♣')) {
+      // New format with symbols: "A♠ Q♠" 
+      cards = holeCards.trim().split(/\s+/);
+    } else {
+      // Old format with letters: "AcKc"
+      cards = holeCards.replace(/\s+/g, '').match(/.{2}/g) || [];
+    }
     
     return (
       <View style={styles.cardContainer}>
         {cards.map((card, index) => {
-          const rank = card[0];
-          const suit = card[1];
-          const suitSymbol = suit === 'c' ? '♣' : suit === 'd' ? '♦' : suit === 'h' ? '♥' : '♠';
-          const isRed = suit === 'd' || suit === 'h';
+          let rank: string;
+          let suitSymbol: string;
+          let isRed: boolean;
+          
+          if (card.length === 2 && /[cdhs]/.test(card[1])) {
+            // Old format: "Ac", "Kh", etc.
+            rank = card[0];
+            const suit = card[1];
+            suitSymbol = suit === 'c' ? '♣' : suit === 'd' ? '♦' : suit === 'h' ? '♥' : '♠';
+            isRed = suit === 'd' || suit === 'h';
+          } else {
+            // New format: "A♠", "K♥", etc.
+            rank = card.slice(0, -1);
+            suitSymbol = card.slice(-1);
+            isRed = suitSymbol === '♥' || suitSymbol === '♦';
+          }
           
           return (
             <View key={index} style={[styles.cardIcon, isRed ? styles.redCard : styles.blackCard]}>
@@ -367,6 +416,11 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           const timeAgo = getTimeAgo(hand.date);
           const bbAmount = getBBAmount(hand.result, hand.sessionId);
           
+          // Debug favorite status
+          if (hand.id === '2c7efa16-c7bd-41ee-bda5-5825feb73822') {
+            console.log('DEBUG rendering hand:', hand.id, 'favorite:', hand.favorite, 'type:', typeof hand.favorite);
+          }
+          
           return (
             <TouchableOpacity 
               key={hand.id} 
@@ -379,22 +433,38 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 {renderCardIcons(hand.holeCards)}
               </View>
 
-              {/* Middle: Hand Info */}
+              {/* Middle: Position + Analysis + Favorite */}
               <View style={styles.middleSection}>
-                <View style={styles.handTitleRow}>
-                  <Text style={styles.handTitle}>
-                    {hand.holeCards 
-                      ? `${hand.holeCards.replace(/[cdhs]/g, '').trim()}${hand.position ? ` in ${hand.position}` : ''}`
-                      : (hand.position || hand.details.slice(0, 20))}
-                  </Text>
+                <View style={styles.positionRow}>
+                  {hand.position && (
+                    <Text style={styles.positionText}>{hand.position}</Text>
+                  )}
                   {hand.analysis && (
                     <Text style={styles.analysisIndicator}>✨</Text>
                   )}
+                  <TouchableOpacity 
+                    style={styles.favoriteButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      console.log('Favorite button clicked for hand:', hand.id, 'Current favorite status:', hand.favorite);
+                      handleToggleFavorite(hand.id);
+                    }}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Text style={[
+                      styles.favoriteIcon,
+                      hand.id === '2c7efa16-c7bd-41ee-bda5-5825feb73822' ? styles.favoriteInactive : styles.favoriteActive
+                    ]}>
+                      ⭐
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-                <Text style={styles.timeAgo}>{timeAgo}</Text>
+                {hand.details && !hand.position && (
+                  <Text style={styles.fallbackText}>{hand.details.slice(0, 20)}</Text>
+                )}
               </View>
 
-              {/* Right: Amount & BB */}
+              {/* Right: Amount & BB & Time */}
               <View style={styles.rightSection}>
                 <Text style={[
                   styles.amount,
@@ -410,6 +480,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     {bbAmount}
                   </Text>
                 )}
+                <Text style={styles.timeAgo}>{timeAgo}</Text>
               </View>
             </TouchableOpacity>
           );
@@ -748,6 +819,9 @@ const styles = StyleSheet.create({
   leftSection: {
     marginRight: theme.spacing.sm,
   },
+  cardsAndTimeContainer: {
+    alignItems: 'center',
+  },
   cardContainer: {
     flexDirection: 'row',
     gap: 2,
@@ -792,6 +866,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  positionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  positionText: {
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginRight: theme.spacing.xs,
+  },
+  fallbackText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.gray,
+    fontStyle: 'italic',
+  },
   handTitle: {
     fontSize: theme.font.size.body,
     fontWeight: '600',
@@ -805,7 +895,8 @@ const styles = StyleSheet.create({
   timeAgo: {
     fontSize: theme.font.size.small,
     color: theme.colors.gray,
-    marginTop: 2,
+    marginTop: 4,
+    textAlign: 'right',
   },
   rightSection: {
     alignItems: 'flex-end',
@@ -924,5 +1015,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: theme.font.size.body,
     fontWeight: '600',
+  },
+  favoriteButton: {
+    padding: 8,
+    marginLeft: theme.spacing.xs,
+    backgroundColor: 'transparent',
+    minWidth: 32,
+    minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  favoriteIcon: {
+    fontSize: 18,
+  },
+  favoriteActive: {
+    color: '#FFD700',
+  },
+  favoriteInactive: {
+    color: '#999999',
   },
 }); 

@@ -5,7 +5,7 @@
 const getCurrentIP = (): string => {
   // 這個值會由start.sh腳本自動設定到環境變數中
   // 目前直接使用檢測到的IP
-  return '192.168.1.11'; // 這會由start.sh動態更新
+  return '192.168.1.28'; // 這會由start.sh動態更新
 };
 
 export const API_BASE_URL = `http://${getCurrentIP()}:8080`;

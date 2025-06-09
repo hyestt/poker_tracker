@@ -19,7 +19,7 @@ func NewPromptManager() *PromptManager {
 
 // 讀取prompt文件並替換變數
 func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int) (string, error) {
-	promptPath := filepath.Join(pm.promptsDir, "hand_analysis.txt")
+	promptPath := filepath.Join(pm.promptsDir, "gto_analysis.txt")
 	
 	// 讀取prompt文件
 	content, err := ioutil.ReadFile(promptPath)

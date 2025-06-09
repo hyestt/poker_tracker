@@ -19,6 +19,7 @@ export interface Hand {
   date: string;
   analysis?: string;
   analysisDate?: string;
+  favorite?: boolean;
 }
 
 export interface Stats {
