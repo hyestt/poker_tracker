@@ -7,6 +7,7 @@ export interface Session {
   currency: string;
   effectiveStack: number;
   tableSize?: number;
+  tag?: string;
 }
 
 export interface Hand {
@@ -20,6 +21,7 @@ export interface Hand {
   analysis?: string;
   analysisDate?: string;
   favorite?: boolean;
+  tag?: string;
 }
 
 export interface Stats {

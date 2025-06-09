@@ -5,10 +5,12 @@ export interface UserPreferences {
   lastCurrency: string;
   lastTableSize: string;
   lastBlinds: string;
+  lastTag: string;
   customLocations: string[];
   customCurrencies: string[];
   customTableSizes: string[];
   customBlinds: string[];
+  customTags: string[];
 }
 
 const PREFERENCES_KEY = 'user_preferences';
@@ -18,10 +20,12 @@ const defaultPreferences: UserPreferences = {
   lastCurrency: '🇺🇸 USD',
   lastTableSize: '6',
   lastBlinds: '1/2',
+  lastTag: '',
   customLocations: ['Live Casino', 'Home Game', 'Online', 'Club'],
   customCurrencies: ['🇺🇸 USD', '🇪🇺 EUR', '🇬🇧 GBP', '🇯🇵 JPY', '🇨🇳 CNY'],
   customTableSizes: ['2', '4', '6', '8', '9', '10'],
   customBlinds: ['0.5/1', '1/2', '1/3', '2/5', '5/10', '10/20', '25/50'],
+  customTags: ['Tournament', 'Cash Game', 'Deep Stack', 'Short Stack', 'Aggressive', 'Tight', 'Practice', 'Study'],
 };
 
 export const UserPreferencesService = {
@@ -53,6 +57,7 @@ export const UserPreferencesService = {
     currency?: string;
     tableSize?: string;
     blinds?: string;
+    tag?: string;
   }): Promise<void> {
     try {
       const current = await this.getPreferences();
@@ -62,6 +67,7 @@ export const UserPreferencesService = {
         ...(choices.currency && { lastCurrency: choices.currency }),
         ...(choices.tableSize && { lastTableSize: choices.tableSize }),
         ...(choices.blinds && { lastBlinds: choices.blinds }),
+        ...(choices.tag && { lastTag: choices.tag }),
       };
       await this.savePreferences(updated);
     } catch (error) {
@@ -69,7 +75,7 @@ export const UserPreferencesService = {
     }
   },
 
-  async addCustomOption(type: keyof Pick<UserPreferences, 'customLocations' | 'customCurrencies' | 'customTableSizes' | 'customBlinds'>, option: string): Promise<void> {
+  async addCustomOption(type: keyof Pick<UserPreferences, 'customLocations' | 'customCurrencies' | 'customTableSizes' | 'customBlinds' | 'customTags'>, option: string): Promise<void> {
     try {
       const current = await this.getPreferences();
       const currentArray = current[type] || [];

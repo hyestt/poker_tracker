@@ -200,6 +200,89 @@ Summary of 404 error debugging and resolution:
    - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
 
 Date: 2025-01-27 11:00:00
+User Query: 新增一個欄位，tag，可以自由輸入tag
+Summary of tag field implementation:
+1. 資料庫修改：
+   - 使用ALTER TABLE在sessions表中添加tag TEXT欄位
+   - 同時添加缺失的table_size INTEGER欄位
+
+2. 後端模型更新：
+   - 在be_poker/models/models.go的Session struct中添加Tag string欄位
+   - 更新be_poker/handlers/session.go中所有SQL查詢：
+     * INSERT語句包含tag欄位
+     * SELECT語句使用COALESCE(tag, '')處理null值
+     * UPDATE語句包含tag欄位更新
+
+3. 前端模型更新：
+   - 在fe_poker/src/models.ts的Session interface中添加tag?: string欄位
+
+4. 前端UI實現：
+   - 在NewSessionScreen中添加tag state變數
+   - 在Effective Stack欄位後添加Tag輸入欄位
+   - 使用Apple iOS設計風格的Card和Input組件
+   - 設置placeholder為"Add custom tag (optional)"
+   - 在handleNext函數中將tag包含在session物件中
+
+5. 技術特點：
+   - 遵循MVVM架構模式
+   - 使用TypeScript確保類型安全
+   - 後端使用COALESCE處理null值
+   - 前端tag欄位為可選，提升用戶體驗
+   - 重新編譯並啟動後端和前端服務器
+
+6. Tag Picker功能增強：
+   - 更新UserPreferences接口添加lastTag和customTags欄位
+   - 提供預設tag選項：['Tournament', 'Cash Game', 'Deep Stack', 'Short Stack', 'Aggressive', 'Tight', 'Practice', 'Study']
+   - 將tag輸入欄位改為CustomPicker組件，支援選擇和自定義添加
+   - 添加updateTagOptions函數管理自定義tag選項
+   - 在updateLastChoices中包含tag選項記憶功能
+   - 使用與Currency相同的交互模式，提升用戶體驗一致性
+
+7. RecordHandScreen Tag欄位實現：
+   - 在Hand模型中添加tag?: string欄位（前端和後端）
+   - 更新資料庫hands表添加tag TEXT欄位
+   - 修改後端hand.go所有SQL查詢包含tag欄位：
+     * CreateHand: INSERT語句包含tag
+     * GetHands/GetHand: SELECT使用COALESCE(tag, '')
+     * UpdateHand: UPDATE包含tag欄位
+   - 前端RecordHandScreen UI改進：
+     * 將原本兩欄（Hole Cards, Position）改為三欄布局
+     * 添加第三個tag欄位使用CustomPicker
+     * 新增thirdField樣式，縮小padding提升空間利用
+     * 導入UserPreferencesService支援tag選項管理
+     * 在handleSave中包含tag欄位保存
+
+8. 顏色標籤系統實現：
+   - 創建ColorTagPicker組件替代文字選擇：
+     * 提供9種預設顏色選項：Red, Blue, Green, Yellow, Purple, Orange, Pink, Teal
+     * 使用3欄網格布局顯示顏色選項
+     * 顯示顏色圓圈和名稱，選中時高亮顯示
+     * 支援"None"選項（透明/無標籤）
+   - 創建ColorTagDisplay組件用於顯示：
+     * 支援small/medium/large三種尺寸
+     * 空標籤時不顯示任何內容
+     * 統一的顏色映射系統
+   - 更新NewSessionScreen和RecordHandScreen：
+     * 替換CustomPicker為ColorTagPicker
+     * 移除不再需要的UserPreferences tag相關代碼
+     * 簡化tag選擇流程，提升用戶體驗
+
+9. UI簡化 - 移除欄位標題：
+   - 修改RecordHandScreen移除Hole Cards、Position、Tag的標題文字
+   - 更新ColorTagPicker組件支援無標題模式：
+     * 添加fullWidthDisplay樣式，無標題時佔滿整個寬度
+     * 重構組件結構，支援有/無標題兩種顯示模式
+   - PokerCardPicker和CustomPicker已原生支援無標題模式
+   - 提升界面簡潔度，減少視覺干擾
+
+10. UI文字優化：
+    - 修改PokerCardPicker placeholder文字：從"Select Cards"改為"Hole Card"
+    - 修改CustomPicker placeholder文字：從"Select position"改為"Position"
+    - 保持ColorTagPicker預設選項為"None"
+    - 移除NewSessionScreen中ColorTagPicker的title屬性
+    - 提升用戶界面的直觀性和一致性
+
+Date: 2025-01-27 11:00:00
 User Query: 幫我加上一個my favorate 功能
 Summary of My Favorites feature implementation:
 1. 資料庫擴展：

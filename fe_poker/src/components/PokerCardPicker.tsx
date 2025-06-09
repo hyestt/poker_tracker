@@ -109,7 +109,7 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
         </View>
       ) : (
         <Text style={[styles.pickerText, styles.placeholderText]}>
-          Select Cards
+          Hole Card
         </Text>
       )}
     </TouchableOpacity>

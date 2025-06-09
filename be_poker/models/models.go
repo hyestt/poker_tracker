@@ -9,6 +9,7 @@ type Session struct {
 	Currency      string `json:"currency"`
 	EffectiveStack int   `json:"effectiveStack"`
 	TableSize     int    `json:"tableSize"`
+	Tag           string `json:"tag"`
 }
 
 type Hand struct {
@@ -22,6 +23,7 @@ type Hand struct {
 	Analysis     string  `json:"analysis,omitempty"`     // OpenAI 分析結果
 	AnalysisDate string  `json:"analysisDate,omitempty"` // 分析時間
 	Favorite     bool    `json:"favorite"`     // 是否為最愛
+	Tag          string  `json:"tag,omitempty"`          // 手牌標籤
 }
 
 type Stats struct {

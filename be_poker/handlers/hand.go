@@ -34,12 +34,12 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 	if hand.ID == "" {
 		hand.ID = uuid.New().String()
 	}
-	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date, favorite) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date, favorite, tag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate, hand.Favorite)
+	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate, hand.Favorite, hand.Tag)
 	if err != nil {
 		http.Error(w, "Database insert error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -55,9 +55,9 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	var rows *sql.Rows
 	var err error
 	if sessionId != "" {
-		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE session_id = ?`, sessionId)
+		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands WHERE session_id = ?`, sessionId)
 	} else {
-		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands`)
+		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands`)
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,7 +66,7 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	hands := []models.Hand{}
 	for rows.Next() {
 		var h models.Hand
-		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite)
+		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite, &h.Tag)
 		if err != nil {
 			http.Error(w, "Scan error: "+err.Error(), http.StatusInternalServerError)
 			return
@@ -79,9 +79,9 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 
 func GetHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands WHERE id = ?`, id)
 	var h models.Hand
-	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite)
+	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite, &h.Tag)
 	if err != nil {
 		http.Error(w, "Hand not found: "+err.Error(), http.StatusNotFound)
 		return
@@ -99,22 +99,22 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, position = ?, details = ?, result = ?, date = ?, favorite = ? WHERE id = ?`)
+	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, position = ?, details = ?, result = ?, date = ?, favorite = ?, tag = ? WHERE id = ?`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
-	_, err = stmt.Exec(hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Favorite, id)
+	_, err = stmt.Exec(hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Favorite, hand.Tag, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
 	// 返回更新後的手牌
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands WHERE id = ?`, id)
 	var updatedHand models.Hand
-	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Position, &updatedHand.Details, &updatedHand.Result, &updatedHand.Date, &updatedHand.Analysis, &updatedHand.AnalysisDate, &updatedHand.Favorite)
+	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Position, &updatedHand.Details, &updatedHand.Result, &updatedHand.Date, &updatedHand.Analysis, &updatedHand.AnalysisDate, &updatedHand.Favorite, &updatedHand.Tag)
 	if err != nil {
 		http.Error(w, "Failed to retrieve updated hand", http.StatusInternalServerError)
 		return

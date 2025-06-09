@@ -4,14 +4,17 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
 import { PokerCardPicker } from '../components/PokerCardPicker';
+import { ColorTagPicker } from '../components/ColorTagPicker';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { Hand } from '../models';
+
 
 export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { sessionId } = route.params;
   const [holeCards, setHoleCards] = useState('');
   const [position, setPosition] = useState('');
+  const [tag, setTag] = useState('');
   const [details, setDetails] = useState('');
   const [result, setResult] = useState('');
   const { addHand, fetchHands, fetchStats } = useSessionStore();
@@ -27,6 +30,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       details,
       result: parseInt(result) || 0,
       date: new Date().toISOString(),
+      tag,
     };
     await addHand(hand);
     await fetchHands();
@@ -39,23 +43,27 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.topSection}>
           <View style={styles.horizontalRow}>
-            <View style={styles.halfField}>
+            <View style={styles.thirdField}>
               <PokerCardPicker
-                title="Hole Cards"
                 value={holeCards}
                 onValueChange={setHoleCards}
               />
             </View>
-            <View style={styles.halfField}>
+            <View style={styles.thirdField}>
               <CustomPicker
-                title="Position"
                 options={positions}
                 value={position}
                 onValueChange={setPosition}
                 onOptionsChange={() => {}} // Position options are fixed
-                placeholder="Select position"
+                placeholder="Position"
                 allowCustom={false}
                 allowDelete={false}
+              />
+            </View>
+            <View style={styles.thirdField}>
+              <ColorTagPicker
+                value={tag}
+                onValueChange={setTag}
               />
             </View>
           </View>
@@ -119,6 +127,17 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
     padding: theme.spacing.xs,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  thirdField: {
+    flex: 1,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xs * 0.7, // 縮小padding
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
