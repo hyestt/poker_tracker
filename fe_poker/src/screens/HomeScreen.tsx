@@ -7,10 +7,10 @@ import { Card } from '../components/Card';
 
 const filterOptions = [
   { key: 'all', label: 'All Hands' },
+  { key: 'favorites', label: 'Favorites ⭐' },
   { key: 'recent', label: 'Recent' },
   { key: 'profitable', label: 'Profitable' },
   { key: 'losses', label: 'Losses' },
-  { key: 'favorites', label: 'My Favorites ⭐' },
 ];
 
 const sortOptions = [
@@ -170,6 +170,10 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         onPress: () => handleAnalyze(handId)
       },
       {
+        text: hand.favorite ? "Remove from Favorites ⭐" : "Add to Favorites ⭐",
+        onPress: () => handleToggleFavorite(handId)
+      },
+      {
         text: "Delete",
         style: "destructive" as const,
         onPress: () => handleDelete(handId)
@@ -196,14 +200,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const showSortOptions = (sortKey: string) => {
     const sortButtons = [
       {
-        text: `${sortKey === 'date' ? 'Date' : 'Amount'} - 大到小`,
+        text: sortKey === 'date' ? 'Newest First' : 'Highest First',
         onPress: () => {
           setSelectedSort(sortKey);
           setSortDirection('desc');
         }
       },
       {
-        text: `${sortKey === 'date' ? 'Date' : 'Amount'} - 小到大`,
+        text: sortKey === 'date' ? 'Oldest First' : 'Lowest First',
         onPress: () => {
           setSelectedSort(sortKey);
           setSortDirection('asc');
@@ -346,12 +350,22 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     setShowFilterDropdown(false);
                   }}
                 >
-                  <Text style={[
-                    styles.filterDropdownText,
-                    selectedFilter === option.key && styles.selectedFilterDropdownText
-                  ]}>
-                    {option.label}
-                  </Text>
+                  <View style={styles.filterDropdownTextContainer}>
+                    <Text style={[
+                      styles.filterDropdownText,
+                      selectedFilter === option.key && styles.selectedFilterDropdownText
+                    ]}>
+                      {option.key === 'favorites' ? 'Favorites' : option.label}
+                    </Text>
+                    {option.key === 'favorites' && (
+                      <Text style={[
+                        styles.filterDropdownStar,
+                        selectedFilter === option.key && styles.selectedFilterDropdownText
+                      ]}>
+                        ⭐
+                      </Text>
+                    )}
+                  </View>
                   {selectedFilter === option.key && (
                     <Text style={styles.filterCheckmark}>✓</Text>
                   )}
@@ -433,7 +447,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 {renderCardIcons(hand.holeCards)}
               </View>
 
-              {/* Middle: Position + Analysis + Favorite */}
+              {/* Middle: Position + Analysis */}
               <View style={styles.middleSection}>
                 <View style={styles.positionRow}>
                   {hand.position && (
@@ -442,22 +456,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   {hand.analysis && (
                     <Text style={styles.analysisIndicator}>✨</Text>
                   )}
-                  <TouchableOpacity 
-                    style={styles.favoriteButton}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      console.log('Favorite button clicked for hand:', hand.id, 'Current favorite status:', hand.favorite);
-                      handleToggleFavorite(hand.id);
-                    }}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                  >
-                    <Text style={[
-                      styles.favoriteIcon,
-                      hand.id === '2c7efa16-c7bd-41ee-bda5-5825feb73822' ? styles.favoriteInactive : styles.favoriteActive
-                    ]}>
-                      ⭐
-                    </Text>
-                  </TouchableOpacity>
+                  {hand.favorite && (
+                    <Text style={styles.favoriteIndicator}>⭐</Text>
+                  )}
                 </View>
                 {hand.details && !hand.position && (
                   <Text style={styles.fallbackText}>{hand.details.slice(0, 20)}</Text>
@@ -752,9 +753,20 @@ const styles = StyleSheet.create({
   selectedFilterDropdownItem: {
     backgroundColor: theme.colors.primary + '10',
   },
+  filterDropdownTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   filterDropdownText: {
     fontSize: theme.font.size.body,
     color: theme.colors.text,
+    lineHeight: theme.font.size.body * 1.2,
+    textAlignVertical: 'center',
+  },
+  filterDropdownStar: {
+    fontSize: theme.font.size.body,
+    marginLeft: 4,
   },
   selectedFilterDropdownText: {
     color: theme.colors.primary,
@@ -1033,5 +1045,10 @@ const styles = StyleSheet.create({
   },
   favoriteInactive: {
     color: '#999999',
+  },
+  favoriteIndicator: {
+    fontSize: 16,
+    color: '#FFD700',
+    marginLeft: theme.spacing.xs,
   },
 }); 

@@ -55,7 +55,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       holeCards,
       position,
       details,
-      result: parseInt(result),
+      result: parseInt(result) || 0,
       date: new Date().toISOString(),
     };
     await updateHand(hand);

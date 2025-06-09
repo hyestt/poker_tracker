@@ -5,8 +5,24 @@ import (
 	"poker_tracker_backend/handlers"
 )
 
+// CORS middleware
+func enableCORS(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+}
+
 func RegisterRoutes() {
 	http.HandleFunc("/sessions", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		switch r.Method {
 		case http.MethodGet:
 			handlers.GetSessions(w, r)
@@ -18,6 +34,10 @@ func RegisterRoutes() {
 	})
 
 	http.HandleFunc("/session", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		switch r.Method {
 		case http.MethodGet:
 			handlers.GetSession(w, r)
@@ -27,6 +47,10 @@ func RegisterRoutes() {
 	})
 
 	http.HandleFunc("/hands", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		switch r.Method {
 		case http.MethodGet:
 			handlers.GetHands(w, r)
@@ -38,6 +62,10 @@ func RegisterRoutes() {
 	})
 
 	http.HandleFunc("/hand", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		switch r.Method {
 		case http.MethodGet:
 			handlers.GetHand(w, r)
@@ -48,14 +76,36 @@ func RegisterRoutes() {
 
 	// 測試路由
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
 		w.Write([]byte("Test route works"))
 	})
 
 	// 暫時註釋掉analyze路由
-	http.HandleFunc("/analyze", handlers.AnalyzeHand)
+	http.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		handlers.AnalyzeHand(w, r)
+	})
 
 	// 切換最愛狀態
-	http.HandleFunc("/toggle-favorite", handlers.ToggleFavorite)
+	http.HandleFunc("/toggle-favorite", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		handlers.ToggleFavorite(w, r)
+	})
 
-	http.HandleFunc("/stats", handlers.GetStats)
+	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		handlers.GetStats(w, r)
+	})
 } 

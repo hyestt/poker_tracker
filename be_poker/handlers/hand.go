@@ -30,7 +30,10 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("DEBUG CreateHand: HoleCards='%s', Position='%s'\n", holeCardsStr, positionStr)
 	
-	hand.ID = uuid.New().String()
+	// 只有當前端沒有提供ID時才生成新的UUID
+	if hand.ID == "" {
+		hand.ID = uuid.New().String()
+	}
 	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date, favorite) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)

@@ -25,7 +25,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       holeCards,
       position,
       details,
-      result: parseInt(result),
+      result: parseInt(result) || 0,
       date: new Date().toISOString(),
     };
     await addHand(hand);

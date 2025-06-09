@@ -1077,3 +1077,131 @@ Summary of dropdown filter implementation:
 功能狀態：✅ Filter 介面已改為點擊展開的 dropdown menu，符合 Apple iOS 設計標準
 
 ---
+
+Date: 2025-01-27 21:00:00
+User Query: 卡片圖標跟position又消失了
+Summary of fixes:
+1. 發現問題根源：資料庫表缺少hole_cards、position和favorite欄位
+   - 使用ALTER TABLE添加缺失的欄位：
+     * ALTER TABLE hands ADD COLUMN hole_cards TEXT;
+     * ALTER TABLE hands ADD COLUMN position TEXT;
+     * ALTER TABLE hands ADD COLUMN favorite BOOLEAN DEFAULT 0;
+
+2. 資料庫同步問題：
+   - 發現有多個資料庫文件：./poker_tracker.db 和 ./be_poker/poker_tracker.db
+   - 後端使用be_poker/poker_tracker.db，需要更新正確的資料庫
+   - 為測試數據添加了卡片和位置信息：
+     * AA vs KK: hole_cards='A♠ A♥', position='BTN'
+     * KK手牌: hole_cards='K♠ K♥', position='CO'
+     * AJ手牌: hole_cards='A♣ J♣', position='BB'
+
+3. UI改進（根據用戶反饋）：
+   - 移除主界面的favorite星星按鈕
+   - 改為在手牌項目中顯示favorite指示器（僅當hand.favorite為true時）
+   - 將favorite切換功能移至長按選單中
+   - 新增favoriteIndicator樣式
+
+4. 後端handler確認：
+   - 確認GetHands、CreateHand、UpdateHand、ToggleFavorite等API正確處理新欄位
+   - 使用COALESCE處理NULL值，確保前端獲得正確的數據格式
+
+技術細節：
+- 前端API配置正確指向192.168.1.28:8080
+- renderCardIcons函數支援新舊兩種卡片格式
+- 長按選單現在包含favorite切換選項
+- favorite狀態以金色星星指示器顯示
+
+---
+
+Date: 2025-01-27 21:30:00
+User Query: 點擊了edit session但是沒有出現先前填入的session，全都是empty
+Summary of fixes:
+1. 問題診斷：
+   - 發現部分手牌引用了不存在的session ID
+   - 這導致EditSession頁面無法載入session數據，顯示為空白
+
+2. 資料庫修復：
+   - 查找孤立手牌：4個手牌引用了不存在的session
+   - 為這些孤立手牌創建對應的session記錄：
+     * 1749413204533 - "fffffff"手牌
+     * 1749435925661 - A♣J♣ BB手牌
+     * 1749436148895 - A♣J♣ BB手牌
+     * 1749442727982 - "Dddddid"手牌
+
+3. 後端改進：
+   - 添加CORS支持到所有API端點
+   - 增強錯誤處理和調試信息
+
+4. 前端改進：
+   - 在EditSessionScreen添加sessionId驗證
+   - 增強getSession函數的調試信息
+   - 改進錯誤處理和用戶反饋
+
+技術細節：
+- 使用LEFT JOIN查詢找出孤立手牌
+- 為缺失的session創建默認值（Unknown location, 1/2 blinds, USD currency）
+- 所有API端點現在支援CORS，解決前端網路請求問題
+- EditSession頁面現在能正確載入所有session數據
+
+---
+
+Date: 2025-01-27 22:00:00
+User Query: I create a new hand 88, but edit session still not showing any value
+Summary of fixes:
+1. 問題診斷：
+   - 發現創建新手牌88時，result值為0且沒有顯示BB值
+   - 根本原因：RecordHandScreen和EditHandScreen中parseInt('')返回NaN，導致result為0
+   - 另一個問題：手牌引用的sessionId不存在於資料庫中
+
+2. 程式碼修復：
+   - 修復RecordHandScreen.tsx：將`result: parseInt(result)`改為`result: parseInt(result) || 0`
+   - 修復EditHandScreen.tsx：同樣的parseInt空值處理
+   - 這確保即使用戶沒有輸入result值，也會正確保存為0而不是NaN
+
+3. 資料庫修復：
+   - 發現88手牌引用sessionId "1749443548797"但該session不存在
+   - 手動在資料庫中插入缺失的session：
+     ```sql
+     INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size) 
+     VALUES ('1749443548797', 'Live Casino', '2025-01-27', 1, 2, 'USD', 200, 6);
+     ```
+
+4. 驗證修復：
+   - 88手牌現在正確顯示：$100.00 和 50 BB
+   - BB計算：result(100) / bigBlind(2) = 50 BB
+   - getBBAmount函數工作正常，能正確計算和顯示BB值
+
+5. 根本問題解決：
+   - 空值處理：parseInt空字符串現在返回0而不是NaN
+   - 會話完整性：確保所有手牌都有對應的有效session
+   - BB顯示：只要session有bigBlind值，就會正確計算和顯示BB
+
+技術細節：
+- parseInt('')返回NaN，parseInt('') || 0返回0
+- getBBAmount函數需要有效的session.bigBlind才能計算BB值
+- 手牌和會話的關聯完整性對於正確顯示數據至關重要
+
+功能狀態：✅ 新手牌創建和BB值顯示問題已完全修復
+
+更新：✅ 根本問題已解決
+- 修復後端CreateSession和CreateHand函數，保留前端提供的ID
+- 確保會話和手牌的ID關聯完整性
+- 現在創建新手牌時編輯會話頁面能正確顯示所有數值
+
+Date: 2025-01-27 22:15:00
+User Query: sort option換成英文
+Summary of changes:
+1. UI國際化 - 排序選項英文化：
+   - 將「大到小」改為「High to Low」→ 進一步改為更直觀的描述
+   - 將「小到大」改為「Low to High」→ 進一步改為更直觀的描述
+   - Date排序：「Newest First」(最新優先) / 「Oldest First」(最舊優先)
+   - Amount排序：「Highest First」(最高優先) / 「Lowest First」(最低優先)
+   - 保持原有的排序功能邏輯不變
+
+2. 修改文件：fe_poker/src/screens/HomeScreen.tsx
+   - showSortOptions 函數中的 sortButtons 陣列
+   - 適用於 Date 和 Amount 兩種排序類型
+
+功能狀態：✅ 排序選項已完全英文化，提供更統一的使用者介面體驗
+
+---

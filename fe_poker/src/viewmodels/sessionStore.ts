@@ -116,11 +116,16 @@ export const useSessionStore = create<State>((set, get) => ({
     await get().fetchStats();
   },
   getSession: async (id: string): Promise<Session> => {
+    console.log(`getSession: Making request to ${API_URL}/session?id=${id}`);
     const res = await fetch(`${API_URL}/session?id=${id}`);
+    console.log(`getSession: Response status: ${res.status}`);
     if (!res.ok) {
-      throw new Error('Session not found');
+      const errorText = await res.text();
+      console.error(`getSession: Error response: ${errorText}`);
+      throw new Error(`Session not found: ${res.status} ${errorText}`);
     }
     const data = await res.json();
+    console.log(`getSession: Response data:`, data);
     return data;
   },
   updateSession: async (session: Session) => {

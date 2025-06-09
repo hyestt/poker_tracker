@@ -12,8 +12,12 @@ import { UserPreferencesService, UserPreferences } from '../services/UserPrefere
 
 export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   console.log('EditSessionScreen route params:', route.params);
-  const { sessionId } = route.params;
+  const { sessionId } = route.params || {};
   console.log('EditSessionScreen sessionId:', sessionId);
+  
+  if (!sessionId) {
+    console.error('No sessionId provided to EditSessionScreen');
+  }
   
   const [location, setLocation] = useState('');
   const [date, setDate] = useState('');
@@ -33,7 +37,9 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
   const loadPreferencesAndSession = async () => {
     try {
       // Load user preferences first
+      console.log('Loading preferences...');
       const prefs = await UserPreferencesService.getPreferences();
+      console.log('Preferences loaded:', prefs);
       setPreferences(prefs);
       
       // Load session data
@@ -41,18 +47,23 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
       const session = await getSession(sessionId);
       console.log('Loaded session data:', session);
       
+      if (!session) {
+        throw new Error('Session not found');
+      }
+      
       setLocation(session.location || '');
       setDate(session.date || '');
       setCurrency(session.currency || '');
-      setEffectiveStack(session.effectiveStack.toString());
+      setEffectiveStack(session.effectiveStack?.toString() || '');
       setTableSize(session.tableSize?.toString() || '');
       
       // Format blinds as "smallBlind/bigBlind"
-      setBlinds(`${session.smallBlind}/${session.bigBlind}`);
+      setBlinds(`${session.smallBlind || 0}/${session.bigBlind || 0}`);
       
       setLoading(false);
     } catch (error) {
       console.error('Failed to load session:', error);
+      console.error('Error details:', error instanceof Error ? error.message : String(error));
       setLoading(false);
     }
   };
@@ -119,6 +130,15 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
       await UserPreferencesService.savePreferences(updated);
     }
   };
+
+  if (!sessionId) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={styles.loadingText}>Error: No session ID provided</Text>
+        <Button title="Go Back" onPress={() => navigation.goBack()} />
+      </View>
+    );
+  }
 
   if (loading) {
     return (

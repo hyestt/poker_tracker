@@ -11,7 +11,10 @@ import (
 func CreateSession(w http.ResponseWriter, r *http.Request) {
 	var session models.Session
 	_ = json.NewDecoder(r.Body).Decode(&session)
-	session.ID = uuid.New().String()
+	// 只有當前端沒有提供ID時才生成新的UUID
+	if session.ID == "" {
+		session.ID = uuid.New().String()
+	}
 	stmt, _ := db.DB.Prepare(`INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	_, err := stmt.Exec(session.ID, session.Location, session.Date, session.SmallBlind, session.BigBlind, session.Currency, session.EffectiveStack, session.TableSize)
 	if err != nil {
