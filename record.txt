@@ -1288,3 +1288,63 @@ Summary of changes:
 功能狀態：✅ 排序選項已完全英文化，提供更統一的使用者介面體驗
 
 ---
+
+Date: 2025-01-27 22:30:00
+User Query: remove the tag from the session
+Summary of Session Tag Removal:
+1. 後端模型修改：
+   - 從 be_poker/models/models.go 的 Session struct 中移除 Tag 欄位
+   
+2. 後端 API 修改：
+   - 更新 be_poker/handlers/session.go 中所有 SQL 語句：
+     * CreateSession: INSERT 語句移除 tag 欄位和參數
+     * GetSessions: SELECT 語句移除 COALESCE(tag, '') 和 Scan 中的 tag
+     * GetSession: SELECT 語句移除 COALESCE(tag, '') 和 Scan 中的 tag  
+     * UpdateSession: UPDATE 語句移除 tag 欄位設定和參數
+   
+3. 前端模型修改：
+   - 從 fe_poker/src/models.ts 的 Session interface 中移除 tag?: string 欄位
+   
+4. 前端 UI 修改：
+   - 從 NewSessionScreen.tsx 移除：
+     * tag state 變數
+     * ColorTagPicker 組件導入和使用
+     * session 物件建立時的 tag 欄位
+   
+5. 資料庫修改：
+   - 使用 ALTER TABLE sessions DROP COLUMN tag 從資料庫中移除 tag 欄位
+   - 確認表結構已更新，只保留：id, location, date, small_blind, big_blind, currency, effective_stack, table_size
+   
+6. 系統重啟：
+   - 重新啟動後端服務器套用所有修改
+   
+技術特點：
+- 完全移除 Session 層級的 tag 功能，但保留 Hand 層級的 tag
+- 確保前後端數據模型一致性
+- 清理不再使用的 UI 組件導入
+- 資料庫欄位移除確保數據完整性
+- 遵循 MVVM 架構模式進行修改
+
+---
+
+Date: 2025-01-27 22:45:00
+User Query: 發現 be_poker/poker_tracker.db 中的 hands 表缺少 tag 欄位
+Summary of fixes:
+1. 發現 be_poker/poker_tracker.db 中的 hands 表缺少 tag 欄位
+   - 使用 ALTER TABLE hands ADD COLUMN tag TEXT 添加缺失的欄位
+   - 確保前後端使用相同的資料庫結構
+   - 修復後 start.sh 腳本正常工作，API 連接成功
+
+2. 最終狀態：
+   - Session 層級的 tag 功能已完全移除
+   - Hand 層級的 tag 功能保持完整
+   - 所有 API 端點正常運行
+   - start.sh 腳本正常工作
+   - 前後端資料模型一致
+
+技術要點：
+- 多資料庫文件同步問題的解決
+- 資料庫結構一致性的重要性
+- API 錯誤診斷和修復流程
+
+---

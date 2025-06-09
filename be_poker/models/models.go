@@ -9,7 +9,6 @@ type Session struct {
 	Currency      string `json:"currency"`
 	EffectiveStack int   `json:"effectiveStack"`
 	TableSize     int    `json:"tableSize"`
-	Tag           string `json:"tag"`
 }
 
 type Hand struct {

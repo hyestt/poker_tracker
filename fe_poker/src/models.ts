@@ -7,7 +7,6 @@ export interface Session {
   currency: string;
   effectiveStack: number;
   tableSize?: number;
-  tag?: string;
 }
 
 export interface Hand {
