@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"poker_tracker_backend/db"
 	"poker_tracker_backend/models"
@@ -10,17 +11,34 @@ import (
 
 func CreateSession(w http.ResponseWriter, r *http.Request) {
 	var session models.Session
-	_ = json.NewDecoder(r.Body).Decode(&session)
+	if err := json.NewDecoder(r.Body).Decode(&session); err != nil {
+		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	// 調試信息
+	fmt.Printf("DEBUG CreateSession: Received session data: %+v\n", session)
+	
 	// 只有當前端沒有提供ID時才生成新的UUID
 	if session.ID == "" {
 		session.ID = uuid.New().String()
 	}
-	stmt, _ := db.DB.Prepare(`INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
-	_, err := stmt.Exec(session.ID, session.Location, session.Date, session.SmallBlind, session.BigBlind, session.Currency, session.EffectiveStack, session.TableSize)
+	
+	stmt, err := db.DB.Prepare(`INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer stmt.Close()
+	
+	_, err = stmt.Exec(session.ID, session.Location, session.Date, session.SmallBlind, session.BigBlind, session.Currency, session.EffectiveStack, session.TableSize)
+	if err != nil {
+		http.Error(w, "Database insert error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	// 設置Content-Type頭
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(session)
 }
 

@@ -37,3 +37,7 @@
 =====================================
 🔄 Starting HTTP server on :8080...
 
+DEBUG CreateSession: Received session data: {ID:1749488758388 Location:Unknown Date:2025/06/09 10:02 SmallBlind:1 BigBlind:2 Currency:USD EffectiveStack:100 TableSize:6}
+DEBUG CreateSession: Received session data: {ID:1749488853322 Location:Unknown Date:2025/06/09 10:07 SmallBlind:1 BigBlind:2 Currency:USD EffectiveStack:100 TableSize:6}
+Successfully loaded prompt from file
+DEBUG CreateSession: Received session data: {ID:1749489566039 Location:Unknown Date:2025/06/09 10:19 SmallBlind:1 BigBlind:2 Currency:USD EffectiveStack:100 TableSize:6}

@@ -29,7 +29,7 @@ const defaultColorTags: ColorTag[] = [
 export const ColorTagPicker: React.FC<ColorTagPickerProps> = ({
   value,
   onValueChange,
-  title = "Tag",
+  title,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -100,7 +100,7 @@ export const ColorTagPicker: React.FC<ColorTagPickerProps> = ({
             onPress={() => setIsVisible(false)}
           >
             <View style={styles.modal}>
-              <Text style={styles.modalTitle}>Select {title} Color</Text>
+              <Text style={styles.modalTitle}>Select {title || 'Tag'} Color</Text>
               
               <FlatList
                 data={defaultColorTags}
@@ -132,7 +132,7 @@ export const ColorTagPicker: React.FC<ColorTagPickerProps> = ({
           onPress={() => setIsVisible(false)}
         >
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Select {title} Color</Text>
+            <Text style={styles.modalTitle}>Select {title || 'Tag'} Color</Text>
             
             <FlatList
               data={defaultColorTags}

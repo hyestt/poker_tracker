@@ -488,13 +488,13 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         })}
       </ScrollView>
 
-      {/* Record New Hand Button - Fixed at bottom */}
+      {/* Floating Action Button - Fixed at bottom right */}
       <TouchableOpacity 
-        style={styles.recordButton}
+        style={styles.fabButton}
         onPress={() => navigation.navigate('NewSession')}
       >
-        <Text style={styles.recordButtonText}>+ Record New Hand</Text>
-              </TouchableOpacity>
+        <Text style={styles.fabButtonText}>+</Text>
+      </TouchableOpacity>
 
       {/* iOS Style Filter Modal */}
       <Modal
@@ -647,22 +647,28 @@ const styles = StyleSheet.create({
   settingsIcon: {
     fontSize: 24,
   },
-  recordButton: {
-    backgroundColor: theme.colors.primary,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.xs,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.button,
-    alignItems: 'center',
+  fabButton: {
     position: 'absolute',
-    bottom: 100, // Just above the tab bar
-    left: 0,
-    right: 0,
+    bottom: 0, // 設定為0，貼近底部
+    left: '50%', // 水平居中的起始點
+    marginLeft: -28, // 負的半徑值來實現完美居中 (56/2 = 28)
+    width: 56, // iOS標準FAB尺寸
+    height: 56,
+    borderRadius: 28, // 完美的圓形
+    backgroundColor: '#007AFF', // iOS藍色
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8, // Android陰影
   },
-  recordButtonText: {
+  fabButtonText: {
     color: '#fff',
-    fontSize: theme.font.size.body,
-    fontWeight: '600',
+    fontSize: 24, // 較大的+號
+    fontWeight: '300', // iOS系統字體風格
+    lineHeight: 28,
   },
   filterRow: {
     flexDirection: 'row',
@@ -819,7 +825,7 @@ const styles = StyleSheet.create({
   handsContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.md,
-    paddingBottom: 120, // Space for the button
+    paddingBottom: 30, // 減少底部空間，因為FAB較小
   },
   handItem: {
     flexDirection: 'row',
