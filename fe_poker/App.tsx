@@ -16,6 +16,7 @@ import { EditHandScreen } from './src/screens/EditHandScreen';
 import { EditSessionScreen } from './src/screens/EditSessionScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { StatsScreen } from './src/screens/StatsScreen';
+import { PokerKeyboardScreen } from './src/screens/PokerKeyboardScreen';
 import { View, Text } from 'react-native';
 
 const Tab = createBottomTabNavigator();
@@ -29,6 +30,7 @@ function HomeStack() {
       <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand' }} />
       <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
       <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
+      <Stack.Screen name="PokerKeyboard" component={PokerKeyboardScreen} options={{ title: 'Choose Cards' }} />
     </Stack.Navigator>
   );
 }

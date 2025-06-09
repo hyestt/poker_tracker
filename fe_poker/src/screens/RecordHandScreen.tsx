@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
-import { PokerCardPicker } from '../components/PokerCardPicker';
+import { PokerKeyboardView } from '../components/PokerKeyboardView';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { Hand } from '../models';
@@ -15,9 +15,22 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [position, setPosition] = useState('');
   const [details, setDetails] = useState('');
   const [result, setResult] = useState('');
+  const [showPokerKeyboard, setShowPokerKeyboard] = useState(false);
   const { addHand, fetchHands, fetchStats } = useSessionStore();
 
   const positions = ['UTG', 'UTG+1', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+
+  const handleHoleCardsSelect = () => {
+    setShowPokerKeyboard(true);
+  };
+
+  const handlePokerKeyboardClose = () => {
+    setShowPokerKeyboard(false);
+  };
+
+  const handleCardSelect = (selectedCards: string[]) => {
+    setHoleCards(selectedCards.join(' '));
+  };
 
   const handleSave = async () => {
     const hand: Hand = {
@@ -39,14 +52,44 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     <View style={styles.container}>      
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.topSection}>
+          {/* Current Hand Display */}
+          <View style={styles.currentHandDisplay}>
+            <Text style={styles.currentHandTitle}>當前手牌</Text>
+            {holeCards ? (
+              <View style={styles.currentHandCardsContainer}>
+                {holeCards.split(' ').map((card, index) => {
+                  const rank = card.slice(0, -1);
+                  const suit = card.slice(-1);
+                  const getSuitColor = (suit: string) => {
+                    return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                  };
+                  return (
+                    <View key={index} style={styles.currentHandCard}>
+                      <Text style={[styles.currentHandCardText, { color: getSuitColor(suit) }]}>
+                        {rank}{suit}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.currentHandPlaceholder}>
+                尚未選擇手牌
+              </Text>
+            )}
+          </View>
+
           <View style={styles.horizontalRow}>
             <View style={styles.halfField}>
-              <PokerCardPicker
-                value={holeCards}
-                onValueChange={setHoleCards}
-              />
+              <Text style={styles.fieldLabel}>底牌</Text>
+              <TouchableOpacity style={styles.holeCardSelector} onPress={handleHoleCardsSelect}>
+                <Text style={styles.selectButtonText}>
+                  {holeCards ? '修改底牌' : '選擇底牌'}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.halfField}>
+              <Text style={styles.fieldLabel}>位置</Text>
               <CustomPicker
                 options={positions}
                 value={position}
@@ -88,6 +131,31 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <Button title="Save Hand" onPress={handleSave} style={styles.saveButton} />
         </View>
       </ScrollView>
+
+      {/* Poker Keyboard Modal */}
+      <Modal
+        visible={showPokerKeyboard}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={handlePokerKeyboardClose}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>關閉</Text>
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>選擇底牌</Text>
+            <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.doneButton}>
+              <Text style={styles.doneButtonText}>完成</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <PokerKeyboardView
+            onCardSelect={handleCardSelect}
+            initialAction="hole"
+          />
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 };
@@ -164,5 +232,143 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: theme.colors.primary,
+  },
+  holeCardSelector: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.button,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  holeCardText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.text,
+    flex: 1,
+  },
+  placeholderText: {
+    color: theme.colors.gray,
+  },
+  selectedCardsContainer: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  miniCard: {
+    backgroundColor: 'white',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: theme.colors.gray,
+  },
+  miniCardText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  currentHandDisplay: {
+    backgroundColor: 'white',
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    alignItems: 'center',
+    minHeight: 100,
+    justifyContent: 'center',
+  },
+  currentHandTitle: {
+    fontSize: theme.font.size.subtitle,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
+  },
+  currentHandCardsContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    alignItems: 'center',
+  },
+  currentHandCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: theme.radius.button,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  currentHandCardText: {
+    fontSize: theme.font.size.title,
+    fontWeight: '700',
+  },
+  currentHandPlaceholder: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.gray,
+    fontStyle: 'italic',
+  },
+  fieldLabel: {
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  selectButtonText: {
+    fontSize: theme.font.size.body,
+    color: 'white',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  closeButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  closeButtonText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.gray,
+    fontWeight: '600',
+  },
+  modalTitle: {
+    fontSize: theme.font.size.subtitle,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  doneButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  doneButtonText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
 }); 
