@@ -4,7 +4,6 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
 import { PokerCardPicker } from '../components/PokerCardPicker';
-import { ColorTagPicker } from '../components/ColorTagPicker';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { Hand } from '../models';
@@ -14,7 +13,6 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const { sessionId } = route.params;
   const [holeCards, setHoleCards] = useState('');
   const [position, setPosition] = useState('');
-  const [tag, setTag] = useState('');
   const [details, setDetails] = useState('');
   const [result, setResult] = useState('');
   const { addHand, fetchHands, fetchStats } = useSessionStore();
@@ -30,7 +28,6 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       details,
       result: parseInt(result) || 0,
       date: new Date().toISOString(),
-      tag,
     };
     await addHand(hand);
     await fetchHands();
@@ -43,13 +40,13 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.topSection}>
           <View style={styles.horizontalRow}>
-            <View style={styles.thirdField}>
+            <View style={styles.halfField}>
               <PokerCardPicker
                 value={holeCards}
                 onValueChange={setHoleCards}
               />
             </View>
-            <View style={styles.thirdField}>
+            <View style={styles.halfField}>
               <CustomPicker
                 options={positions}
                 value={position}
@@ -58,12 +55,6 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 placeholder="Position"
                 allowCustom={false}
                 allowDelete={false}
-              />
-            </View>
-            <View style={styles.thirdField}>
-              <ColorTagPicker
-                value={tag}
-                onValueChange={setTag}
               />
             </View>
           </View>
@@ -133,17 +124,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  thirdField: {
-    flex: 1,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.xs * 0.7, // 縮小padding
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
   fieldColumn: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
@@ -177,19 +157,12 @@ const styles = StyleSheet.create({
     minHeight: theme.spacing.sm,
   },
   bottomSection: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.xs,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    paddingTop: theme.spacing.sm,
   },
   resultInput: {
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.md,
   },
   saveButton: {
-    marginTop: theme.spacing.xs,
+    backgroundColor: theme.colors.primary,
   },
 }); 

@@ -37,7 +37,387 @@
 =====================================
 🔄 Starting HTTP server on :8080...
 
-DEBUG CreateSession: Received session data: {ID:1749488758388 Location:Unknown Date:2025/06/09 10:02 SmallBlind:1 BigBlind:2 Currency:USD EffectiveStack:100 TableSize:6}
-DEBUG CreateSession: Received session data: {ID:1749488853322 Location:Unknown Date:2025/06/09 10:07 SmallBlind:1 BigBlind:2 Currency:USD EffectiveStack:100 TableSize:6}
-Successfully loaded prompt from file
-DEBUG CreateSession: Received session data: {ID:1749489566039 Location:Unknown Date:2025/06/09 10:19 SmallBlind:1 BigBlind:2 Currency:USD EffectiveStack:100 TableSize:6}
+2025/06/09 12:09:17 http: panic serving 10.73.108.175:62045: runtime error: invalid memory address or nil pointer dereference
+goroutine 34 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Rows).closemuRUnlockIfHeldByScan(0x1400009a0d0?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3412 +0x18
+database/sql.(*Rows).Next(0x0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3033 +0x20
+poker_tracker_backend/handlers.GetSessions({0x1029affe8, 0x1400022e000}, 0x1400021e000?)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:30 +0xac
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x1400022e000}, 0x1400021e000)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:28 +0xa8
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x1400022e000?}, 0x102698424?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x1029affe8, 0x1400022e000}, 0x1400021e000)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x14000210090?}, {0x1029affe8?, 0x1400022e000?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x14000212000, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:17 http: panic serving 10.73.108.175:62048: runtime error: invalid memory address or nil pointer dereference
+goroutine 37 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Rows).closemuRUnlockIfHeldByScan(0x1400009a0d0?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3412 +0x18
+database/sql.(*Rows).Next(0x0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3033 +0x20
+poker_tracker_backend/handlers.GetSessions({0x1029affe8, 0x140000c20e0}, 0x1400021e280?)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:30 +0xac
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c20e0}, 0x1400021e280)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:28 +0xa8
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c20e0?}, 0x102698424?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x1029affe8, 0x140000c20e0}, 0x1400021e280)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x14000210330?}, {0x1029affe8?, 0x140000c20e0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140002121b0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:17 http: panic serving 10.73.108.175:62046: runtime error: invalid memory address or nil pointer dereference
+goroutine 35 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Rows).closemuRUnlockIfHeldByScan(0x1400009a0d0?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3412 +0x18
+database/sql.(*Rows).Next(0x0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3033 +0x20
+poker_tracker_backend/handlers.GetSessions({0x1029affe8, 0x140000c21c0}, 0x140000b63c0?)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:30 +0xac
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c21c0}, 0x140000b63c0)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:28 +0xa8
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c21c0?}, 0x102698424?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x1029affe8, 0x140000c21c0}, 0x140000b63c0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x14000210180?}, {0x1029affe8?, 0x140000c21c0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x14000212090, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:23 http: panic serving 10.73.108.175:62047: runtime error: invalid memory address or nil pointer dereference
+goroutine 8 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x1400009da00?, 0x1400009d948?, 0x43?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140000c2380}, 0x140000b6640)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c2380}, 0x140000b6640)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c2380?}, 0x1400009db10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140000c2380}, 0x140000b6640)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140000c2380?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000aeea0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:23 http: panic serving 10.73.108.175:62057: runtime error: invalid memory address or nil pointer dereference
+goroutine 13 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x1400009da00?, 0x14000207948?, 0x68?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140000c2460}, 0x140000b6a00)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c2460}, 0x140000b6a00)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c2460?}, 0x14000207b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140000c2460}, 0x140000b6a00)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140000c2460?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000af290, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:23 http: panic serving 10.73.108.175:62058: runtime error: invalid memory address or nil pointer dereference
+goroutine 15 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x1400009da00?, 0x14000207948?, 0x7a?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140000c2540}, 0x140000b6c80)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c2540}, 0x140000b6c80)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c2540?}, 0x14000207b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140000c2540}, 0x140000b6c80)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140000c2540?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000af3b0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:23 http: panic serving 10.73.108.175:62059: runtime error: invalid memory address or nil pointer dereference
+goroutine 50 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x1400009da00?, 0x14000207948?, 0x6a?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140000c2620}, 0x140000b6f00)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c2620}, 0x140000b6f00)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c2620?}, 0x14000207b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140000c2620}, 0x140000b6f00)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140000c2620?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000af4d0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:24 http: panic serving 10.73.108.175:62060: runtime error: invalid memory address or nil pointer dereference
+goroutine 52 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x1400009da00?, 0x14000207948?, 0xc?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140000c2700}, 0x140000b7180)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c2700}, 0x140000b7180)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c2700?}, 0x14000207b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140000c2700}, 0x140000b7180)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140000c2700?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000af5f0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:46 http: panic serving 10.73.108.175:62089: runtime error: invalid memory address or nil pointer dereference
+goroutine 54 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Rows).closemuRUnlockIfHeldByScan(0x1400009a0d0?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3412 +0x18
+database/sql.(*Rows).Next(0x0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3033 +0x20
+poker_tracker_backend/handlers.GetSessions({0x1029affe8, 0x140001880e0}, 0x140000b7540?)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:30 +0xac
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140001880e0}, 0x140000b7540)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:28 +0xa8
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140001880e0?}, 0x102698424?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x1029affe8, 0x140001880e0}, 0x140000b7540)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x14000099830?}, {0x1029affe8?, 0x140001880e0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000af710, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:46 http: panic serving 10.73.108.175:62092: runtime error: invalid memory address or nil pointer dereference
+goroutine 24 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Rows).closemuRUnlockIfHeldByScan(0x1400009a0d0?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3412 +0x18
+database/sql.(*Rows).Next(0x0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3033 +0x20
+poker_tracker_backend/handlers.GetSessions({0x1029affe8, 0x140001881c0}, 0x1400018c140?)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:30 +0xac
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140001881c0}, 0x1400018c140)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:28 +0xa8
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140001881c0?}, 0x102698424?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x1029affe8, 0x140001881c0}, 0x1400018c140)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x14000192270?}, {0x1029affe8?, 0x140001881c0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x1400015a2d0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:46 http: panic serving 10.73.108.175:62090: runtime error: invalid memory address or nil pointer dereference
+goroutine 55 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Rows).closemuRUnlockIfHeldByScan(0x1400009a0d0?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3412 +0x18
+database/sql.(*Rows).Next(0x0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:3033 +0x20
+poker_tracker_backend/handlers.GetSessions({0x1029affe8, 0x1400022e2a0}, 0x1400021e3c0?)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:30 +0xac
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x1400022e2a0}, 0x1400021e3c0)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:28 +0xa8
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x1400022e2a0?}, 0x102698424?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x1029affe8, 0x1400022e2a0}, 0x1400021e3c0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x140000998c0?}, {0x1029affe8?, 0x1400022e2a0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000af7a0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:57 http: panic serving 10.73.108.175:62091: runtime error: invalid memory address or nil pointer dereference
+goroutine 56 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x14000283a00?, 0x14000283948?, 0x60?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x1400022e380}, 0x1400021e500)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x1400022e380}, 0x1400021e500)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x1400022e380?}, 0x14000283b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x1400022e380}, 0x1400021e500)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x1400022e380?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x140000af830, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:58 http: panic serving 10.73.108.175:62104: runtime error: invalid memory address or nil pointer dereference
+goroutine 42 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x1400009fa00?, 0x14000207948?, 0x7c?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140001882a0}, 0x1400021e780)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140001882a0}, 0x1400021e780)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140001882a0?}, 0x14000207b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140001882a0}, 0x1400021e780)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140001882a0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x14000212fc0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:58 http: panic serving 10.73.108.175:62105: runtime error: invalid memory address or nil pointer dereference
+goroutine 27 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x140000a3a00?, 0x14000207948?, 0x14?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140000c28c0}, 0x1400018c3c0)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c28c0}, 0x1400018c3c0)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c28c0?}, 0x14000207b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140000c28c0}, 0x1400018c3c0)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140000c28c0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x1400015a480, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:58 http: panic serving 10.73.108.175:62106: runtime error: invalid memory address or nil pointer dereference
+goroutine 28 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x140000a3a00?, 0x1400006b948?, 0x3f?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x140000c29a0}, 0x1400018c500)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x140000c29a0}, 0x1400018c500)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x140000c29a0?}, 0x1400006bb10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x140000c29a0}, 0x1400018c500)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x140000c29a0?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x1400015a510, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8
+2025/06/09 12:09:59 http: panic serving 10.73.108.175:62108: runtime error: invalid memory address or nil pointer dereference
+goroutine 29 [running]:
+net/http.(*conn).serve.func1()
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:1947 +0xb0
+panic({0x102941e40?, 0x102bd6ee0?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/runtime/panic.go:792 +0x124
+database/sql.(*Stmt).ExecContext(0x0?, {0x1029b0370?, 0x102c105c0?}, {0x1400009fa00?, 0x14000066948?, 0x2a?})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2644 +0x38
+database/sql.(*Stmt).Exec(...)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/database/sql/sql.go:2668
+poker_tracker_backend/handlers.CreateSession({0x1029affe8, 0x14000188380}, 0x1400018c640)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/handlers/session.go:19 +0x2c0
+poker_tracker_backend/routes.RegisterRoutes.func1({0x1029affe8, 0x14000188380}, 0x1400018c640)
+	/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/routes/routes.go:30 +0xd4
+net/http.HandlerFunc.ServeHTTP(0x102be8f40?, {0x1029affe8?, 0x14000188380?}, 0x14000066b10?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2294 +0x38
+net/http.(*ServeMux).ServeHTTP(0x10?, {0x1029affe8, 0x14000188380}, 0x1400018c640)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2822 +0x1b4
+net/http.serverHandler.ServeHTTP({0x1029ae950?}, {0x1029affe8?, 0x14000188380?}, 0x1?)
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3301 +0xbc
+net/http.(*conn).serve(0x1400015a5a0, {0x1029b0450, 0x14000098360})
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:2102 +0x52c
+created by net/http.(*Server).Serve in goroutine 1
+	/opt/homebrew/Cellar/go/1.24.3/libexec/src/net/http/server.go:3454 +0x3d8

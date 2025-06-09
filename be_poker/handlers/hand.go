@@ -8,8 +8,6 @@ import (
 	"poker_tracker_backend/models"
 	"poker_tracker_backend/services"
 	"github.com/google/uuid"
-	"database/sql"
-	"time"
 )
 
 func CreateHand(w http.ResponseWriter, r *http.Request) {
@@ -34,12 +32,12 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 	if hand.ID == "" {
 		hand.ID = uuid.New().String()
 	}
-	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date, favorite, tag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date, favorite) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate, hand.Favorite, hand.Tag)
+	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate, hand.Favorite)
 	if err != nil {
 		http.Error(w, "Database insert error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -51,43 +49,35 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetHands(w http.ResponseWriter, r *http.Request) {
-	sessionId := r.URL.Query().Get("session_id")
-	var rows *sql.Rows
-	var err error
-	if sessionId != "" {
-		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands WHERE session_id = ?`, sessionId)
-	} else {
-		rows, err = db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands`)
-	}
+	rows, err := db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer rows.Close()
+	
 	hands := []models.Hand{}
 	for rows.Next() {
 		var h models.Hand
-		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite, &h.Tag)
+		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite)
 		if err != nil {
-			http.Error(w, "Scan error: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		hands = append(hands, h)
 	}
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(hands)
 }
 
 func GetHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
 	var h models.Hand
-	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite, &h.Tag)
+	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite)
 	if err != nil {
-		http.Error(w, "Hand not found: "+err.Error(), http.StatusNotFound)
+		http.Error(w, "Hand not found", http.StatusNotFound)
 		return
 	}
-	
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(h)
 }
 
@@ -99,22 +89,22 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, position = ?, details = ?, result = ?, date = ?, favorite = ?, tag = ? WHERE id = ?`)
+	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, position = ?, details = ?, result = ?, date = ?, favorite = ? WHERE id = ?`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
-	_, err = stmt.Exec(hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Favorite, hand.Tag, id)
+	_, err = stmt.Exec(hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Favorite, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
 	// 返回更新後的手牌
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite, COALESCE(tag, '') as tag FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
 	var updatedHand models.Hand
-	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Position, &updatedHand.Details, &updatedHand.Result, &updatedHand.Date, &updatedHand.Analysis, &updatedHand.AnalysisDate, &updatedHand.Favorite, &updatedHand.Tag)
+	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Position, &updatedHand.Details, &updatedHand.Result, &updatedHand.Date, &updatedHand.Analysis, &updatedHand.AnalysisDate, &updatedHand.Favorite)
 	if err != nil {
 		http.Error(w, "Failed to retrieve updated hand", http.StatusInternalServerError)
 		return

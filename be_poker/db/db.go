@@ -14,6 +14,12 @@ func InitDB(filepath string) {
 	if err != nil {
 		log.Fatal("Cannot open database:", err)
 	}
+	
+	// 測試資料庫連接
+	if err = DB.Ping(); err != nil {
+		log.Fatal("Cannot ping database:", err)
+	}
+	
 	createTables()
 }
 
@@ -25,7 +31,9 @@ func createTables() {
 		small_blind INTEGER,
 		big_blind INTEGER,
 		currency TEXT,
-		effective_stack INTEGER
+		effective_stack INTEGER,
+		table_size INTEGER DEFAULT 6,
+		tag TEXT
 	);`
 	_, err := DB.Exec(sessionTable)
 	if err != nil {
@@ -42,6 +50,7 @@ func createTables() {
 		date TEXT,
 		analysis TEXT,
 		analysis_date TEXT,
+		favorite INTEGER DEFAULT 0,
 		FOREIGN KEY(session_id) REFERENCES sessions(id)
 	);`
 	_, err = DB.Exec(handTable)

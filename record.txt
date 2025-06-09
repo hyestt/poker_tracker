@@ -1348,3 +1348,106 @@ Summary of fixes:
 - API 錯誤診斷和修復流程
 
 ---
+
+Date: 2025-06-09 12:15:00
+User Query: 點擊start recording hands 沒反應 + 把record Hand的tab選項移到new session page
+Summary of fixes and enhancements:
+1. 問題診斷和修復：
+   - 發現後端出現nil pointer dereference錯誤
+   - 更新be_poker/db/db.go添加缺失的資料庫欄位
+   - 添加table_size、favorite、tag欄位到創建表語句
+   - 添加資料庫連接測試(DB.Ping())確保連接正常
+
+2. 後端修復：
+   - 修復sessions表創建語句，添加table_size INTEGER DEFAULT 6
+   - 修復hands表創建語句，添加favorite INTEGER DEFAULT 0, tag TEXT
+   - 重新啟動後端服務器，API endpoints正常工作
+   - 測試API連接成功：GET /sessions和POST /sessions都正常運作
+
+3. NewSessionScreen重大改版 - Tab功能整合：
+   - 新增tab導航：Session Setup和Record Hand兩個標籤
+   - Session Setup tab：包含原有的所有session配置選項
+   - Record Hand tab：整合RecordHandScreen的所有功能
+   - 智能工作流程：創建session後自動切換到Record Hand tab
+
+4. UI/UX改進：
+   - Tab導航設計：使用TouchableOpacity實現標籤切換
+   - 視覺狀態管理：活躍標籤有不同的背景色和文字色
+   - 警告提示：在Record Hand tab顯示"Please create session first"
+   - 按鈕狀態：Session創建後顯示"Session Created ✓"
+   - 雙按鈕設計：Save Hand和Finish Session分別處理不同需求
+
+5. 功能邏輯優化：
+   - handleCreateSession：創建session並自動切換到手牌記錄tab
+   - handleSaveHand：保存手牌記錄，如果沒有session會先創建
+   - handleFinishSession：完成整個session並返回首頁
+   - 狀態管理：sessionId追蹤session創建狀態
+
+6. 樣式設計：
+   - Apple iOS設計風格的tab導航
+   - 一致的卡片佈局和間距
+   - 手牌記錄部分保持與RecordHandScreen相同的設計
+   - 響應式佈局適應不同內容
+
+技術特點：
+- MVVM架構：清晰的狀態管理和業務邏輯分離
+- TypeScript：完整的類型支援和錯誤檢測
+- 模組化設計：可重用的組件和服務
+- 用戶體驗：流暢的工作流程和直觀的界面設計
+
+功能狀態：✅ 後端修復完成，NewSessionScreen改版為整合式tab設計，支援在同一頁面創建session和記錄手牌
+
+---
+
+Date: 2025-06-09 12:50:00
+User Query: 將tag移到New session的頁面
+Summary of tag migration from hand to session level:
+1. 資料庫架構修改：
+   - 在sessions表中新增tag TEXT欄位：ALTER TABLE sessions ADD COLUMN tag TEXT
+   - 從hands表的CREATE TABLE語句中移除tag欄位
+   - 更新be_poker/db/db.go的createTables函數反映新的表結構
+
+2. 後端模型更新：
+   - be_poker/models/models.go：將Tag欄位從Hand結構移動到Session結構
+   - 在Session結構中：Tag string `json:"tag"`
+   - 從Hand結構中移除Tag欄位
+
+3. 後端API handlers修改：
+   - be_poker/handlers/session.go：
+     * CreateSession：SQL INSERT語句包含tag欄位
+     * GetSessions/GetSession：SQL SELECT使用COALESCE(tag, '')處理null值
+     * UpdateSession：SQL UPDATE包含tag欄位修改
+   - be_poker/handlers/hand.go：
+     * 移除所有SQL查詢中的tag欄位
+     * CreateHand, GetHands, GetHand, UpdateHand都不再處理tag
+
+4. 前端模型更新：
+   - fe_poker/src/models.ts：將tag?: string從Hand介面移動到Session介面
+   - 確保類型一致性和可選屬性
+
+5. 前端UI修改：
+   - NewSessionScreen.tsx：
+     * 新增tag狀態：const [tag, setTag] = useState('')
+     * 導入ColorTagPicker組件
+     * 在Effective Stack後添加Session Tag選擇器
+     * 在handleNext函數中包含tag到session物件
+   - RecordHandScreen.tsx：
+     * 移除ColorTagPicker導入和tag狀態
+     * 將三欄布局(hole cards, position, tag)改回兩欄布局
+     * 移除tag相關的樣式定義
+     * 簡化handleSave函數，不再包含tag
+
+6. 設計理念轉變：
+   - Tag從手牌級別(每手牌一個tag)改為會話級別(整個session一個tag)
+   - 提升用戶體驗：在創建session時就設定標籤，而不是每手牌都要選擇
+   - 資料組織更合理：session-level的標籤更適合分類和過濾
+
+7. 技術實作細節：
+   - 保持向後兼容：現有的hands資料不受影響
+   - 資料庫遷移：僅添加新欄位，不刪除現有資料
+   - API一致性：所有session相關的endpoints都支援tag欄位
+   - 前端類型安全：TypeScript確保tag欄位的正確使用
+
+功能狀態：✅ Tag功能已成功從hand級別遷移到session級別，使用者現在可以在NewSessionScreen為整個poker session設定顏色標籤
+
+---

@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { CustomPicker } from '../components/CustomPicker';
 import { CustomDateTimePicker } from '../components/DateTimePicker';
+import { ColorTagPicker } from '../components/ColorTagPicker';
 
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -18,6 +19,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   const [currency, setCurrency] = useState('');
   const [effectiveStack, setEffectiveStack] = useState('');
   const [tableSize, setTableSize] = useState('');
+  const [tag, setTag] = useState('');
 
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const { addSession, fetchHands, fetchStats } = useSessionStore();
@@ -58,6 +60,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       currency,
       effectiveStack: parseInt(effectiveStack) || 0,
       tableSize: parseInt(tableSize) || 6,
+      tag,
     };
 
     // Save current choices as user preferences
@@ -105,8 +108,6 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
       await UserPreferencesService.savePreferences(updated);
     }
   };
-
-
 
   if (!preferences) {
     return (
@@ -190,7 +191,13 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         </View>
       </Card>
 
-
+      <Card style={styles.section}>
+        <ColorTagPicker
+          title="Session Tag"
+          value={tag}
+          onValueChange={setTag}
+        />
+      </Card>
 
       <View style={styles.buttonContainer}>
         <Button title="Start Recording Hands" onPress={handleNext} />
