@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { usePokerKeyboardViewModel } from '../viewmodels/PokerKeyboardViewModel';
@@ -8,18 +8,30 @@ interface PokerKeyboardViewProps {
   onSave?: () => void;
   onCardSelect?: (cards: string[]) => void;
   initialAction?: 'hole' | 'position';
+  initialCards?: string[];
+  onDone?: () => void;
 }
 
 export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
   onBack,
   onSave,
   onCardSelect,
-  initialAction = 'hole'
+  initialAction = 'hole',
+  initialCards = [],
+  onDone
 }) => {
-  const viewModel = usePokerKeyboardViewModel(initialAction);
+  const viewModel = usePokerKeyboardViewModel(initialAction, 5, initialCards);
   const { state, actions } = viewModel;
 
-  const ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+  // 監聽卡牌變化並通知父組件
+  useEffect(() => {
+    const cardDisplays = state.inputCards.map(c => c.display);
+    onCardSelect?.(cardDisplays);
+  }, [state.inputCards, onCardSelect]);
+
+  const firstRow = ['5', '4', '3', '2'];
+  const secondRow = ['9', '8', '7', '6'];
+  const thirdRow = ['A', 'K', 'Q', 'J', 'T'];
   const suits = [
     { label: 'Club', symbol: '♣', color: '#22C55E' },
     { label: 'Spade', symbol: '♠', color: '#000000' },
@@ -37,9 +49,6 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
     // 如果同時有rank和suit，自動組成卡牌
     if (state.selectedSuit) {
       actions.addCard(rank, state.selectedSuit);
-      // 通知父組件卡牌變化
-      const updatedCards = [...state.inputCards.map(c => c.display), `${rank}${state.selectedSuit}`];
-      onCardSelect?.(updatedCards);
     }
   };
 
@@ -49,58 +58,61 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
     // 如果同時有rank和suit，自動組成卡牌
     if (state.selectedRank) {
       actions.addCard(state.selectedRank, suitSymbol);
-      // 通知父組件卡牌變化
-      const updatedCards = [...state.inputCards.map(c => c.display), `${state.selectedRank}${suitSymbol}`];
-      onCardSelect?.(updatedCards);
     }
   };
 
   const handleAdd = () => {
     if (state.selectedRank && state.selectedSuit) {
       actions.addCard(state.selectedRank, state.selectedSuit);
-      // 通知父組件卡牌變化
-      const updatedCards = [...state.inputCards.map(c => c.display), `${state.selectedRank}${state.selectedSuit}`];
-      onCardSelect?.(updatedCards);
     }
   };
 
+  const handleDone = () => {
+    onDone?.();
+  };
+
   const handleClear = () => {
-    actions.clearAll();
-    onCardSelect?.([]);
+    // 只刪除最右邊（最後一張）的卡片
+    if (state.inputCards.length > 0) {
+      actions.removeCard(state.inputCards.length - 1);
+    }
+  };
+
+  const getSuitColor = (suitSymbol: string) => {
+    const suit = suits.find(s => s.symbol === suitSymbol);
+    return suit ? suit.color : '#000000';
   };
 
   return (
     <View style={styles.container}>
       {/* Selected Cards Display */}
       <View style={styles.selectedCardsDisplay}>
-        <Text style={styles.selectedCardsTitle}>已選擇的手牌</Text>
-        
         <View style={styles.cardsSection}>
-          {/* 已完成的卡牌 */}
+          {/* Selected Cards */}
           <View style={styles.selectedCardsContainer}>
-            {state.inputCards.map((card, index) => (
-              <TouchableOpacity 
-                key={index} 
-                style={styles.selectedCard}
-                onPress={() => {
-                  actions.removeCard(index);
-                  const updatedCards = state.inputCards
-                    .filter((_, i) => i !== index)
-                    .map(c => c.display);
-                  onCardSelect?.(updatedCards);
-                }}
-              >
-                <Text style={styles.selectedCardText}>{card.display}</Text>
-              </TouchableOpacity>
-            ))}
+            {state.inputCards.map((card, index) => {
+              const suitColor = getSuitColor(card.suit);
+              return (
+                <View 
+                  key={index} 
+                  style={styles.selectedCard}
+                >
+                  <Text style={[styles.selectedCardText, { color: suitColor }]}>
+                    {card.display}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
 
-          {/* 正在輸入的卡牌預覽 */}
+          {/* Current input preview */}
           {(state.selectedRank || state.selectedSuit) && (
             <View style={styles.currentInputSection}>
-              <Text style={styles.currentInputLabel}>正在輸入：</Text>
               <View style={styles.currentInputCard}>
-                <Text style={styles.currentInputText}>
+                <Text style={[
+                  styles.currentInputText, 
+                  { color: state.selectedSuit ? getSuitColor(state.selectedSuit) : '#92400E' }
+                ]}>
                   {state.selectedRank || '?'}{state.selectedSuit || '?'}
                 </Text>
               </View>
@@ -109,15 +121,15 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
         </View>
 
         {state.inputCards.length === 0 && !state.selectedRank && !state.selectedSuit && (
-          <Text style={styles.emptyStateText}>點擊數字和花色來選擇手牌</Text>
+          <Text style={styles.emptyStateText}>Click rank and suit to select cards (max 5)</Text>
         )}
       </View>
 
-      {/* Card Input Grid */}
-      <View style={styles.cardInputGrid}>
-        {/* Rank Grid */}
-        <View style={styles.rankGrid}>
-          {ranks.map((rank) => (
+      {/* Rank Grid with buttons */}
+      <View style={styles.rankSection}>
+        {/* First Row - 5432 with + button */}
+        <View style={styles.rankRow}>
+          {firstRow.map((rank) => (
             <TouchableOpacity
               key={rank}
               style={[
@@ -134,22 +146,64 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
-
-        {/* Control Buttons */}
-        <View style={styles.controlButtons}>
+          
+          {/* Add Done button to the right of 5432 */}
           <TouchableOpacity
             style={styles.symbolButton}
-            onPress={handleAdd}
+            onPress={handleDone}
           >
-            <Text style={styles.symbolButtonText}>+</Text>
+            <Text style={styles.symbolButtonText}>✓</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Second Row - 9876 with × button */}
+        <View style={styles.rankRow}>
+          {secondRow.map((rank) => (
+            <TouchableOpacity
+              key={rank}
+              style={[
+                styles.rankButton,
+                state.selectedRank === rank && styles.rankButtonSelected
+              ]}
+              onPress={() => handleRankSelect(rank)}
+            >
+              <Text style={[
+                styles.rankButtonText,
+                state.selectedRank === rank && styles.rankButtonTextSelected
+              ]}>
+                {rank}
+              </Text>
+            </TouchableOpacity>
+          ))}
+          
+          {/* Add × button to the right of 9876 */}
           <TouchableOpacity
             style={styles.clearButton}
             onPress={handleClear}
           >
-            <Text style={styles.clearButtonText}>✕</Text>
+            <Text style={styles.clearButtonText}>×</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Third Row - AKQJT */}
+        <View style={[styles.rankRow, styles.lastRankRow]}>
+          {thirdRow.map((rank) => (
+            <TouchableOpacity
+              key={rank}
+              style={[
+                styles.rankButton,
+                state.selectedRank === rank && styles.rankButtonSelected
+              ]}
+              onPress={() => handleRankSelect(rank)}
+            >
+              <Text style={[
+                styles.rankButtonText,
+                state.selectedRank === rank && styles.rankButtonTextSelected
+              ]}>
+                {rank}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
@@ -183,19 +237,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+    paddingTop: 0,
+    paddingBottom: theme.spacing.sm,
+    justifyContent: 'flex-end',
   },
   selectedCardsDisplay: {
     backgroundColor: 'white',
     borderRadius: theme.radius.card,
     padding: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.sm,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-    minHeight: 100,
+    minHeight: 120,
     justifyContent: 'center',
   },
   selectedCardsTitle: {
@@ -207,14 +263,16 @@ const styles = StyleSheet.create({
   },
   selectedCardsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
+    flexWrap: 'nowrap',
+    gap: theme.spacing.xs,
     justifyContent: 'center',
+    flex: 1,
+    alignItems: 'center',
   },
   selectedCard: {
     backgroundColor: '#F3F4F6',
     borderRadius: theme.radius.button,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
     borderWidth: 2,
     borderColor: theme.colors.primary,
@@ -223,6 +281,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 1,
+    minWidth: 45,
+    alignItems: 'center',
   },
   selectedCardText: {
     fontSize: theme.font.size.body,
@@ -235,25 +295,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  cardInputGrid: {
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    marginBottom: 120, // 為底部的花色選擇器留出空間
+  rankSection: {
+    justifyContent: 'flex-start',
+    paddingHorizontal: theme.spacing.sm,
+    marginBottom: 0,
   },
-  rankGrid: {
-    flex: 1,
+  rankRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
+    gap: theme.spacing.sm,
   },
   rankButton: {
-    width: '22%',
-    aspectRatio: 1,
+    width: 60,
+    height: 60,
     backgroundColor: '#3B82F6',
     borderRadius: theme.radius.button,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.xs,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -265,21 +326,23 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.95 }],
   },
   rankButtonText: {
-    fontSize: theme.font.size.subtitle,
+    fontSize: 24,
     color: 'white',
     fontWeight: '700',
   },
   rankButtonTextSelected: {
     color: 'white',
   },
-  controlButtons: {
-    gap: theme.spacing.sm,
+  controlButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: theme.spacing.xl,
   },
   symbolButton: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     backgroundColor: '#10B981',
-    borderRadius: 25,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -294,10 +357,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   clearButton: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     backgroundColor: '#EF4444',
-    borderRadius: 25,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -314,10 +377,7 @@ const styles = StyleSheet.create({
   suitSelector: {
     flexDirection: 'row',
     gap: theme.spacing.sm,
-    position: 'absolute',
-    bottom: 0,
-    left: theme.spacing.md,
-    right: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.lg,
   },
   suitButton: {
@@ -342,11 +402,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
   },
   currentInputSection: {
-    marginTop: theme.spacing.md,
     alignItems: 'center',
+    flexShrink: 0,
   },
   currentInputLabel: {
     fontSize: theme.font.size.small,
@@ -366,5 +429,8 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     fontWeight: '700',
     color: '#92400E',
+  },
+  lastRankRow: {
+    marginBottom: theme.spacing.sm,
   },
 }); 

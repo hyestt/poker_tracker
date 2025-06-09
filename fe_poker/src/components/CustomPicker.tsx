@@ -249,19 +249,18 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
 
 const styles = StyleSheet.create({
   horizontalContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     marginBottom: theme.spacing.xs,
   },
   titleText: {
-    fontSize: theme.font.size.body,
+    fontSize: theme.font.size.small,
     fontWeight: '600',
     color: theme.colors.text,
-    flex: 0.3,
+    marginBottom: theme.spacing.xs,
   },
   pickerContainer: {
-    flex: 0.65,
+    width: '100%',
   },
   picker: {
     flexDirection: 'row',

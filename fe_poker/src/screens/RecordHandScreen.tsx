@@ -52,54 +52,15 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     <View style={styles.container}>      
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.topSection}>
-          {/* Current Hand Display */}
-          <View style={styles.currentHandDisplay}>
-            <Text style={styles.currentHandTitle}>當前手牌</Text>
-            {holeCards ? (
-              <View style={styles.currentHandCardsContainer}>
-                {holeCards.split(' ').map((card, index) => {
-                  const rank = card.slice(0, -1);
-                  const suit = card.slice(-1);
-                  const getSuitColor = (suit: string) => {
-                    return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
-                  };
-                  return (
-                    <View key={index} style={styles.currentHandCard}>
-                      <Text style={[styles.currentHandCardText, { color: getSuitColor(suit) }]}>
-                        {rank}{suit}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            ) : (
-              <Text style={styles.currentHandPlaceholder}>
-                尚未選擇手牌
-              </Text>
-            )}
-          </View>
-
-          <View style={styles.horizontalRow}>
-            <View style={styles.halfField}>
-              <Text style={styles.fieldLabel}>底牌</Text>
-              <TouchableOpacity style={styles.holeCardSelector} onPress={handleHoleCardsSelect}>
-                <Text style={styles.selectButtonText}>
-                  {holeCards ? '修改底牌' : '選擇底牌'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.halfField}>
-              <Text style={styles.fieldLabel}>位置</Text>
-              <CustomPicker
-                options={positions}
-                value={position}
-                onValueChange={setPosition}
-                onOptionsChange={() => {}} // Position options are fixed
-                placeholder="Position"
-                allowCustom={false}
-                allowDelete={false}
-              />
-            </View>
+          <View style={styles.resultSection}>
+            <Text style={styles.label}>Result ($)</Text>
+            <Input 
+              value={result} 
+              onChangeText={setResult} 
+              placeholder="Enter result (e.g. +150, -75)" 
+              keyboardType="numeric" 
+              style={styles.resultInput}
+            />
           </View>
 
           <View style={styles.fieldColumn}>
@@ -120,14 +81,47 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
         <View style={styles.spacer} />
         
         <View style={styles.bottomSection}>
-          <Text style={styles.label}>Result ($)</Text>
-          <Input 
-            value={result} 
-            onChangeText={setResult} 
-            placeholder="Enter result (e.g. +150, -75)" 
-            keyboardType="numeric" 
-            style={styles.resultInput}
-          />
+          <View style={styles.horizontalRow}>
+            <View style={styles.halfField}>
+              <Text style={styles.fieldLabel}>Hole Cards</Text>
+              <TouchableOpacity style={styles.holeCardDisplay} onPress={handleHoleCardsSelect}>
+                {holeCards ? (
+                  <View style={styles.selectedCardsContainer}>
+                    {holeCards.split(' ').map((card, index) => {
+                      const rank = card.slice(0, -1);
+                      const suit = card.slice(-1);
+                      const getSuitColor = (suit: string) => {
+                        return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                      };
+                      return (
+                        <View key={index} style={styles.miniCard}>
+                          <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                            {rank}{suit}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <Text style={styles.placeholderText}>
+                    Select hole cards
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            <View style={styles.halfField}>
+              <Text style={styles.fieldLabel}>Position</Text>
+              <CustomPicker
+                options={positions}
+                value={position}
+                onValueChange={setPosition}
+                onOptionsChange={() => {}} // Position options are fixed
+                placeholder="Position"
+                allowCustom={false}
+                allowDelete={false}
+              />
+            </View>
+          </View>
           <Button title="Save Hand" onPress={handleSave} style={styles.saveButton} />
         </View>
       </ScrollView>
@@ -142,17 +136,18 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>關閉</Text>
+              <Text style={styles.closeButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>選擇底牌</Text>
+            <Text style={styles.modalTitle}>Select Hole Cards</Text>
             <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.doneButton}>
-              <Text style={styles.doneButtonText}>完成</Text>
+              <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
           
           <PokerKeyboardView
             onCardSelect={handleCardSelect}
             initialAction="hole"
+            onDone={handlePokerKeyboardClose}
           />
         </SafeAreaView>
       </Modal>
@@ -176,16 +171,11 @@ const styles = StyleSheet.create({
   topSection: {
     flex: 1,
   },
-  horizontalRow: {
-    flexDirection: 'row',
-    marginBottom: theme.spacing.xs,
-    gap: theme.spacing.xs,
-  },
-  halfField: {
-    flex: 1,
+  resultSection: {
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
     padding: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -233,18 +223,16 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: theme.colors.primary,
   },
-  holeCardSelector: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.button,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    alignItems: 'center',
+  holeCardDisplay: {
+    backgroundColor: theme.colors.inputBg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.input,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    minHeight: 50,
     justifyContent: 'center',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    alignItems: 'center',
   },
   holeCardText: {
     fontSize: theme.font.size.small,
@@ -270,64 +258,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  currentHandDisplay: {
-    backgroundColor: 'white',
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.md,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    alignItems: 'center',
-    minHeight: 100,
-    justifyContent: 'center',
-  },
-  currentHandTitle: {
-    fontSize: theme.font.size.subtitle,
-    fontWeight: '700',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-  },
-  currentHandCardsContainer: {
-    flexDirection: 'row',
-    gap: theme.spacing.md,
-    alignItems: 'center',
-  },
-  currentHandCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: theme.radius.button,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderWidth: 2,
-    borderColor: theme.colors.primary,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  currentHandCardText: {
-    fontSize: theme.font.size.title,
-    fontWeight: '700',
-  },
-  currentHandPlaceholder: {
-    fontSize: theme.font.size.body,
-    color: theme.colors.gray,
-    fontStyle: 'italic',
-  },
   fieldLabel: {
     fontSize: theme.font.size.small,
     fontWeight: '600',
     color: theme.colors.text,
     marginBottom: theme.spacing.xs,
-  },
-  selectButtonText: {
-    fontSize: theme.font.size.body,
-    color: 'white',
-    fontWeight: '600',
-    textAlign: 'center',
   },
   modalContainer: {
     flex: 1,
@@ -370,5 +305,21 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     color: theme.colors.primary,
     fontWeight: '600',
+  },
+  horizontalRow: {
+    flexDirection: 'row',
+    marginBottom: theme.spacing.xs,
+    gap: theme.spacing.xs,
+  },
+  halfField: {
+    flex: 1,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xs,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
 }); 

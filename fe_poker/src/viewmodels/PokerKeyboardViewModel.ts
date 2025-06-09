@@ -30,13 +30,27 @@ export interface PokerKeyboardViewModel {
 
 export const usePokerKeyboardViewModel = (
   initialAction: 'hole' | 'position' = 'hole',
-  maxCards: number = 2
+  maxCards: number = 2,
+  initialCards: string[] = []
 ): PokerKeyboardViewModel => {
+  // 解析初始卡片
+  const parseInitialCards = (cards: string[]): PokerCard[] => {
+    return cards.map(cardStr => {
+      const rank = cardStr.slice(0, -1);
+      const suit = cardStr.slice(-1);
+      return {
+        rank,
+        suit,
+        display: cardStr
+      };
+    });
+  };
+
   const [state, setState] = useState<PokerKeyboardState>({
     selectedAction: initialAction,
     selectedRank: null,
     selectedSuit: null,
-    inputCards: [],
+    inputCards: parseInitialCards(initialCards),
     maxCards,
   });
 

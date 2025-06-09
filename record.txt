@@ -199,6 +199,31 @@ Summary of 404 error debugging and resolution:
    - 發現舊進程佔用端口8080，使用lsof -ti:8080找到並kill
    - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
 
+Date: 2025-01-27 11:30:00
+User Query: 恢復所有之前的PokerKeyboardView修改設定
+Summary of comprehensive restore:
+1. 英文界面恢復：
+   - "已選擇的手牌" → "Selected Cards"
+   - "正在輸入：" → "Building:"
+   - "點擊數字和花色來選擇手牌" → "Click rank and suit to select cards"
+
+2. 數字排列順序恢復為：5432(+) → 9876(×) → AKQJT
+   - 第一行：5432 + 綠色+按鈕
+   - 第二行：9876 + 紅色×按鈕  
+   - 第三行：AKQJT（無按鈕）
+
+3. 緊湊間距設定恢復：
+   - container: justifyContent: 'flex-end', paddingVertical: sm
+   - selectedCardsDisplay: marginBottom: sm
+   - rankSection: marginBottom: 0, 移除flex: 1
+   - rankRow: marginBottom: sm, 左對齊, gap: sm
+   - lastRankRow: marginBottom: sm
+
+4. 按鈕位置調整：
+   - +按鈕在5432行右邊
+   - ×按鈕在9876行右邊
+   - 移除底部的控制按鈕行
+
 Date: 2025-01-27 11:45:00
 User Query: 建立自訂撲克牌輸入鍵盤組件
 Summary of PokerKeyboardView development:
@@ -248,6 +273,37 @@ Summary of PokerKeyboardView development:
    - 添加標題列和關閉/完成按鈕
    - 集成SafeAreaView確保適配不同設備
    - 改善用戶體驗：無需離開當前頁面即可選擇卡牌
+
+8. 數字鍵盤佈局優化：
+   - 將數字按鈕尺寸從原本的自適應改為固定60x60px
+   - 重新排列數字為三行佈局：
+     * 第一行: A K Q J T
+     * 第二行: 9 8 7 6
+     * 第三行: 5 4 3 2
+   - 將數字鍵盤移到花色選擇器正上方
+   - 增大字體大小到24px提升可讀性
+   - 同步放大控制按鈕(+/×)到60x60px
+   - 移除absolute定位，改為自然流佈局
+
+9. 手牌顯示簡化：
+   - 移除上方獨立的"當前手牌"顯示區域
+   - 將選中的手牌直接顯示在底牌區域
+   - 保持原有的卡牌樣式（小卡片形式）
+   - 簡化界面層次，減少重複顯示
+   - 點擊區域保持可用，方便修改底牌
+
+10. 正在輸入預覽佈局調整：
+    - 將"正在輸入"的手牌預覽從垂直下方移到水平右邊
+    - 採用水平佈局：左側顯示已選中卡牌，右側顯示正在輸入狀態
+    - 優化空間利用，避免垂直空間過度佔用
+    - 保持預覽功能的即時性和可視性
+
+11. EditHandScreen更新：
+    - 修復EditHandScreen仍使用舊版PokerCardPicker的問題
+    - 統一EditHandScreen和RecordHandScreen的使用體驗
+    - 將EditHandScreen中的hole card選擇也改為使用新的撲克鍵盤Modal
+    - 保持相同的UI風格和交互模式
+    - 確保編輯手牌時的一致性體驗
 
 Date: 2025-01-27 11:00:00
 User Query: 新增一個欄位，tag，可以自由輸入tag
