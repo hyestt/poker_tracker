@@ -21,6 +21,7 @@ func InitDB(filepath string) {
 	}
 	
 	createTables()
+	migrateTables()
 }
 
 func createTables() {
@@ -44,10 +45,13 @@ func createTables() {
 		id TEXT PRIMARY KEY,
 		session_id TEXT,
 		hole_cards TEXT,
+		board TEXT,
 		position TEXT,
 		details TEXT,
+		note TEXT,
 		result INTEGER,
 		date TEXT,
+		villains TEXT,
 		analysis TEXT,
 		analysis_date TEXT,
 		favorite INTEGER DEFAULT 0,
@@ -56,5 +60,22 @@ func createTables() {
 	_, err = DB.Exec(handTable)
 	if err != nil {
 		log.Fatal("Cannot create hands table:", err)
+	}
+}
+
+func migrateTables() {
+	// 添加新欄位，如果已存在會自動忽略
+	migrations := []string{
+		"ALTER TABLE hands ADD COLUMN board TEXT",
+		"ALTER TABLE hands ADD COLUMN note TEXT", 
+		"ALTER TABLE hands ADD COLUMN villains TEXT",
+	}
+	
+	for _, migration := range migrations {
+		_, err := DB.Exec(migration)
+		if err != nil {
+			// 忽略 "duplicate column name" 錯誤
+			log.Printf("Migration warning: %v", err)
+		}
 	}
 } 

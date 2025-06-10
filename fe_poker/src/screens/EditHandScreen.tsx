@@ -47,7 +47,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     setSelectedVillainIndex(null);
   };
 
-  const handleCardSelect = (selectedCards: string[]) => {
+  const handleCardSelect = useCallback((selectedCards: string[]) => {
     const cardsString = selectedCards.join(' ');
     if (selectedVillainIndex !== null && selectedVillainIndex < villains.length) {
       // Update villain cards
@@ -61,7 +61,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       // Update hero cards
       setHoleCards(cardsString);
     }
-  };
+  }, [selectedVillainIndex, villains]);
 
   const handleBoardSelect = () => {
     setShowBoardKeyboard(true);
@@ -71,9 +71,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     setShowBoardKeyboard(false);
   };
 
-  const handleBoardCardSelect = (selectedCards: string[]) => {
+  const handleBoardCardSelect = useCallback((selectedCards: string[]) => {
     setBoard(selectedCards.join(' '));
-  };
+  }, []);
 
   const handleQuickKeyboardOpen = () => {
     setShowQuickKeyboard(true);
@@ -188,6 +188,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         console.log('Loading hand with ID:', handId);
         const hand = await getHand(handId);
         console.log('Loaded hand data:', hand);
+        console.log('Hand villains:', hand.villains);
+        console.log('Villains type:', typeof hand.villains);
+        console.log('Villains length:', hand.villains?.length);
         setHoleCards(hand.holeCards || '');
         setBoard(hand.board || '');
         setPosition(hand.position || '');
@@ -196,6 +199,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         setResult(hand.result.toString());
         setSessionId(hand.sessionId);
         setVillains(hand.villains || []);
+        console.log('Set villains to:', hand.villains || []);
         setLoading(false);
       } catch (error) {
         console.error('Failed to load hand:', error);
@@ -211,7 +215,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     }
   }, [handId, getHand]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     const hand: Hand = {
       id: handId,
       sessionId,
@@ -224,21 +228,30 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       date: new Date().toISOString(),
       villains: villains,
     };
+    console.log('Saving hand with villains:', villains);
+    console.log('Complete hand object:', hand);
     await updateHand(hand);
     await fetchHands();
     await fetchStats();
     navigation.goBack();
-  };
+  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, updateHand, fetchHands, fetchStats, navigation]);
 
-  useLayoutEffect(() => {
+  const handleSaveRef = useRef(handleSave);
+  
+  // 更新 ref 中的 handleSave 函數
+  useEffect(() => {
+    handleSaveRef.current = handleSave;
+  }, [handleSave]);
+
+  useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={handleSave} style={styles.headerSaveButton}>
+        <TouchableOpacity onPress={() => handleSaveRef.current()} style={styles.headerSaveButton}>
           <Text style={styles.headerSaveButtonText}>Update</Text>
         </TouchableOpacity>
       ),
     });
-  }, [navigation, handleSave]);
+  }, []); // 只在組件掛載時執行一次
 
   const addVillain = () => {
     const newVillain: Villain = {

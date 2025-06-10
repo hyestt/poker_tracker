@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 	"poker_tracker_backend/db"
 	"poker_tracker_backend/models"
 	"poker_tracker_backend/services"
@@ -32,12 +33,20 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 	if hand.ID == "" {
 		hand.ID = uuid.New().String()
 	}
-	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, position, details, result, date, analysis, analysis_date, favorite) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	
+	// 將 villains 序列化為 JSON
+	villainsJSON, err := json.Marshal(hand.Villains)
+	if err != nil {
+		http.Error(w, "Failed to serialize villains: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, board, position, details, note, result, date, villains, analysis, analysis_date, favorite) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Analysis, hand.AnalysisDate, hand.Favorite)
+	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Analysis, hand.AnalysisDate, hand.Favorite)
 	if err != nil {
 		http.Error(w, "Database insert error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -49,7 +58,7 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetHands(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands`)
+	rows, err := db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, details, COALESCE(note, '') as note, result, date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -59,11 +68,22 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	hands := []models.Hand{}
 	for rows.Next() {
 		var h models.Hand
-		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite)
+		var villainsJSON string
+		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.AnalysisDate, &h.Favorite)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		
+		// 反序列化 villains JSON
+		if villainsJSON != "" && villainsJSON != "[]" {
+			if err := json.Unmarshal([]byte(villainsJSON), &h.Villains); err != nil {
+				h.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
+			}
+		} else {
+			h.Villains = []models.Villain{}
+		}
+		
 		hands = append(hands, h)
 	}
 	json.NewEncoder(w).Encode(hands)
@@ -71,13 +91,24 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 
 func GetHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, details, COALESCE(note, '') as note, result, date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
 	var h models.Hand
-	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Position, &h.Details, &h.Result, &h.Date, &h.Analysis, &h.AnalysisDate, &h.Favorite)
+	var villainsJSON string
+	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.AnalysisDate, &h.Favorite)
 	if err != nil {
 		http.Error(w, "Hand not found", http.StatusNotFound)
 		return
 	}
+	
+	// 反序列化 villains JSON
+	if villainsJSON != "" && villainsJSON != "[]" {
+		if err := json.Unmarshal([]byte(villainsJSON), &h.Villains); err != nil {
+			h.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
+		}
+	} else {
+		h.Villains = []models.Villain{}
+	}
+	
 	json.NewEncoder(w).Encode(h)
 }
 
@@ -89,25 +120,42 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, position = ?, details = ?, result = ?, date = ?, favorite = ? WHERE id = ?`)
+	// 將 villains 序列化為 JSON
+	villainsJSON, err := json.Marshal(hand.Villains)
+	if err != nil {
+		http.Error(w, "Failed to serialize villains: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, board = ?, position = ?, details = ?, note = ?, result = ?, date = ?, villains = ?, favorite = ? WHERE id = ?`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
-	_, err = stmt.Exec(hand.HoleCards, hand.Position, hand.Details, hand.Result, hand.Date, hand.Favorite, id)
+	_, err = stmt.Exec(hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Favorite, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
 	// 返回更新後的手牌
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(position, '') as position, details, result, date, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, details, COALESCE(note, '') as note, result, date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
 	var updatedHand models.Hand
-	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Position, &updatedHand.Details, &updatedHand.Result, &updatedHand.Date, &updatedHand.Analysis, &updatedHand.AnalysisDate, &updatedHand.Favorite)
+	var updatedVillainsJSON string
+	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Board, &updatedHand.Position, &updatedHand.Details, &updatedHand.Note, &updatedHand.Result, &updatedHand.Date, &updatedVillainsJSON, &updatedHand.Analysis, &updatedHand.AnalysisDate, &updatedHand.Favorite)
 	if err != nil {
 		http.Error(w, "Failed to retrieve updated hand", http.StatusInternalServerError)
 		return
+	}
+	
+	// 反序列化 villains JSON
+	if updatedVillainsJSON != "" && updatedVillainsJSON != "[]" {
+		if err := json.Unmarshal([]byte(updatedVillainsJSON), &updatedHand.Villains); err != nil {
+			updatedHand.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
+		}
+	} else {
+		updatedHand.Villains = []models.Villain{}
 	}
 	
 	json.NewEncoder(w).Encode(updatedHand)
