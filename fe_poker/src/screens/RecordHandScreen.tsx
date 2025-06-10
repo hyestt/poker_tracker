@@ -5,9 +5,10 @@ import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
 import { PokerKeyboardView } from '../components/PokerKeyboardView';
 import { PokerQuickKeyboard } from '../components/PokerQuickKeyboard';
+import { VillainInput } from '../components/VillainInput';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
-import { Hand } from '../models';
+import { Hand, Villain } from '../models';
 
 
 export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
@@ -17,24 +18,68 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [position, setPosition] = useState('');
   const [details, setDetails] = useState('');
   const [result, setResult] = useState('');
+  const [villains, setVillains] = useState<Villain[]>([]);
   const [showPokerKeyboard, setShowPokerKeyboard] = useState(false);
   const [showBoardKeyboard, setShowBoardKeyboard] = useState(false);
   const [showQuickKeyboard, setShowQuickKeyboard] = useState(false);
+  const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
   const { addHand, fetchHands, fetchStats } = useSessionStore();
 
   const positions = ['UTG', 'UTG+1', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 
   const handleHoleCardsSelect = () => {
+    setSelectedVillainIndex(null);
+    setShowPokerKeyboard(true);
+  };
+
+  const handleVillainCardsSelect = (villainIndex: number) => {
+    setSelectedVillainIndex(villainIndex);
     setShowPokerKeyboard(true);
   };
 
   const handlePokerKeyboardClose = () => {
     setShowPokerKeyboard(false);
+    setSelectedVillainIndex(null);
   };
 
   const handleCardSelect = (selectedCards: string[]) => {
-    setHoleCards(selectedCards.join(' '));
+    const cardsString = selectedCards.join(' ');
+    if (selectedVillainIndex !== null && selectedVillainIndex < villains.length) {
+      // Update villain cards
+      const updatedVillains = [...villains];
+      updatedVillains[selectedVillainIndex] = {
+        ...updatedVillains[selectedVillainIndex],
+        holeCards: cardsString
+      };
+      setVillains(updatedVillains);
+    } else {
+      // Update hero cards
+      setHoleCards(cardsString);
+    }
+  };
+
+  const addVillain = () => {
+    const newVillain: Villain = {
+      id: `villain_${Date.now()}`,
+      holeCards: '',
+      position: ''
+    };
+    setVillains([...villains, newVillain]);
+  };
+
+  const updateVillain = (index: number, field: 'holeCards' | 'position', value: string) => {
+    const updatedVillains = [...villains];
+    updatedVillains[index] = {
+      ...updatedVillains[index],
+      [field]: value
+    };
+    setVillains(updatedVillains);
+  };
+
+  const removeVillain = (index: number) => {
+    const updatedVillains = villains.filter((_, i) => i !== index);
+    setVillains(updatedVillains);
   };
 
   const handleBoardSelect = () => {
@@ -167,6 +212,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       note,
       result: parseInt(result) || 0,
       date: new Date().toISOString(),
+      villains,
     };
     await addHand(hand);
     await fetchHands();
@@ -341,31 +387,35 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
         <View style={styles.bottomSection}>
           {/* Board Row */}
           <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Board</Text>
-            <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
-              {board ? (
-                <View style={styles.selectedCardsContainer}>
-                  {board.split(' ').map((card, index) => {
-                    const rank = card.slice(0, -1);
-                    const suit = card.slice(-1);
-                    const getSuitColor = (suit: string) => {
-                      return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
-                    };
-                    return (
-                      <View key={index} style={styles.miniCard}>
-                        <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
-                          {rank}{suit}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              ) : (
-                <Text style={styles.placeholderText}>
-                  Select board cards
-                </Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Board</Text>
+              <View style={styles.fieldInputContainer}>
+                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
+                  {board ? (
+                    <View style={styles.selectedCardsContainer}>
+                      {board.split(' ').map((card, index) => {
+                        const rank = card.slice(0, -1);
+                        const suit = card.slice(-1);
+                        const getSuitColor = (suit: string) => {
+                          return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                        };
+                        return (
+                          <View key={index} style={styles.miniCard}>
+                            <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                              {rank}{suit}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text style={styles.placeholderText}>
+                      Select board cards
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           {/* Hole Cards and Position Row */}
@@ -412,31 +462,60 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             </View>
           </View>
 
+          {/* Villain Section */}
+          <View style={styles.fullWidthField}>
+            <View style={styles.villainHeaderRow}>
+              <Text style={styles.fieldLabel}>Villain</Text>
+              <TouchableOpacity onPress={addVillain} style={styles.addVillainButton}>
+                <Text style={styles.addVillainButtonText}>+ Add Villain</Text>
+              </TouchableOpacity>
+            </View>
+            {villains.map((villain, index) => (
+              <VillainInput
+                key={villain.id}
+                villain={villain}
+                index={index}
+                onUpdate={updateVillain}
+                onRemove={removeVillain}
+                onHoleCardsPress={handleVillainCardsSelect}
+                positions={positions}
+              />
+            ))}
+          </View>
+
           {/* Note Section */}
           <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Note</Text>
-            <TextInput
-              style={styles.noteInput}
-              value={note}
-              onChangeText={setNote}
-              placeholder="Add a note..."
-              placeholderTextColor={theme.colors.gray}
-              multiline={true}
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Note</Text>
+              <View style={styles.fieldInputContainer}>
+                <TextInput
+                  style={styles.noteInput}
+                  value={note}
+                  onChangeText={setNote}
+                  placeholder="Add a note..."
+                  placeholderTextColor={theme.colors.gray}
+                  multiline={true}
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                />
+              </View>
+            </View>
           </View>
 
           {/* Result Section */}
           <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Result ($)</Text>
-            <Input 
-              value={result} 
-              onChangeText={setResult} 
-              placeholder="+150, -75" 
-              keyboardType="numeric" 
-              style={styles.compactInput}
-            />
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Result ($)</Text>
+              <View style={styles.fieldInputContainer}>
+                <Input 
+                  value={result} 
+                  onChangeText={setResult} 
+                  placeholder="+150, -75" 
+                  keyboardType="numeric" 
+                  style={styles.compactInput}
+                />
+              </View>
+            </View>
           </View>
 
         </View>
@@ -463,6 +542,10 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <PokerKeyboardView
             onCardSelect={handleCardSelect}
             initialAction="hole"
+            initialCards={selectedVillainIndex !== null && selectedVillainIndex < villains.length ? 
+              (villains[selectedVillainIndex]?.holeCards ? villains[selectedVillainIndex].holeCards!.split(' ') : []) : 
+              (holeCards ? holeCards.split(' ') : [])
+            }
             onDone={handlePokerKeyboardClose}
           />
         </SafeAreaView>
@@ -654,10 +737,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   fieldLabel: {
-    fontSize: theme.font.size.small,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
+    flex: 0.3,
   },
   modalContainer: {
     flex: 1,
@@ -838,5 +921,31 @@ const styles = StyleSheet.create({
   },
   heroPositionSection: {
     flex: 1,
+  },
+  villainHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  addVillainButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+  },
+  addVillainButtonText: {
+    color: '#FFFFFF',
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+  },
+  fieldHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.xs,
+  },
+  fieldInputContainer: {
+    flex: 0.8,
   },
 }); 

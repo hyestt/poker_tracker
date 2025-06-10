@@ -5,9 +5,10 @@ import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
 import { PokerKeyboardView } from '../components/PokerKeyboardView';
 import { PokerQuickKeyboard } from '../components/PokerQuickKeyboard';
+import { VillainInput } from '../components/VillainInput';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
-import { Hand } from '../models';
+import { Hand, Villain } from '../models';
 
 export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   console.log('EditHandScreen route params:', route.params);
@@ -20,24 +21,46 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [result, setResult] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [villains, setVillains] = useState<Villain[]>([]);
   const [showPokerKeyboard, setShowPokerKeyboard] = useState(false);
   const [showBoardKeyboard, setShowBoardKeyboard] = useState(false);
   const [showQuickKeyboard, setShowQuickKeyboard] = useState(false);
+  const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
   const { updateHand, getHand, fetchHands, fetchStats } = useSessionStore();
 
   const positions = ['UTG', 'UTG+1', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 
   const handleHoleCardsSelect = () => {
+    setSelectedVillainIndex(null);
+    setShowPokerKeyboard(true);
+  };
+
+  const handleVillainCardsSelect = (villainIndex: number) => {
+    console.log('Selecting villain cards for index:', villainIndex, 'villains length:', villains.length);
+    setSelectedVillainIndex(villainIndex);
     setShowPokerKeyboard(true);
   };
 
   const handlePokerKeyboardClose = () => {
     setShowPokerKeyboard(false);
+    setSelectedVillainIndex(null);
   };
 
   const handleCardSelect = (selectedCards: string[]) => {
-    setHoleCards(selectedCards.join(' '));
+    const cardsString = selectedCards.join(' ');
+    if (selectedVillainIndex !== null && selectedVillainIndex < villains.length) {
+      // Update villain cards
+      const updatedVillains = [...villains];
+      updatedVillains[selectedVillainIndex] = {
+        ...updatedVillains[selectedVillainIndex],
+        holeCards: cardsString
+      };
+      setVillains(updatedVillains);
+    } else {
+      // Update hero cards
+      setHoleCards(cardsString);
+    }
   };
 
   const handleBoardSelect = () => {
@@ -172,6 +195,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         setNote(hand.note || '');
         setResult(hand.result.toString());
         setSessionId(hand.sessionId);
+        setVillains(hand.villains || []);
         setLoading(false);
       } catch (error) {
         console.error('Failed to load hand:', error);
@@ -198,6 +222,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       note,
       result: parseInt(result) || 0,
       date: new Date().toISOString(),
+      villains: villains,
     };
     await updateHand(hand);
     await fetchHands();
@@ -214,6 +239,29 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       ),
     });
   }, [navigation, handleSave]);
+
+  const addVillain = () => {
+    const newVillain: Villain = {
+      id: `villain_${Date.now()}`,
+      holeCards: '',
+      position: ''
+    };
+    setVillains([...villains, newVillain]);
+  };
+
+  const updateVillain = (index: number, field: 'holeCards' | 'position', value: string) => {
+    const updatedVillains = [...villains];
+    updatedVillains[index] = {
+      ...updatedVillains[index],
+      [field]: value
+    };
+    setVillains(updatedVillains);
+  };
+
+  const removeVillain = (index: number) => {
+    const updatedVillains = villains.filter((_, i) => i !== index);
+    setVillains(updatedVillains);
+  };
 
   if (loading) {
     return (
@@ -381,31 +429,35 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         <View style={styles.bottomSection}>
           {/* Board Row */}
           <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Board</Text>
-            <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
-              {board ? (
-                <View style={styles.selectedCardsContainer}>
-                  {board.split(' ').map((card, index) => {
-                    const rank = card.slice(0, -1);
-                    const suit = card.slice(-1);
-                    const getSuitColor = (suit: string) => {
-                      return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
-                    };
-                    return (
-                      <View key={index} style={styles.miniCard}>
-                        <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
-                          {rank}{suit}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              ) : (
-                <Text style={styles.placeholderText}>
-                  Select board cards
-                </Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Board</Text>
+              <View style={styles.fieldInputContainer}>
+                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
+                  {board ? (
+                    <View style={styles.selectedCardsContainer}>
+                      {board.split(' ').map((card, index) => {
+                        const rank = card.slice(0, -1);
+                        const suit = card.slice(-1);
+                        const getSuitColor = (suit: string) => {
+                          return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                        };
+                        return (
+                          <View key={index} style={styles.miniCard}>
+                            <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                              {rank}{suit}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text style={styles.placeholderText}>
+                      Select board cards
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           {/* Hole Cards and Position Row */}
@@ -452,31 +504,60 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             </View>
           </View>
 
+          {/* Villain Section */}
+          <View style={styles.fullWidthField}>
+            <View style={styles.villainHeaderRow}>
+              <Text style={styles.fieldLabel}>Villain</Text>
+              <TouchableOpacity onPress={addVillain} style={styles.addVillainButton}>
+                <Text style={styles.addVillainButtonText}>+ Add Villain</Text>
+              </TouchableOpacity>
+            </View>
+            {villains.map((villain, index) => (
+              <VillainInput
+                key={villain.id}
+                villain={villain}
+                index={index}
+                onUpdate={updateVillain}
+                onRemove={removeVillain}
+                onHoleCardsPress={handleVillainCardsSelect}
+                positions={positions}
+              />
+            ))}
+          </View>
+
           {/* Note Section */}
           <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Note</Text>
-            <TextInput
-              style={styles.noteInput}
-              value={note}
-              onChangeText={setNote}
-              placeholder="Add a note..."
-              placeholderTextColor={theme.colors.gray}
-              multiline={true}
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Note</Text>
+              <View style={styles.fieldInputContainer}>
+                <TextInput
+                  style={styles.noteInput}
+                  value={note}
+                  onChangeText={setNote}
+                  placeholder="Add a note..."
+                  placeholderTextColor={theme.colors.gray}
+                  multiline={true}
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                />
+              </View>
+            </View>
           </View>
 
           {/* Result Section */}
           <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Result ($)</Text>
-            <Input 
-              value={result} 
-              onChangeText={setResult} 
-              placeholder="+150, -75" 
-              keyboardType="numeric" 
-              style={styles.compactInput}
-            />
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Result ($)</Text>
+              <View style={styles.fieldInputContainer}>
+                <Input 
+                  value={result} 
+                  onChangeText={setResult} 
+                  placeholder="+150, -75" 
+                  keyboardType="numeric" 
+                  style={styles.compactInput}
+                />
+              </View>
+            </View>
           </View>
 
         </View>
@@ -503,7 +584,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           <PokerKeyboardView
             onCardSelect={handleCardSelect}
             initialAction="hole"
-            initialCards={holeCards ? holeCards.split(' ') : []}
+            initialCards={selectedVillainIndex !== null && selectedVillainIndex < villains.length ? 
+              (villains[selectedVillainIndex]?.holeCards ? villains[selectedVillainIndex].holeCards!.split(' ') : []) : 
+              (holeCards ? holeCards.split(' ') : [])
+            }
             onDone={handlePokerKeyboardClose}
           />
         </SafeAreaView>
@@ -671,10 +755,10 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   fieldLabel: {
-    fontSize: theme.font.size.small,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
+    flex: 0.3,
   },
   holeCardDisplay: {
     backgroundColor: theme.colors.inputBg,
@@ -901,5 +985,31 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+  },
+  villainHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  addVillainButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+  },
+  addVillainButtonText: {
+    color: '#FFFFFF',
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+  },
+  fieldHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.xs,
+  },
+  fieldInputContainer: {
+    flex: 0.8,
   },
 }); 

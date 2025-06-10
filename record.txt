@@ -1797,3 +1797,106 @@ Summary of UI improvements for Hero field:
 這次修改提升了UI的一致性和可讀性，將相關的hero信息（手牌和位置）整合在統一的"Hero"標題下，符合撲克術語的使用習慣。
 
 ---
+
+Date: 2025-01-27 12:00:00
+User Query: Hero的底下新增一個欄位Vilian，跟Hero裡面的格式一樣，但是最右邊可以有個新增按鈕，按一下就會新增一個新的Villain
+Summary of Villain functionality implementation:
+1. 數據模型擴展：
+   - 新增Villain interface包含id, holeCards, position屬性
+   - 更新Hand interface添加villains?: Villain[]欄位
+   - 支援多個對手信息記錄
+
+2. 創建VillainInput組件：
+   - 獨立的villain輸入組件，包含hole cards和position選擇
+   - 每個villain都有移除按鈕（×）
+   - 使用與Hero相同的UI設計語言
+   - 支援觸摸選擇hole cards和position dropdown
+
+3. RecordHandScreen功能擴展：
+   - 添加villains狀態管理和相關handler函數
+   - 新增addVillain, updateVillain, removeVillain功能
+   - 擴展handleCardSelect支援villain cards選擇
+   - 更新handleSave包含villains數據
+   - 在Hero欄位下方添加Villain section
+
+4. UI設計改進：
+   - 添加"+ Add Villain"按鈕，符合Apple design principles
+   - Villain header行包含標題和新增按鈕
+   - 每個villain顯示為"Villain 1", "Villain 2"等
+   - 保持與Hero欄位一致的視覺設計
+   - 使用適當的間距和卡片樣式
+
+5. PokerKeyboard整合：
+   - 擴展poker keyboard支援villain cards選擇
+   - 根據selectedVillainIndex動態顯示正確的初始cards
+   - 統一的keyboard處理邏輯for hero and villains
+
+這次功能添加為poker手牌記錄提供了完整的multi-player支援，使用者現在可以記錄對手的position和已知hole cards，大幅提升手牌分析的完整性。
+
+Date: 2025-01-27 12:15:00
+User Query: 在Edit hand頁面沒有看到Villain
+Summary of EditHandScreen Villain support addition:
+1. 問題識別：
+   - 用戶發現RecordHandScreen有Villain功能，但EditHandScreen缺少相同功能
+   - 需要保持兩個screen的功能一致性
+
+2. EditHandScreen功能擴展：
+   - 新增VillainInput組件import和Villain interface import
+   - 添加villains state和selectedVillainIndex state
+   - 實現addVillain, updateVillain, removeVillain函數
+   - 更新handleCardSelect支援villain cards選擇邏輯
+
+3. UI集成：
+   - 在Hero section下方添加Villain section
+   - 包含"+ Add Villain"按鈕和villain list顯示
+   - 每個villain使用VillainInput組件渲染
+   - 添加相應的CSS樣式：villainHeaderRow, addVillainButton, addVillainButtonText
+
+4. 數據處理：
+   - 更新loadHand函數支援加載villains數據
+   - 更新handleSave函數包含villains數據保存
+   - PokerKeyboard初始cards正確顯示當前選中的villain或hero cards
+
+5. 一致性確保：
+   - EditHandScreen和RecordHandScreen現在具有相同的Villain功能
+   - 統一的UI設計和用戶體驗
+   - 相同的villain管理邏輯和狀態處理
+
+修復結果：現在用戶可以在EditHandScreen中正常添加、編輯和刪除Villain信息，功能與RecordHandScreen完全一致。
+
+---
+
+Date: 2025-01-27 12:30:00
+User Query: 把所有title(Ex. Location, Table Size) 的text size都調為一樣，而且都固定在前面不是上面
+Summary of UI standardization and layout improvements:
+1. 標題字體大小統一：
+   - 將所有fieldLabel從theme.font.size.small統一為theme.font.size.body
+   - CustomPicker的titleText也從small改為body
+   - ColorTagPicker的titleText同樣統一為body size
+   - 確保Location、Table Size、Board、Note、Result等標題使用相同字體大小
+
+2. 水平布局改進：
+   - 修改CustomPicker使用水平布局（flexDirection: 'row'）
+   - 標題使用flex: 0.3，選擇器使用flex: 0.65
+   - ColorTagPicker已經是水平布局，只需統一字體大小
+   - 所有標題現在固定在左側而不是上方
+
+3. RecordHandScreen和EditHandScreen改進：
+   - Board、Note、Result sections重構為水平布局
+   - 添加fieldHeaderRow和fieldInputContainer樣式
+   - fieldLabel改為flex佈局，使標題左對齊
+   - 保持一致的30%/65%比例分配
+
+4. 錯誤修復：
+   - 修復PokerKeyboardViewModel中parseInitialCards函數
+   - 添加空字符串和長度檢查，防止處理無效卡片字符串
+   - 確保villain選擇cards功能正常運行
+
+5. 樣式統一性：
+   - 所有form fields現在都使用相同的視覺設計語言
+   - 標題與輸入欄之間保持一致的間距和對齊
+   - 符合Apple design principles的簡潔布局
+
+UI改進結果：所有標題現在都使用相同的文字大小並水平排列，提供更好的視覺一致性和用戶體驗。
+
+---

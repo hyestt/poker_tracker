@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   titleText: {
-    fontSize: theme.font.size.small,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
     flex: 0.3,

@@ -35,7 +35,7 @@ export const usePokerKeyboardViewModel = (
 ): PokerKeyboardViewModel => {
   // 解析初始卡片
   const parseInitialCards = (cards: string[]): PokerCard[] => {
-    return cards.map(cardStr => {
+    return cards.filter(cardStr => cardStr && cardStr.length >= 2).map(cardStr => {
       const rank = cardStr.slice(0, -1);
       const suit = cardStr.slice(-1);
       return {

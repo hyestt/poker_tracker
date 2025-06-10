@@ -117,17 +117,23 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
         >
           <TouchableOpacity
             style={styles.overlay}
+            activeOpacity={1}
             onPress={() => setIsVisible(false)}
           >
-            <View style={styles.modal}>
+            <TouchableOpacity
+              style={styles.modal}
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
               <Text style={styles.modalTitle}>Select {title}</Text>
               
               <FlatList
                 data={options}
+                keyExtractor={(item) => item}
                 renderItem={renderOption}
-                keyExtractor={(item, index) => `${item}-${index}`}
                 style={styles.optionsList}
                 showsVerticalScrollIndicator={false}
+                ItemSeparatorComponent={() => <View style={{ height: theme.spacing.xs }} />}
               />
 
               {allowCustom && (
@@ -169,7 +175,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                   )}
                 </View>
               )}
-            </View>
+            </TouchableOpacity>
           </TouchableOpacity>
         </Modal>
       </View>
@@ -249,18 +255,19 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
 
 const styles = StyleSheet.create({
   horizontalContainer: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: theme.spacing.xs,
   },
   titleText: {
-    fontSize: theme.font.size.small,
+    fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
-    marginBottom: theme.spacing.xs,
+    flex: 0.3,
   },
   pickerContainer: {
-    width: '100%',
+    flex: 0.65,
   },
   picker: {
     flexDirection: 'row',
