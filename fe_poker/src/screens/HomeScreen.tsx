@@ -158,6 +158,10 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     const actionButtons = [
       {
+        text: "View Details",
+        onPress: () => navigation.navigate('HandDetail', { handId })
+      },
+      {
         text: "Edit Hand",
         onPress: () => navigation.navigate('EditHand', { handId })
       },
@@ -415,7 +419,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       {/* Usage Hint */}
       {filteredHands.length > 0 && (
-        <Text style={styles.usageHint}>Tap to edit • Long press for more actions</Text>
+        <Text style={styles.usageHint}>Tap to view • Long press for more actions</Text>
       )}
 
       {/* Hands List */}
@@ -439,7 +443,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <TouchableOpacity 
               key={hand.id} 
               style={styles.handItem}
-              onPress={() => navigation.navigate('EditHand', { handId: hand.id })}
+              onPress={() => navigation.navigate('HandDetail', { handId: hand.id })}
               onLongPress={() => showHandActions(hand.id)}
             >
               {/* Left: Card Icons */}

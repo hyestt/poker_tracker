@@ -81,6 +81,9 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               
               <Text style={styles.detail}>{hand.details}</Text>
               <View style={styles.buttonGroup}>
+                <TouchableOpacity onPress={() => navigation.navigate('HandDetail', { handId: hand.id })} style={styles.viewButton}>
+                  <Text style={styles.viewButtonText}>View</Text>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('EditHand', { handId: hand.id })} style={styles.editButton}>
                   <Text style={styles.editButtonText}>Edit</Text>
                 </TouchableOpacity>
@@ -186,5 +189,17 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     fontWeight: 'bold',
     marginRight: theme.spacing.xs,
+  },
+  viewButton: {
+    padding: theme.spacing.xs,
+    backgroundColor: theme.colors.profit,
+    borderRadius: theme.radius.button,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  viewButtonText: {
+    color: 'white',
+    fontSize: theme.font.size.small,
+    fontWeight: 'bold',
   },
 }); 
