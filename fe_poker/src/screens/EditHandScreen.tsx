@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions, Switch } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
@@ -26,6 +26,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [showBoardKeyboard, setShowBoardKeyboard] = useState(false);
   const [showQuickKeyboard, setShowQuickKeyboard] = useState(false);
   const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
+  const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
   const { updateHand, getHand, fetchHands, fetchStats } = useSessionStore();
@@ -190,7 +191,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
   const handleDetailsInputFocus = () => {
     console.log('handleDetailsInputFocus called, current showCustomKeyboard:', showCustomKeyboard);
-    setShowCustomKeyboard(true);
+    if (useCustomKeyboard) {
+      setShowCustomKeyboard(true);
+    }
     // Focus the TextInput to show cursor
     if (detailsInputRef.current) {
       detailsInputRef.current.focus();
@@ -199,7 +202,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
   const handleDetailsInputPress = () => {
     console.log('handleDetailsInputPress called');
-    setShowCustomKeyboard(true);
+    if (useCustomKeyboard) {
+      setShowCustomKeyboard(true);
+    }
     // Focus the TextInput to show cursor
     if (detailsInputRef.current) {
       detailsInputRef.current.focus();
@@ -323,7 +328,24 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.topSection}>
           <View style={styles.fieldColumn}>
-            <Text style={styles.label}>Hand Details</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Hand Details</Text>
+              <View style={styles.keyboardToggleContainer}>
+                <Text style={styles.toggleLabel}>Custom Keyboard</Text>
+                <Switch
+                  value={useCustomKeyboard}
+                  onValueChange={(value) => {
+                    setUseCustomKeyboard(value);
+                    if (!value) {
+                      setShowCustomKeyboard(false); // 關閉自訂鍵盤時隱藏它
+                    }
+                  }}
+                  trackColor={{false: '#D1D5DB', true: theme.colors.primary}}
+                  thumbColor={'#FFFFFF'}
+                  ios_backgroundColor="#D1D5DB"
+                />
+              </View>
+            </View>
             <TextInput
               ref={detailsInputRef}
               style={[styles.detailsInput, styles.detailsInputWrapper]}
@@ -336,15 +358,15 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               multiline={true}
               numberOfLines={8}
               textAlignVertical="top"
-              showSoftInputOnFocus={false}
+              showSoftInputOnFocus={!useCustomKeyboard}
               onPressIn={handleDetailsInputPress}
-              onFocus={handleDetailsInputPress}
+              onFocus={handleDetailsInputFocus}
               editable={true}
             />
           </View>
 
           {/* Custom Keyboard - 只在點擊Hand Details時顯示 */}
-          {showCustomKeyboard && (
+          {useCustomKeyboard && showCustomKeyboard && (
             <View style={styles.customKeyboardContainer}>
               <View style={styles.keyboardHeader}>
                 <Text style={styles.keyboardTitle}>Custom Keyboard</Text>
@@ -1261,5 +1283,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.text,
     textAlign: 'center',
+  },
+  keyboardToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  toggleLabel: {
+    fontSize: theme.font.size.small,
+    fontWeight: '500',
+    color: theme.colors.text,
   },
 }); 

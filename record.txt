@@ -420,6 +420,17 @@ Summary of Custom Keyboard Implementation:
    - 緊湊按鈕（UTG1、UTG2）最小寬度增加到14%（最低55px）
    - 增加按鍵間距以配合較大尺寸
    - 保持響應式設計確保所有設備適配
+   - 後續調整到適中尺寸：11%-17%寬度、39px高度、12px字體
+   - PF/F/T/R按鈕進一步縮小：8%-12%寬度、35px高度、11px字體
+
+9. 自訂鍵盤開關功能：
+   - 在Hand Details標籤旁邊新增"Custom Keyboard"開關
+   - 預設啟用自訂鍵盤（useCustomKeyboard: true）
+   - 開關關閉時使用系統內建鍵盤
+   - 開關開啟時使用自訂撲克鍵盤
+   - 動態調整TextInput的showSoftInputOnFocus屬性
+   - 當關閉自訂鍵盤時自動隱藏鍵盤顯示
+   - 使用iOS風格的Switch組件
 
 3. 緊湊間距設定恢復：
    - container: justifyContent: 'flex-end', paddingVertical: sm
