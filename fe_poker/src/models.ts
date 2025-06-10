@@ -14,8 +14,10 @@ export interface Hand {
   id: string;
   sessionId: string;
   holeCards?: string;
+  board?: string;
   position?: string;
   details: string;
+  note?: string;
   result: number;
   date: string;
   analysis?: string;

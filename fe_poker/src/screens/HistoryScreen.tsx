@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Card } from '../components/Card';
+import { HoleCardsDisplay } from '../components/HoleCardsDisplay';
 
 const sortOptions = [
   { key: 'date', label: 'Date' },
@@ -67,6 +68,17 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 </Text>
                 <Text style={styles.date}>{session?.location} / {hand.date.slice(0, 16)}</Text>
               </View>
+              
+              {/* Hero Section */}
+              <View style={styles.heroSection}>
+                <Text style={styles.heroLabel}>Hero</Text>
+                <HoleCardsDisplay 
+                  holeCards={hand.holeCards}
+                  position={hand.position}
+                  fallback="No cards/position recorded"
+                />
+              </View>
+              
               <Text style={styles.detail}>{hand.details}</Text>
               <View style={styles.buttonGroup}>
                 <TouchableOpacity onPress={() => navigation.navigate('EditHand', { handId: hand.id })} style={styles.editButton}>
@@ -163,5 +175,16 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontSize: theme.font.size.small,
     fontWeight: 'bold',
+  },
+  heroSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  heroLabel: {
+    color: theme.colors.text,
+    fontSize: theme.font.size.small,
+    fontWeight: 'bold',
+    marginRight: theme.spacing.xs,
   },
 }); 

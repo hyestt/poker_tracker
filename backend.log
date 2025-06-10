@@ -39,3 +39,7 @@
 =====================================
 🔄 Starting HTTP server on :8080...
 
+DEBUG CreateHand: HoleCards='', Position=''
+DEBUG CreateHand: HoleCards='', Position=''
+DEBUG CreateHand: HoleCards='Q♥ T♦', Position=''
+DEBUG CreateHand: HoleCards='Q♥ T♦', Position=''

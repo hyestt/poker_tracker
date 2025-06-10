@@ -199,6 +199,157 @@ Summary of 404 error debugging and resolution:
    - 發現舊進程佔用端口8080，使用lsof -ti:8080找到並kill
    - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
 
+Date: 2025-01-28 00:30:00
+User Query: 在Hand Details的下面增加一個區域，區域裡面放上各種德州撲克的按鈕，點擊按鈕以後會快速寫入到Hand detail
+Summary of quick button area implementation:
+1. RecordHandScreen增加快速按鈕區域：
+   - 新增快速輸入區域在Hand Details下方
+   - 四個分類按鈕組：位置(UTG,MP,HJ,CO,BTN,SB,BB)、動作(Check,Bet,Raise,Call,Fold,All-IN)、投注輪次(PF,F,T,R)、常用詞組(3-bet,4-bet,C-bet,Bluff,Value,Draw)
+   - 新增handleQuickInsert函數處理快速文字插入功能
+   - 新增完整的快速按鈕樣式：quickButtonsSection, quickButtonsTitle, buttonCategory, categoryTitle, buttonRow, quickButton等
+
+2. EditHandScreen同步更新：
+   - 加入相同的快速按鈕區域和功能
+   - 新增handleQuickInsert函數
+   - 新增相同的快速按鈕樣式定義
+
+3. 設計特色：
+   - 按鈕分類清晰：位置、動作、輪次、常用詞組
+   - 不同類型按鈕有不同顏色：動作按鈕(primary色)、投注輪次按鈕(profit色)
+   - 按鈕點擊直接在Hand Details末尾添加文字
+   - 響應式布局，按鈕自動換行
+   - 符合Apple iOS設計規範
+
+Date: 2025-01-27 13:00:00
+User Query: 加上一個小鍵盤icon，點擊以後會出現德州撲克的快速鍵盤按鈕
+Summary of poker quick keyboard implementation:
+1. 創建新組件 PokerQuickKeyboard.tsx：
+   - 包含位置按鈕：UTG, MP, HJ, CO, BTN, SB, BB
+   - 數字按鈕：1-9, 0, 小數點
+   - 投注輪次：PF(preflop), F(flop), T(turn), R(river)
+   - 動作按鈕：Check, Bet, Raise, Call, Fold, All-IN, Straddle
+   - 特殊按鍵：換行符號
+
+2. 修改 RecordHandScreen.tsx 和 EditHandScreen.tsx：
+   - 在Hand Details標籤旁添加鍵盤圖標按鈕(⌨️)
+   - 添加Modal顯示快速鍵盤
+   - 實現文字插入功能，支持游標位置插入
+   - 點擊鍵盤按鈕自動在Hand Detail輸入欄位插入文字
+
+3. UI設計特色：
+   - 依照Apple iOS設計標準
+   - 使用MVVM結構
+   - 分類明確的按鈕群組
+   - 不同顏色區分不同類型按鈕（動作按鈕藍色，特殊按鈕紅色）
+   - 支持ScrollView處理長內容
+   - 優雅的Modal動畫效果
+
+Date: 2025-01-27 13:15:00
+User Query: 把Save Hand按鈕移動到最右上角
+Summary of Save Hand button repositioning:
+1. 修改RecordHandScreen.tsx：
+   - 將Save Hand按鈕從底部移到右上角
+   - 使用absolute positioning和高z-index確保按鈕浮動在最上層
+   - 移除底部的Save Hand按鈕
+
+2. 修改EditHandScreen.tsx：
+   - 將Update Hand按鈕從底部移到右上角
+   - 同樣使用absolute positioning設計
+   - 保持一致的UI體驗
+
+3. 樣式優化：
+   - 設定適當的padding和minimum width
+   - 使用primary color保持品牌一致性
+   - 確保按鈕在各種內容長度下都清晰可見
+
+Date: 2025-01-27 13:30:00
+User Query: 將Save Hand移動到Record Hand的右邊
+Summary of header button repositioning:
+1. 修改RecordHandScreen.tsx：
+   - 移除absolute positioning的Save Hand按鈕
+   - 使用useLayoutEffect設置navigation.setOptions的headerRight
+   - 將Save Hand按鈕放置在標題欄右側
+
+2. 修改EditHandScreen.tsx：
+   - 同樣使用headerRight配置Update Hand按鈕
+   - 保持一致的設計風格
+
+3. 技術實現：
+   - 使用React Navigation的headerRight選項
+   - 按鈕在導航標題列中，符合iOS設計規範
+   - 使用TouchableOpacity實現可點擊按鈕
+   - 保持主色調和適當的內邊距
+
+Date: 2025-01-27 13:45:00
+User Query: update hand沒有對齊好
+Summary of button alignment improvements:
+1. 調整按鈕文字：
+   - RecordHandScreen："Save Hand" → "Save"
+   - EditHandScreen："Update Hand" → "Update"
+   - 簡化文字讓按鈕更緊湊
+
+2. 優化按鈕樣式：
+   - 增加paddingVertical從xs改為sm
+   - 減少marginRight從md改為sm
+   - 添加alignItems和justifyContent確保文字居中對齊
+   - 改善整體視覺對齊效果
+
+Date: 2025-01-27 13:50:00
+User Query: 把Update button縮小
+Summary of button size reduction:
+1. 縮小按鈕尺寸：
+   - paddingHorizontal: 從md改為sm
+   - paddingVertical: 從sm改回xs
+   - 減少按鈕整體尺寸
+
+2. 調整字體大小：
+   - fontSize: 從body改為small
+   - 使按鈕文字更緊湊
+
+3. 保持一致性：
+   - 同時調整RecordHandScreen的Save按鈕
+   - 確保兩個頁面按鈕風格統一
+
+Date: 2025-01-27 14:00:00
+User Query: 將Result移到Position旁邊，在Hole Card的上面放上一個一樣的複製欄位，欄位名稱改為Board
+Summary of layout reorganization and Board field addition:
+1. 添加Board欄位功能：
+   - 在Hand模型中添加board?: string欄位
+   - 實現Board卡牌選擇功能，支援最多5張公共牌
+   - Board欄位獨佔一行，全寬度顯示
+
+2. 重新設計佈局：
+   - 移除頂部的Result欄位
+   - Hand Details獨佔上半部分
+   - Board欄位獨佔一行（全寬度）
+   - Hole Cards、Position、Result並排在一行（三等分）
+
+3. 樣式改進：
+   - 新增thirdField樣式支援三等分佈局
+   - 新增fullWidthField樣式支援Board全寬度顯示
+   - 新增compactInput樣式使Result輸入框更緊湊
+   - 所有卡牌顯示支援花色顏色區分
+
+4. 功能完整性：
+   - 兩個頁面（RecordHandScreen、EditHandScreen）都支援Board功能
+   - 包含卡牌選擇、顯示、保存和載入
+   - Modal介面一致性設計
+
+Date: 2025-01-27 14:15:00
+User Query: 點擊board時應該要跟hole cards一樣要出現先前填入的card
+Summary of Board initialCards fix:
+1. 修復RecordHandScreen：
+   - 在Board的PokerKeyboardView中添加initialCards參數
+   - 確保點擊Board時顯示已選擇的卡牌
+
+2. 確認EditHandScreen：
+   - 驗證EditHandScreen已正確實現initialCards功能
+   - Board keyboard能正確顯示先前選擇的卡牌
+
+3. 功能一致性：
+   - Board和Hole Cards現在具備相同的編輯體驗
+   - 使用者可以看到和修改已選擇的卡牌
+
 Date: 2025-01-27 11:30:00
 User Query: 恢復所有之前的PokerKeyboardView修改設定
 Summary of comprehensive restore:
@@ -1237,6 +1388,23 @@ Summary of dropdown filter implementation:
    - 移除 showFilterOptions 中的 Alert.alert 實現
    - 改為切換 dropdown 狀態的函數
 
+Date: 2025-01-28 12:00:00
+User Query: 把刪除的按鈕放在Villain的右邊，把Villain改成V
+Summary of UI button layout update:
+1. 修改RecordHandScreen.tsx：
+   - 將Villain按鈕文字從"Villain"改為"V"
+   - 將按鈕點擊功能從插入"Villain "改為插入"V "
+   - 刪除按鈕已經在V按鈕的右邊（原本就是正確位置）
+
+2. 修改EditHandScreen.tsx：
+   - 同樣將Villain按鈕改為V按鈕
+   - 保持相同的佈局順序：PF, F, T, R, Hero, V, 🗑️
+
+3. 佈局改進：
+   - 簡化按鈕文字，V比Villain更簡潔
+   - 保持按鈕排列邏輯清晰
+   - 刪除按鈕位置符合用戶需求
+
 2. 實現 iOS 風格的 dropdown menu：
    - 新增 showFilterDropdown state 控制顯示/隱藏
    - 新增 filterDropdownContainer 提供相對定位
@@ -1505,6 +1673,38 @@ Summary of fixes and enhancements:
 
 ---
 
+Date: 2025-06-09 22:50:00
+User Query: 把Hand Details旁邊的鍵盤還有相關code移除掉 + 3-Bet在底下加上數字
+Summary of keyboard modification:
+1. 原本移除鍵盤功能的要求被用戶撤回，保留快速輸入功能
+2. 在快速按鈕區域新增數字按鈕區域：
+   - 第一行：數字 1-7
+   - 第二行：數字 8, 9, 0, 小數點(.), 換行符號(↵)
+   
+3. 修改檔案：
+   - EditHandScreen.tsx：新增 Number Buttons 區域
+   - RecordHandScreen.tsx：新增 Number Buttons 區域
+   
+4. 按鈕配置：
+   - 數字按鈕使用 handleQuickInsert(number) 直接插入數字
+   - 換行按鈕使用 handleQuickInsert('\n') 插入換行符號
+   - 小數點按鈕用於輸入籌碼金額
+   
+5. 設計特點：
+   - 保持與其他快速按鈕一致的視覺風格
+   - 數字排列清楚易用，適合快速輸入下注金額
+   - 換行符號用箭頭(↵)表示，直觀易懂
+   
+功能狀態：✅ 數字按鈕區域已添加到 Hand Details 快速輸入功能中
+
+更新：
+- 移除了 3-Bet 和 4-Bet 按鈕，只保留百分比按鈕
+- 改善刪除功能：←按鈕現在精確刪除上一個按鈕輸入的文字
+- 將換行按鈕(↵)移動到 All-IN 按鈕右側，使用綠色背景和較高設計
+- 隱藏了 Hand Details 旁邊的鍵盤圖標按鈕(⌨️)
+
+---
+
 Date: 2025-06-09 12:50:00
 User Query: 將tag移到New session的頁面
 Summary of tag migration from hand to session level:
@@ -1555,5 +1755,45 @@ Summary of tag migration from hand to session level:
    - 前端類型安全：TypeScript確保tag欄位的正確使用
 
 功能狀態：✅ Tag功能已成功從hand級別遷移到session級別，使用者現在可以在NewSessionScreen為整個poker session設定顏色標籤
+
+---
+
+Date: 2025-01-27 10:30:00
+User Query: 該去哪邊找到404 log error ?
+Summary of 404 error debugging and resolution:
+1. 問題診斷：
+   - 分析API返回404 "page not found"錯誤
+   - 發現是多重問題：端口佔用、資料庫結構不匹配、路由衝突
+
+2. 解決步驟：
+   - 發現舊進程佔用端口8080，使用lsof -ti:8080找到並kill
+   - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
+
+Date: 2025-01-27 11:45:00
+User Query: 在Position跟Hole Cards的欄合在一起，title寫上Hero
+Summary of UI improvements for Hero field:
+1. HistoryScreen 改進：
+   - 加入HoleCardsDisplay組件import
+   - 在每個手牌記錄中添加Hero section
+   - 使用HoleCardsDisplay組件顯示合併的hole cards和position信息
+   - 添加heroSection和heroLabel樣式
+
+2. RecordHandScreen UI重構：
+   - 將原本分離的Hole Cards和Position欄位合併為單一的Hero欄位
+   - 重新設計佈局使用heroRow水平排列
+   - 左側顯示hole cards選擇器，右側顯示position選擇器
+   - 保持功能完整性，只改變視覺呈現
+
+3. EditHandScreen UI一致性更新：
+   - 同樣將Hole Cards和Position合併為Hero欄位
+   - 保持與RecordHandScreen一致的佈局設計
+   - 添加適當的樣式和間距
+
+4. 樣式增強：
+   - 新增heroRow, heroCardSection, heroPositionSection樣式
+   - 保持Apple design principles的視覺一致性
+   - 使用適當的gap和flex佈局確保響應式設計
+
+這次修改提升了UI的一致性和可讀性，將相關的hero信息（手牌和位置）整合在統一的"Hero"標題下，符合撲克術語的使用習慣。
 
 ---
