@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
@@ -25,6 +25,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [showPokerKeyboard, setShowPokerKeyboard] = useState(false);
   const [showBoardKeyboard, setShowBoardKeyboard] = useState(false);
   const [showQuickKeyboard, setShowQuickKeyboard] = useState(false);
+  const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
   const { updateHand, getHand, fetchHands, fetchStats } = useSessionStore();
@@ -129,6 +130,11 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     setSelection({ start: newPosition, end: newPosition });
     
     setLastInsertedText(text);
+    
+    // 保持TextInput的焦點
+    if (detailsInputRef.current) {
+      detailsInputRef.current.focus();
+    }
   };
 
   const handleQuickDelete = useCallback(() => {
@@ -180,6 +186,33 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const handleDeleteClick = () => {
     handleQuickDelete();
     setLastInsertedText(''); // 清除記錄
+  };
+
+  const handleDetailsInputFocus = () => {
+    console.log('handleDetailsInputFocus called, current showCustomKeyboard:', showCustomKeyboard);
+    setShowCustomKeyboard(true);
+    // Focus the TextInput to show cursor
+    if (detailsInputRef.current) {
+      detailsInputRef.current.focus();
+    }
+  };
+
+  const handleDetailsInputPress = () => {
+    console.log('handleDetailsInputPress called');
+    setShowCustomKeyboard(true);
+    // Focus the TextInput to show cursor
+    if (detailsInputRef.current) {
+      detailsInputRef.current.focus();
+    }
+  };
+
+  const handleDetailsInputBlur = () => {
+    // Don't hide keyboard on blur to allow button presses
+  };
+
+  const hideCustomKeyboard = () => {
+    console.log('hideCustomKeyboard called');
+    setShowCustomKeyboard(false);
   };
 
   useEffect(() => {
@@ -293,7 +326,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             <Text style={styles.label}>Hand Details</Text>
             <TextInput
               ref={detailsInputRef}
-              style={styles.detailsInput}
+              style={[styles.detailsInput, styles.detailsInputWrapper]}
               value={details}
               onChangeText={setDetails}
               onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
@@ -304,11 +337,23 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               numberOfLines={8}
               textAlignVertical="top"
               showSoftInputOnFocus={false}
+              onPressIn={handleDetailsInputPress}
+              onFocus={handleDetailsInputPress}
+              editable={true}
             />
           </View>
 
-          {/* Quick Buttons Area */}
-          <View style={styles.quickButtonsSection}>
+          {/* Custom Keyboard - 只在點擊Hand Details時顯示 */}
+          {showCustomKeyboard && (
+            <View style={styles.customKeyboardContainer}>
+              <View style={styles.keyboardHeader}>
+                <Text style={styles.keyboardTitle}>Custom Keyboard</Text>
+                <TouchableOpacity onPress={hideCustomKeyboard} style={styles.hideKeyboardButton}>
+                  <Text style={styles.hideKeyboardButtonText}>×</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.quickButtonsSection}>
             
             {/* Round Buttons */}
             <View style={styles.buttonCategory}>
@@ -339,15 +384,15 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.compactButton]}
-                  onPress={() => handleQuickInsert('UTG+1 ')}
+                  onPress={() => handleQuickInsert('UTG1 ')}
                 >
-                  <Text style={styles.quickButtonText}>UTG+1</Text>
+                  <Text style={styles.quickButtonText}>UTG1</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.compactButton]}
-                  onPress={() => handleQuickInsert('UTG+2 ')}
+                  onPress={() => handleQuickInsert('UTG2 ')}
                 >
-                  <Text style={styles.quickButtonText}>UTG+2</Text>
+                  <Text style={styles.quickButtonText}>UTG2</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
@@ -535,6 +580,8 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               </View>
             </View>
           </View>
+            </View>
+          )}
         </View>
         
         <View style={styles.spacer} />
@@ -831,6 +878,9 @@ const styles = StyleSheet.create({
   keyboardIconText: {
     fontSize: 16,
   },
+  detailsInputWrapper: {
+    flex: 1,
+  },
   detailsInput: {
     backgroundColor: theme.colors.inputBg,
     borderRadius: theme.radius.input,
@@ -1008,8 +1058,45 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     paddingVertical: theme.spacing.xs,
   },
-  quickButtonsSection: {
+  customKeyboardContainer: {
     backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    marginTop: theme.spacing.xs,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  keyboardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border || '#E5E7EB',
+  },
+  keyboardTitle: {
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  hideKeyboardButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    backgroundColor: theme.colors.loss,  // 改為紅色背景，更醒目
+    borderRadius: theme.radius.button,
+    borderWidth: 1,
+    borderColor: theme.colors.loss,
+  },
+  hideKeyboardButtonText: {
+    fontSize: theme.font.size.small,
+    color: '#FFFFFF',
+    fontWeight: '700',  // 更粗的字體
+  },
+  quickButtonsSection: {
+    backgroundColor: 'transparent',
     borderRadius: theme.radius.card,
     padding: theme.spacing.sm,
     marginTop: theme.spacing.xs,
@@ -1038,7 +1125,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    gap: Math.max(theme.spacing.xs, 6), // 調整gap間距到適中程度
   },
   quickButton: {
     backgroundColor: theme.colors.inputBg,
@@ -1047,14 +1134,18 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     borderWidth: 1,
     borderColor: theme.colors.border || theme.colors.gray,
-    minWidth: 50,
+    minWidth: Math.max(Dimensions.get('window').width * 0.11, 42), // 響應式最小寬度：調整到11%，最低42px
+    maxWidth: Dimensions.get('window').width * 0.17, // 響應式最大寬度：調整到17%
+    height: 39, // 固定高度調整到39px（在原36px和42px之間）
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 1,
   },
   quickButtonText: {
-    fontSize: theme.font.size.small,
+    fontSize: Math.min(theme.font.size.small + 0.5, 12), // 響應式字體大小：調整到12px
     color: theme.colors.text,
     fontWeight: '500',
+    textAlign: 'center',
   },
   actionButton: {
     backgroundColor: theme.colors.primary,
@@ -1067,16 +1158,19 @@ const styles = StyleSheet.create({
   roundButton: {
     backgroundColor: theme.colors.profit,
     borderColor: theme.colors.profit,
-    minWidth: 35,
-    paddingHorizontal: theme.spacing.xs / 2,
+    minWidth: Math.max(Dimensions.get('window').width * 0.08, 32), // 減少最小寬度：從原本更大，調整到8%，最低32px
+    maxWidth: Dimensions.get('window').width * 0.12, // 最大寬度也相應調整到12%
+    paddingHorizontal: theme.spacing.xs / 2, // 減少水平padding
+    height: 35, // 稍微減少高度
   },
   compactButton: {
-    minWidth: 40,
-    paddingHorizontal: theme.spacing.xs / 2,
+    minWidth: Math.max(Dimensions.get('window').width * 0.13, 50), // 調整為適中大小：13%，最低50px
+    paddingHorizontal: theme.spacing.xs,
   },
   roundButtonText: {
     color: '#FFFFFF',
     fontWeight: '600',
+    fontSize: Math.min(theme.font.size.small, 11), // 稍微減少字體大小以匹配較小按鈕
   },
   deleteButton: {
     backgroundColor: theme.colors.loss,

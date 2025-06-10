@@ -347,11 +347,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
   sectionTitle: {
     fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
   },
   infoGrid: {
     gap: theme.spacing.xs,

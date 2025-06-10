@@ -363,6 +363,64 @@ Summary of comprehensive restore:
    - 第二行：9876 + 紅色×按鈕  
    - 第三行：AKQJT（無按鈕）
 
+Date: 2025-01-27 14:45:00  
+User Query: 在Edit Hand page裡，當點擊hand details，希望能跳出一個custom keyboard，輸入要對照目前下方寫入的text，不要遮住hand details，keyboard配置跟下面的一樣，要確保每個iphone device都能perfectly adapt
+Summary of Custom Keyboard Implementation:
+1. 功能實現：
+   - 在EditHandScreen中新增showCustomKeyboard狀態控制鍵盤顯示
+   - 當點擊Hand Details TextInput時，觸發handleDetailsInputFocus顯示自訂鍵盤
+   - 鍵盤顯示在Hand Details下方，不以Modal形式遮蓋內容
+   - 加入Hide按鈕讓用戶可以隱藏鍵盤
+
+2. 響應式設計：
+   - 按鈕寬度使用Dimensions.get('window').width動態計算
+   - 最小寬度：螢幕寬度的10%，最低40px
+   - 最大寬度：螢幕寬度的16%
+   - 固定高度36px確保一致性
+   - 字體大小響應式調整（最大11px）
+
+3. UI改進：
+   - 新增customKeyboardContainer、keyboardHeader等樣式
+   - 鍵盤標題"Poker Keyboard"和Hide按鈕
+   - 保持原有的按鈕配置：PF/F/T/R、位置、動作、數字等
+   - 所有按鈕功能與原本快速鍵盤相同
+
+4. 適配性：
+   - 支援所有iPhone設備尺寸
+   - 使用flexShrink確保按鈕不會溢出
+   - 文字居中對齊，單行顯示
+   - 依照Apple iOS設計規範
+
+5. 交互體驗修復：
+   - 修復Hide後再次點擊無法顯示的問題
+   - 新增handleDetailsInputPress函數確保點擊始終觸發
+   - 加入console.log用於調試
+   - 確保TextInput focus狀態正確
+
+6. 按鈕文字更新：
+   - UTG+1改為UTG1，UTG+2改為UTG2
+   - 鍵盤標題改為"Custom Keyboard"
+   - Hide按鈕改為"×"符號，更簡潔明顯
+   - Hide按鈕改為紅色背景，更醒目
+   - 使用onPressIn和onFocus雙重觸發確保可靠性
+
+7. HandDetailScreen清理：
+   - 刪除Hand Details區域中的KEYBOARD按鈕
+   - 移除showQuickKeyboard狀態和相關函數
+   - 移除handleToggleKeyboard和renderQuickKeyboard函數
+   - 清理所有鍵盤相關樣式定義
+   - 移除Dimensions import（不再需要）
+   - 簡化Hand Details區域顯示
+
+8. 自訂鍵盤按鍵放大優化：
+   - 按鍵最小寬度從10%增加到12%（最低45px）
+   - 按鍵最大寬度從16%增加到18%
+   - 按鍵高度從36px增加到42px
+   - 字體大小從11px增加到13px
+   - 緊湊按鈕（UTG1、UTG2）最小寬度增加到14%（最低55px）
+   - 增加按鍵間距以配合較大尺寸
+   - 保持響應式設計確保所有設備適配
+
 3. 緊湊間距設定恢復：
    - container: justifyContent: 'flex-end', paddingVertical: sm
    - selectedCardsDisplay: marginBottom: sm
