@@ -1900,3 +1900,27 @@ Summary of UI standardization and layout improvements:
 UI改進結果：所有標題現在都使用相同的文字大小並水平排列，提供更好的視覺一致性和用戶體驗。
 
 ---
+
+Date: 2025-01-28 09:00:00
+User Query: 在str旁邊新增一個Limp button
+Summary of changes:
+1. 在EditHandScreen.tsx中的percentage按鈕區域的str按鈕後添加一個Limp按鈕
+2. 在RecordHandScreen.tsx中的percentage按鈕區域的str按鈕後添加一個Limp按鈕
+3. 兩個按鈕都會觸發handleQuickInsert('Limp ')來插入"Limp "文字
+4. 使用相同的quickButton樣式保持界面一致性
+5. 縮小換行按鈕(↵)的寬度：將wideButton的minWidth從70改為45，paddingHorizontal從theme.spacing.md改為theme.spacing.xs
+6. 修改All-IN按鈕的顯示文字為"AI"，但保持插入文字為"All-IN "：
+   - 將action按鈕陣列從包含'All-IN'改為只包含前5個按鈕
+   - 單獨添加All-IN按鈕，顯示文字為"AI"，觸發handleQuickInsert('All-IN ')
+7. 進一步縮小換行按鈕尺寸：minWidth從55改為45，paddingHorizontal改為theme.spacing.xs
+8. 修正Limp按鈕插入文字的大小寫：從'limp '改為'Limp '
+9. 修改所有街道按鈕，點擊後自動添加換行：
+   - PF按鈕：從插入'Preflop: '改為'Preflop: \n'
+   - F按鈕：從插入'Flop: '改為'Flop: \n'
+   - T按鈕：從插入'Turn: '改為'Turn: \n'
+   - R按鈕：從插入'River: '改為'River: \n'
+10. 重新排列數字按鈕順序：
+    - 第一行：從原本的1-2-3-4-5-6-7改為6-5-4-3-2-1-0
+    - 第二行：從原本的8-9-0-.-,-space改為7-8-9-.-,-space
+
+---

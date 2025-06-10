@@ -258,20 +258,30 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             {/* Round Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                {[
-                  { key: 'PF', label: 'Preflop' },
-                  { key: 'F', label: 'Flop' },
-                  { key: 'T', label: 'Turn' },
-                  { key: 'R', label: 'River' }
-                ].map((round) => (
-                  <TouchableOpacity
-                    key={round.key}
-                    style={[styles.quickButton, styles.roundButton]}
-                    onPress={() => handleQuickInsert(round.label + ': ')}
-                  >
-                    <Text style={[styles.quickButtonText, styles.roundButtonText]}>{round.key}</Text>
-                  </TouchableOpacity>
-                ))}
+                <TouchableOpacity
+                  style={[styles.quickButton, styles.roundButton]}
+                  onPress={() => handleQuickInsert('Preflop: \n')}
+                >
+                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.quickButton, styles.roundButton]}
+                  onPress={() => handleQuickInsert('Flop: \n')}
+                >
+                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.quickButton, styles.roundButton]}
+                  onPress={() => handleQuickInsert('Turn: \n')}
+                >
+                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.quickButton, styles.roundButton]}
+                  onPress={() => handleQuickInsert('River: \n')}
+                >
+                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
                   onPress={() => handleQuickInsert('Hero ')}
@@ -313,7 +323,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             {/* Action Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                {['Check', 'Bet', 'Raise', 'Call', 'Fold', 'All-IN'].map((action) => (
+                {['Check', 'Bet', 'Raise', 'Call', 'Fold'].map((action) => (
                   <TouchableOpacity
                     key={action}
                     style={[styles.quickButton, styles.actionButton]}
@@ -322,6 +332,12 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                     <Text style={[styles.quickButtonText, styles.actionButtonText]}>{action}</Text>
                   </TouchableOpacity>
                 ))}
+                <TouchableOpacity
+                  style={[styles.quickButton, styles.actionButton]}
+                  onPress={() => handleQuickInsert('All-IN ')}
+                >
+                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>AI</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -344,6 +360,12 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                   <Text style={styles.quickButtonText}>str</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
+                  style={styles.quickButton}
+                  onPress={() => handleQuickInsert('Limp ')}
+                >
+                  <Text style={styles.quickButtonText}>Limp</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
                   style={[styles.quickButton, styles.wideButton, styles.enterButton]}
                   onPress={() => handleQuickInsert('\n')}
                 >
@@ -355,7 +377,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             {/* Number Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                {['1', '2', '3', '4', '5', '6', '7'].map((number) => (
+                {['6', '5', '4', '3', '2', '1', '0'].map((number) => (
                   <TouchableOpacity
                     key={number}
                     style={styles.quickButton}
@@ -366,7 +388,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 ))}
               </View>
               <View style={styles.buttonRow}>
-                {['8', '9', '0', '.', ',', ' '].map((symbol) => (
+                {['7', '8', '9', '.', ',', ' '].map((symbol) => (
                   <TouchableOpacity
                     key={symbol}
                     style={styles.quickButton}
@@ -399,11 +421,31 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                         const getSuitColor = (suit: string) => {
                           return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
                         };
+                        
                         return (
-                          <View key={index} style={styles.miniCard}>
-                            <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
-                              {rank}{suit}
-                            </Text>
+                          <View key={index} style={styles.boardCardWrapper}>
+                            {/* Add label above second flop card for center alignment */}
+                            {index === 1 && (
+                              <Text style={styles.boardLabel}>Flop</Text>
+                            )}
+                            {/* Add label above turn card */}
+                            {index === 3 && (
+                              <Text style={styles.boardLabel}>Turn</Text>
+                            )}
+                            {/* Add label above river card */}
+                            {index === 4 && (
+                              <Text style={styles.boardLabel}>River</Text>
+                            )}
+                            {/* Add empty placeholder for alignment */}
+                            {index !== 1 && index !== 3 && index !== 4 && (
+                              <Text style={styles.boardLabelPlaceholder}> </Text>
+                            )}
+                            
+                            <View style={styles.miniCard}>
+                              <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                                {rank}{suit}
+                              </Text>
+                            </View>
                           </View>
                         );
                       })}
@@ -909,8 +951,8 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body, // 稍大的字體
   },
   wideButton: {
-    minWidth: 70, // 比標準按鈕寬一些
-    paddingHorizontal: theme.spacing.md,
+    minWidth: 45, // 進一步縮小按鈕寬度
+    paddingHorizontal: theme.spacing.xs,
   },
   heroRow: {
     flexDirection: 'row',
@@ -947,5 +989,22 @@ const styles = StyleSheet.create({
   },
   fieldInputContainer: {
     flex: 0.8,
+  },
+  boardLabel: {
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  boardCardWrapper: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 2,
+  },
+  boardLabelPlaceholder: {
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+    color: theme.colors.text,
+    textAlign: 'center',
   },
 }); 
