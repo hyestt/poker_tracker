@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share, ActivityIndicator } from 'react-native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Hand, Session, Villain } from '../models';
@@ -28,6 +28,8 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
     loadData();
   }, [handId, getHand, getSession]);
+
+
 
   const getSuitColor = (suit: string) => {
     return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
@@ -160,6 +162,12 @@ Shared from Poker Tracker`;
         <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('AIAnalysis', { hand })} 
+          style={styles.aiAnalysisButton}
+        >
+          <Text style={styles.aiAnalysisButtonText}>AI Analysis</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
           <Text style={styles.shareButtonText}>Share</Text>
         </TouchableOpacity>
@@ -229,16 +237,7 @@ Shared from Poker Tracker`;
           )}
         </View>
 
-        {/* Analysis */}
-        {hand.analysis && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>AI Analysis</Text>
-            <Text style={styles.analysisText}>{hand.analysis}</Text>
-            {hand.analysisDate && (
-              <Text style={styles.analysisDate}>Analyzed on: {hand.analysisDate}</Text>
-            )}
-          </View>
-        )}
+
 
         {/* Session Information - 移到最後 */}
         <View style={styles.section}>
@@ -283,10 +282,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     padding: theme.spacing.md,
     backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border || '#E5E7EB',
+    gap: theme.spacing.xs,
   },
   editButton: {
     backgroundColor: theme.colors.primary,
@@ -299,6 +300,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: theme.font.size.body,
   },
+  aiAnalysisButton: {
+    backgroundColor: '#FF8C00', // 橘色背景
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.button,
+  },
+  aiAnalysisButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
+    textAlign: 'center',
+  },
   shareButton: {
     backgroundColor: theme.colors.profit,
     paddingHorizontal: theme.spacing.md,
@@ -306,6 +319,24 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.button,
   },
   shareButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
+  },
+  aiButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.button,
+    minWidth: 90,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiButtonDisabled: {
+    backgroundColor: theme.colors.gray,
+    opacity: 0.6,
+  },
+  aiButtonText: {
     color: 'white',
     fontWeight: '600',
     fontSize: theme.font.size.body,
@@ -475,6 +506,120 @@ const styles = StyleSheet.create({
     color: theme.colors.gray,
     marginTop: theme.spacing.sm,
     textAlign: 'right',
+  },
+  reanalysisButton: {
+    backgroundColor: theme.colors.inputBg,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+  },
+  reanalysisButtonText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  analysisLoadingContainer: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.lg,
+  },
+  analysisLoadingText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.text,
+    marginTop: theme.spacing.sm,
+    fontWeight: '600',
+  },
+  analysisLoadingSubText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.gray,
+    marginTop: theme.spacing.xs,
+  },
+  analysisContainer: {
+    paddingTop: theme.spacing.sm,
+  },
+  noAnalysisContainer: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.lg,
+  },
+  noAnalysisText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.gray,
+    marginBottom: theme.spacing.md,
+    fontStyle: 'italic',
+  },
+  startAnalysisButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.button,
+  },
+  startAnalysisButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
+  },
+  analysisHeader: {
+    marginBottom: theme.spacing.sm,
+  },
+  analysisTitleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  analysisActionButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  analysisActionText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: theme.font.size.small,
+  },
+  analysisContentContainer: {
+    paddingTop: theme.spacing.sm,
+  },
+  emptyAnalysisContainer: {
+    paddingVertical: theme.spacing.lg,
+    alignItems: 'center',
+  },
+  emptyAnalysisText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.gray,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  aiAnalysisLinkContainer: {
+    // Remove extra padding since section already provides it
+  },
+  aiAnalysisLinkContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  aiAnalysisLinkRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  aiAnalysisStatus: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.profit,
+    fontWeight: '600',
+  },
+  aiAnalysisArrow: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.gray,
+    fontWeight: '600',
+  },
+  aiAnalysisPreview: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.gray,
+    fontStyle: 'italic',
   },
   boardLabel: {
     fontSize: 10,

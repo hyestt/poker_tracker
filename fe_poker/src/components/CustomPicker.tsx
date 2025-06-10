@@ -84,7 +84,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
           style={styles.deleteButton}
           onPress={() => handleDeleteOption(item)}
         >
-          <Text style={styles.deleteText}>🗑️</Text>
+          <Text style={styles.deleteText}>×</Text>
         </TouchableOpacity>
       )}
     </View>

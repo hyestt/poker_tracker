@@ -331,13 +331,15 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             <View style={styles.labelRow}>
               <Text style={styles.label}>Hand Details</Text>
               <View style={styles.keyboardToggleContainer}>
-                <Text style={styles.toggleLabel}>Custom Keyboard</Text>
+                <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
                   value={useCustomKeyboard}
                   onValueChange={(value) => {
                     setUseCustomKeyboard(value);
-                    if (!value) {
-                      setShowCustomKeyboard(false); // 關閉自訂鍵盤時隱藏它
+                    if (value) {
+                      setShowCustomKeyboard(true); // 開啟Poker鍵盤時立即顯示它
+                    } else {
+                      setShowCustomKeyboard(false); // 關閉Poker鍵盤時隱藏它
                     }
                   }}
                   trackColor={{false: '#D1D5DB', true: theme.colors.primary}}
@@ -365,13 +367,13 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             />
           </View>
 
-          {/* Custom Keyboard - 只在點擊Hand Details時顯示 */}
+          {/* Poker Keyboard - 只在點擊Hand Details時顯示 */}
           {useCustomKeyboard && showCustomKeyboard && (
             <View style={styles.customKeyboardContainer}>
               <View style={styles.keyboardHeader}>
-                <Text style={styles.keyboardTitle}>Custom Keyboard</Text>
+                <Text style={styles.keyboardTitle}>Poker Keyboard</Text>
                 <TouchableOpacity onPress={hideCustomKeyboard} style={styles.hideKeyboardButton}>
-                  <Text style={styles.hideKeyboardButtonText}>×</Text>
+                  <Text style={styles.hideKeyboardButtonText}>Hide</Text>
                 </TouchableOpacity>
               </View>
               
@@ -1107,10 +1109,10 @@ const styles = StyleSheet.create({
   hideKeyboardButton: {
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
-    backgroundColor: theme.colors.loss,  // 改為紅色背景，更醒目
+    backgroundColor: theme.colors.primary,  // 改為藍色背景
     borderRadius: theme.radius.button,
     borderWidth: 1,
-    borderColor: theme.colors.loss,
+    borderColor: theme.colors.primary,
   },
   hideKeyboardButtonText: {
     fontSize: theme.font.size.small,

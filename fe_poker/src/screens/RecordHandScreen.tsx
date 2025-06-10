@@ -1,5 +1,5 @@
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Switch } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
@@ -22,6 +22,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [showPokerKeyboard, setShowPokerKeyboard] = useState(false);
   const [showBoardKeyboard, setShowBoardKeyboard] = useState(false);
   const [showQuickKeyboard, setShowQuickKeyboard] = useState(false);
+  const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
+  const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
   const { addHand, fetchHands, fetchStats } = useSessionStore();
@@ -135,6 +137,13 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     selectionRef.current = selection;
   }, [selection]);
 
+  // 新增：當useCustomKeyboard為true時，自動顯示鍵盤
+  useEffect(() => {
+    if (useCustomKeyboard) {
+      setShowCustomKeyboard(true);
+    }
+  }, []);
+
   const handleQuickInsert = (text: string) => {
     const cursorPosition = selection.start;
     const currentDetails = details || '';
@@ -148,6 +157,11 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     setSelection({ start: newPosition, end: newPosition });
     
     setLastInsertedText(text);
+    
+    // 保持TextInput的焦點
+    if (detailsInputRef.current) {
+      detailsInputRef.current.focus();
+    }
   };
 
   const handleQuickDelete = useCallback(() => {
@@ -201,6 +215,40 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     setLastInsertedText(''); // 清除記錄
   };
 
+  const handleDetailsInputFocus = () => {
+    console.log('handleDetailsInputFocus called, current showCustomKeyboard:', showCustomKeyboard);
+    console.log('useCustomKeyboard:', useCustomKeyboard);
+    if (useCustomKeyboard) {
+      console.log('Setting showCustomKeyboard to true');
+      setShowCustomKeyboard(true);
+    }
+    // Focus the TextInput to show cursor
+    if (detailsInputRef.current) {
+      detailsInputRef.current.focus();
+    }
+  };
+
+  const handleDetailsInputPress = () => {
+    console.log('handleDetailsInputPress called, useCustomKeyboard:', useCustomKeyboard);
+    console.log('current showCustomKeyboard:', showCustomKeyboard);
+    if (useCustomKeyboard) {
+      console.log('Setting showCustomKeyboard to true from Press');
+      setShowCustomKeyboard(true);
+    }
+    // Focus the TextInput to show cursor
+    if (detailsInputRef.current) {
+      detailsInputRef.current.focus();
+    }
+  };
+
+  const handleDetailsInputBlur = () => {
+    // Don't hide custom keyboard on blur to maintain visibility during typing
+  };
+
+  const hideCustomKeyboard = () => {
+    setShowCustomKeyboard(false);
+  };
+
   const handleSave = async () => {
     const hand: Hand = {
       id: Date.now().toString(),
@@ -235,7 +283,26 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.topSection}>
           <View style={styles.fieldColumn}>
-            <Text style={styles.label}>Hand Details</Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Hand Details</Text>
+              <View style={styles.keyboardToggleContainer}>
+                <Text style={styles.toggleLabel}>Poker Keyboard</Text>
+                <Switch
+                  value={useCustomKeyboard}
+                  onValueChange={(value) => {
+                    setUseCustomKeyboard(value);
+                    if (value) {
+                      setShowCustomKeyboard(true); // 開啟Poker鍵盤時立即顯示它
+                    } else {
+                      setShowCustomKeyboard(false); // 關閉Poker鍵盤時隱藏它
+                    }
+                  }}
+                  trackColor={{false: '#D1D5DB', true: theme.colors.primary}}
+                  thumbColor={'#FFFFFF'}
+                  ios_backgroundColor="#D1D5DB"
+                />
+              </View>
+            </View>
             <TextInput
               ref={detailsInputRef}
               style={styles.detailsInput}
@@ -248,238 +315,14 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               multiline={true}
               numberOfLines={8}
               textAlignVertical="top"
-              showSoftInputOnFocus={false}
+              showSoftInputOnFocus={!useCustomKeyboard}
+              onFocus={handleDetailsInputFocus}
+              onPressIn={handleDetailsInputPress}
+              onBlur={handleDetailsInputBlur}
             />
           </View>
 
-          {/* Quick Buttons Area */}
-          <View style={styles.quickButtonsSection}>
-            
-            {/* Round Buttons */}
-            <View style={styles.buttonCategory}>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Preflop: \n')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Flop: \n')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Turn: \n')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('River: \n')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.compactButton]}
-                  onPress={() => handleQuickInsert('UTG+1 ')}
-                >
-                  <Text style={styles.quickButtonText}>UTG+1</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.compactButton]}
-                  onPress={() => handleQuickInsert('UTG+2 ')}
-                >
-                  <Text style={styles.quickButtonText}>UTG+2</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('Hero ')}
-                >
-                  <Text style={styles.quickButtonText}>H</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('Villain ')}
-                >
-                  <Text style={styles.quickButtonText}>V</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
 
-            {/* Position Buttons */}
-            <View style={styles.buttonCategory}>
-              <View style={styles.buttonRow}>
-                {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
-                  <TouchableOpacity
-                    key={position}
-                    style={styles.quickButton}
-                    onPress={() => handleQuickInsert(position + ' ')}
-                  >
-                    <Text style={styles.quickButtonText}>{position}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Action Buttons */}
-            <View style={styles.buttonCategory}>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Raise ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Raise</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('All-IN ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>ALL-IN</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Fold ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Fold</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Bet ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Bet</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Call ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Call</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Check ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Check</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Percentage Buttons */}
-            <View style={styles.buttonCategory}>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('straddle ')}
-                >
-                  <Text style={styles.quickButtonText}>str</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('Limp ')}
-                >
-                  <Text style={styles.quickButtonText}>Limp</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('$')}
-                >
-                  <Text style={styles.quickButtonText}>$</Text>
-                </TouchableOpacity>
-                {['1', '2', '3'].map((number) => (
-                  <TouchableOpacity
-                    key={number}
-                    style={styles.quickButton}
-                    onPress={() => handleQuickInsert(number)}
-                  >
-                    <Text style={styles.quickButtonText}>{number}</Text>
-                  </TouchableOpacity>
-                ))}
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('0')}
-                >
-                  <Text style={styles.quickButtonText}>0</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Number Buttons */}
-            <View style={styles.buttonCategory}>
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('Pot: ')}
-                >
-                  <Text style={styles.quickButtonText}>Pot</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('/')}
-                >
-                  <Text style={styles.quickButtonText}>/</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('x')}
-                >
-                  <Text style={styles.quickButtonText}>x</Text>
-                </TouchableOpacity>
-                {['6', '5', '4'].map((number) => (
-                  <TouchableOpacity
-                    key={number}
-                    style={styles.quickButton}
-                    onPress={() => handleQuickInsert(number)}
-                  >
-                    <Text style={styles.quickButtonText}>{number}</Text>
-                  </TouchableOpacity>
-                ))}
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.deleteButton]}
-                  onPress={handleDeleteClick}
-                  onPressIn={handleDeletePressIn}
-                  onPressOut={handleDeletePressOut}
-                >
-                  <Text style={[styles.quickButtonText, styles.deleteButtonText]}>←</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.buttonRow}>
-                {[',', ' '].map((symbol) => (
-                  <TouchableOpacity
-                    key={symbol}
-                    style={styles.quickButton}
-                    onPress={() => handleQuickInsert(symbol)}
-                  >
-                    <Text style={styles.quickButtonText}>
-                      {symbol === ' ' ? '␣' : symbol}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('.')}
-                >
-                  <Text style={styles.quickButtonText}>.</Text>
-                </TouchableOpacity>
-                {['7', '8', '9'].map((number) => (
-                  <TouchableOpacity
-                    key={number}
-                    style={styles.quickButton}
-                    onPress={() => handleQuickInsert(number)}
-                  >
-                    <Text style={styles.quickButtonText}>{number}</Text>
-                  </TouchableOpacity>
-                ))}
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.wideButton, styles.enterButton]}
-                  onPress={() => handleQuickInsert('\n')}
-                >
-                  <Text style={[styles.quickButtonText, styles.enterButtonText]}>↵</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
         </View>
         
         <View style={styles.spacer} />
@@ -712,6 +555,247 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
           />
         </SafeAreaView>
       </Modal>
+
+      {/* Direct Custom Keyboard */}
+      {useCustomKeyboard && showCustomKeyboard && (
+        <View style={styles.customKeyboardContainer}>
+          <View style={styles.keyboardHeader}>
+            <Text style={styles.keyboardTitle}>Poker Keyboard</Text>
+            <TouchableOpacity onPress={hideCustomKeyboard} style={styles.hideKeyboardButton}>
+              <Text style={styles.hideKeyboardButtonText}>Hide</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.quickButtonsSection}>
+        
+        {/* Round Buttons */}
+        <View style={styles.buttonCategory}>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.roundButton]}
+              onPress={() => handleQuickInsert('Preflop: \n')}
+            >
+              <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.roundButton]}
+              onPress={() => handleQuickInsert('Flop: \n')}
+            >
+              <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.roundButton]}
+              onPress={() => handleQuickInsert('Turn: \n')}
+            >
+              <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.roundButton]}
+              onPress={() => handleQuickInsert('River: \n')}
+            >
+              <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.compactButton]}
+              onPress={() => handleQuickInsert('UTG1 ')}
+            >
+              <Text style={styles.quickButtonText}>UTG1</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.compactButton]}
+              onPress={() => handleQuickInsert('UTG2 ')}
+            >
+              <Text style={styles.quickButtonText}>UTG2</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('Hero ')}
+            >
+              <Text style={styles.quickButtonText}>H</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('Villain ')}
+            >
+              <Text style={styles.quickButtonText}>V</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Position Buttons */}
+        <View style={styles.buttonCategory}>
+          <View style={styles.buttonRow}>
+            {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
+              <TouchableOpacity
+                key={position}
+                style={styles.quickButton}
+                onPress={() => handleQuickInsert(position + ' ')}
+              >
+                <Text style={styles.quickButtonText}>{position}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.buttonCategory}>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.actionButton]}
+              onPress={() => handleQuickInsert('Raise ')}
+            >
+              <Text style={[styles.quickButtonText, styles.actionButtonText]}>Raise</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.actionButton]}
+              onPress={() => handleQuickInsert('All-IN ')}
+            >
+              <Text style={[styles.quickButtonText, styles.actionButtonText]}>ALL-IN</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.actionButton]}
+              onPress={() => handleQuickInsert('Fold ')}
+            >
+              <Text style={[styles.quickButtonText, styles.actionButtonText]}>Fold</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.actionButton]}
+              onPress={() => handleQuickInsert('Bet ')}
+            >
+              <Text style={[styles.quickButtonText, styles.actionButtonText]}>Bet</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.actionButton]}
+              onPress={() => handleQuickInsert('Call ')}
+            >
+              <Text style={[styles.quickButtonText, styles.actionButtonText]}>Call</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickButton, styles.actionButton]}
+              onPress={() => handleQuickInsert('Check ')}
+            >
+              <Text style={[styles.quickButtonText, styles.actionButtonText]}>Check</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Percentage Buttons */}
+        <View style={styles.buttonCategory}>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('straddle ')}
+            >
+              <Text style={styles.quickButtonText}>str</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('Limp ')}
+            >
+              <Text style={styles.quickButtonText}>Limp</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('$')}
+            >
+              <Text style={styles.quickButtonText}>$</Text>
+            </TouchableOpacity>
+            {['1', '2', '3'].map((number) => (
+              <TouchableOpacity
+                key={number}
+                style={styles.quickButton}
+                onPress={() => handleQuickInsert(number)}
+              >
+                <Text style={styles.quickButtonText}>{number}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('0')}
+            >
+              <Text style={styles.quickButtonText}>0</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Number Buttons */}
+        <View style={styles.buttonCategory}>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('Pot: ')}
+            >
+              <Text style={styles.quickButtonText}>Pot</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('/')}
+            >
+              <Text style={styles.quickButtonText}>/</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('x')}
+            >
+              <Text style={styles.quickButtonText}>x</Text>
+            </TouchableOpacity>
+            {['4', '5', '6'].map((number) => (
+              <TouchableOpacity
+                key={number}
+                style={styles.quickButton}
+                onPress={() => handleQuickInsert(number)}
+              >
+                <Text style={styles.quickButtonText}>{number}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={[styles.quickButton, styles.deleteButton]}
+              onPress={handleDeleteClick}
+              onPressIn={handleDeletePressIn}
+              onPressOut={handleDeletePressOut}
+            >
+              <Text style={[styles.quickButtonText, styles.deleteButtonText]}>←</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.buttonRow}>
+            {[',', ' '].map((symbol) => (
+              <TouchableOpacity
+                key={symbol}
+                style={styles.quickButton}
+                onPress={() => handleQuickInsert(symbol)}
+              >
+                <Text style={styles.quickButtonText}>
+                  {symbol === ' ' ? '␣' : symbol}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.quickButton}
+              onPress={() => handleQuickInsert('.')}
+            >
+              <Text style={styles.quickButtonText}>.</Text>
+            </TouchableOpacity>
+            {['7', '8', '9'].map((number) => (
+              <TouchableOpacity
+                key={number}
+                style={styles.quickButton}
+                onPress={() => handleQuickInsert(number)}
+              >
+                <Text style={styles.quickButtonText}>{number}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={[styles.quickButton, styles.wideButton, styles.enterButton]}
+              onPress={() => handleQuickInsert('\n')}
+            >
+              <Text style={[styles.quickButtonText, styles.enterButtonText]}>↵</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+        </View>
+      )}
+
     </View>
   );
 };
@@ -1090,5 +1174,48 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.text,
     textAlign: 'center',
+  },
+  keyboardToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  toggleLabel: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.text,
+    fontWeight: '500',
+  },
+  customKeyboardContainer: {
+    backgroundColor: theme.colors.card,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    maxHeight: 300,
+  },
+  keyboardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border || '#E5E7EB',
+  },
+  keyboardTitle: {
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  hideKeyboardButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.button,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  hideKeyboardButtonText: {
+    fontSize: theme.font.size.small,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 }); 
