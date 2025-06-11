@@ -1,8 +1,5 @@
-# 使用官方 Go 映像 (單階段建置)
-FROM golang:1.21-alpine
-
-# 安裝 ca-certificates 和 git
-RUN apk --no-cache add ca-certificates git
+# 使用 Ubuntu 基礎映像 (更穩定的網路連接)
+FROM golang:1.21
 
 # 設定工作目錄
 WORKDIR /app
