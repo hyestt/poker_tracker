@@ -1,4 +1,4 @@
-# 使用官方 Go 映像 (單階段建置)
+# 使用官方 Go 映像
 FROM golang:1.21-alpine
 
 # 安裝 ca-certificates 和 git
@@ -7,14 +7,14 @@ RUN apk --no-cache add ca-certificates git
 # 設定工作目錄
 WORKDIR /app
 
-# 複製 be_poker 目錄下的 go.mod 和 go.sum
-COPY be_poker/go.mod be_poker/go.sum ./
+# 複製整個專案
+COPY . .
+
+# 進入 be_poker 目錄
+WORKDIR /app/be_poker
 
 # 下載依賴
 RUN go mod download
-
-# 複製 be_poker 目錄下的所有原始碼
-COPY be_poker/ .
 
 # 建置應用
 RUN go build -o main .
