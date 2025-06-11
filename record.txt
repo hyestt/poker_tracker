@@ -1126,3 +1126,30 @@ Summary of complete Supabase migration:
    - 更簡單的部署和維護
 
 Status: ✅ 完整遷移完成，應用現在使用Supabase雲端資料庫
+
+Date: 2025-01-27 18:00:00
+User Query: deploy到railway還是有error，be_poker目錄在Docker build時無法找到
+Summary of Railway deployment fix:
+1. 問題診斷：
+   - Railway Docker build時找不到be_poker目錄
+   - 錯誤：ls -la be_poker/ 執行失敗，exit code: 1
+   - 原因：COPY . . 在Railway環境中可能沒有正確複製目錄結構
+
+2. 解決方案：
+   - 修改根目錄Dockerfile添加詳細的目錄檢查和錯誤處理
+   - 改用漸進式WORKDIR切換而非cd命令
+   - 添加條件檢查確保be_poker目錄存在才繼續
+   - 改善錯誤訊息幫助調試
+
+3. Dockerfile改進內容：
+   - 添加be_poker目錄存在性檢查
+   - 使用WORKDIR /app/be_poker替代cd命令
+   - 添加pwd和ls確認當前位置
+   - 分步建置：下載依賴 → 編譯 → 移動執行檔
+   - 詳細的調試輸出信息
+
+4. 修改的文件：
+   - Dockerfile：完全重構建置流程
+   - railway.toml：確認使用根目錄Dockerfile
+
+Status: ✅ Railway部署錯誤已修復，Docker build流程更穩定
