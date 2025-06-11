@@ -27,7 +27,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
   useEffect(() => {
     const cardDisplays = state.inputCards.map(c => c.display);
     onCardSelect?.(cardDisplays);
-  }, [state.inputCards, onCardSelect]);
+  }, [state.inputCards]);
 
   const firstRow = ['5', '4', '3', '2'];
   const secondRow = ['9', '8', '7', '6'];
@@ -68,6 +68,9 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
   };
 
   const handleDone = () => {
+    // 確保最終的卡牌被發送給父組件
+    const cardDisplays = state.inputCards.map(c => c.display);
+    onCardSelect?.(cardDisplays);
     onDone?.();
   };
 

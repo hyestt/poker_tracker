@@ -51,19 +51,29 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
   const handleCardSelect = useCallback((selectedCards: string[]) => {
     const cardsString = selectedCards.join(' ');
-    if (selectedVillainIndex !== null && selectedVillainIndex < villains.length) {
-      // Update villain cards
-      const updatedVillains = [...villains];
-      updatedVillains[selectedVillainIndex] = {
-        ...updatedVillains[selectedVillainIndex],
-        holeCards: cardsString
-      };
-      setVillains(updatedVillains);
+    console.log('handleCardSelect called with:', selectedCards, 'cardsString:', cardsString, 'selectedVillainIndex:', selectedVillainIndex);
+    
+    if (selectedVillainIndex !== null) {
+      // Update villain cards using functional update to avoid dependency on villains
+      setVillains(currentVillains => {
+        console.log('Updating villain cards. Current villains:', currentVillains);
+        if (selectedVillainIndex < currentVillains.length) {
+          const updatedVillains = [...currentVillains];
+          updatedVillains[selectedVillainIndex] = {
+            ...updatedVillains[selectedVillainIndex],
+            holeCards: cardsString
+          };
+          console.log('Updated villains:', updatedVillains);
+          return updatedVillains;
+        }
+        console.log('Invalid villain index:', selectedVillainIndex, 'length:', currentVillains.length);
+        return currentVillains;
+      });
     } else {
       // Update hero cards
       setHoleCards(cardsString);
     }
-  }, [selectedVillainIndex, villains]);
+  }, [selectedVillainIndex]);
 
   const handleBoardSelect = () => {
     setShowBoardKeyboard(true);
@@ -219,6 +229,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     console.log('hideCustomKeyboard called');
     setShowCustomKeyboard(false);
   };
+
+  useEffect(() => {
+    console.log('Current villains state:', villains);
+  }, [villains]);
 
   useEffect(() => {
     const loadHand = async () => {
