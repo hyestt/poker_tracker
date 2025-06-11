@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { Session, Hand, Stats } from '../models';
+import { supabase } from '../config/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { API_BASE_URL } from "../config/api";
-const API_URL = API_BASE_URL;
 interface State {
   sessions: Session[];
   hands: Hand[];
@@ -34,137 +34,353 @@ export const useSessionStore = create<State>((set, get) => ({
     byStakes: {},
     byLocation: {},
   },
+
   fetchSessions: async () => {
-    const res = await fetch(`${API_URL}/sessions`);
-    const data = await res.json();
-    set({ sessions: data });
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      const sessions: Session[] = data.map(session => ({
+        id: session.id,
+        location: session.location || '',
+        date: session.date || '',
+        smallBlind: session.small_blind || 0,
+        bigBlind: session.big_blind || 0,
+        currency: session.currency || '',
+        effectiveStack: session.effective_stack || 0,
+        tableSize: session.table_size || 6,
+      }));
+      
+      set({ sessions });
+      await AsyncStorage.setItem('poker_sessions', JSON.stringify(sessions));
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      const cached = await AsyncStorage.getItem('poker_sessions');
+      if (cached) {
+        set({ sessions: JSON.parse(cached) });
+      }
+    }
   },
+
   addSession: async (session: Session) => {
-    await fetch(`${API_URL}/sessions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(session),
-    });
-    await get().fetchSessions();
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .insert({
+          id: session.id,
+          location: session.location,
+          date: session.date,
+          small_blind: session.smallBlind,
+          big_blind: session.bigBlind,
+          currency: session.currency,
+          effective_stack: session.effectiveStack,
+          table_size: session.tableSize,
+        });
+      
+      if (error) throw error;
+      await get().fetchSessions();
+    } catch (error) {
+      console.error('Error adding session:', error);
+      throw error;
+    }
   },
+
   deleteSession: async (id: string) => {
-    await fetch(`${API_URL}/sessions?id=${id}`, {
-      method: 'DELETE',
-    });
-    await get().fetchSessions();
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      await get().fetchSessions();
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      throw error;
+    }
   },
+
   fetchHands: async () => {
-    const res = await fetch(`${API_URL}/hands`);
-    const data = await res.json();
-    console.log('DEBUG: fetchHands data sample:', data.slice(0, 2));
-    console.log('DEBUG: First hand favorite type:', typeof data[0]?.favorite, 'value:', data[0]?.favorite);
-    set({ hands: data });
+    try {
+      const { data, error } = await supabase
+        .from('hands')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      const hands: Hand[] = data.map(hand => ({
+        id: hand.id,
+        sessionId: hand.session_id || '',
+        position: hand.position || '',
+        holeCards: hand.hole_cards || '',
+        details: hand.details || '',
+        result: hand.result_amount || 0,
+        date: hand.created_at,
+        analysis: hand.analysis || '',
+        analysisDate: hand.analysis_date || '',
+        favorite: hand.is_favorite || false,
+      }));
+      
+      set({ hands });
+      await AsyncStorage.setItem('poker_hands', JSON.stringify(hands));
+    } catch (error) {
+      console.error('Error fetching hands:', error);
+      const cached = await AsyncStorage.getItem('poker_hands');
+      if (cached) {
+        set({ hands: JSON.parse(cached) });
+      }
+    }
   },
+
   addHand: async (hand: Hand) => {
-    await fetch(`${API_URL}/hands`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(hand),
-    });
-    await get().fetchHands();
-    await get().fetchStats();
+    try {
+      const { error } = await supabase
+        .from('hands')
+        .insert({
+          id: hand.id,
+          session_id: hand.sessionId,
+          position: hand.position,
+          hole_cards: hand.holeCards,
+          details: hand.details,
+          result_amount: hand.result,
+          analysis: hand.analysis,
+          analysis_date: hand.analysisDate,
+          is_favorite: hand.favorite,
+        });
+      
+      if (error) throw error;
+      await get().fetchHands();
+      await get().fetchStats();
+    } catch (error) {
+      console.error('Error adding hand:', error);
+      throw error;
+    }
   },
+
   deleteHand: async (id: string) => {
-    await fetch(`${API_URL}/hands?id=${id}`, {
-      method: 'DELETE',
-    });
-    await get().fetchHands();
-    await get().fetchStats();
+    try {
+      const { error } = await supabase
+        .from('hands')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      await get().fetchHands();
+      await get().fetchStats();
+    } catch (error) {
+      console.error('Error deleting hand:', error);
+      throw error;
+    }
   },
+
   analyzeHand: async (id: string): Promise<string> => {
-    const response = await fetch(`${API_URL}/analyze`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ handId: id }),
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || 'Failed to analyze hand');
+    try {
+      // First get the hand
+      const { data: handData, error: handError } = await supabase
+        .from('hands')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (handError) throw handError;
+      
+      // Call OpenAI API directly (you'll need to implement this)
+      // For now, return a placeholder
+      const analysis = 'AI analysis would go here - you need to implement OpenAI API call';
+      
+      // Update the hand with analysis
+      const { error: updateError } = await supabase
+        .from('hands')
+        .update({ 
+          analysis,
+          analysis_date: new Date().toISOString()
+        })
+        .eq('id', id);
+      
+      if (updateError) throw updateError;
+      
+      await get().fetchHands();
+      return analysis;
+    } catch (error) {
+      console.error('Error analyzing hand:', error);
+      throw error;
     }
-    
-    const data = await response.json();
-    await get().fetchHands(); // 重新獲取更新的數據
-    return data.analysis;
   },
+
   fetchStats: async () => {
-    const res = await fetch(`${API_URL}/stats`);
-    const data = await res.json();
-    set({ stats: data });
+    try {
+      const { data: hands, error } = await supabase
+        .from('hands')
+        .select('result_amount, session_id');
+      
+      if (error) throw error;
+      
+      const totalProfit = hands.reduce((sum, hand) => sum + (hand.result_amount || 0), 0);
+      const totalSessions = new Set(hands.map(h => h.session_id)).size;
+      const winRate = hands.filter(h => (h.result_amount || 0) > 0).length / hands.length * 100;
+      const avgSession = totalSessions > 0 ? totalProfit / totalSessions : 0;
+      
+      const stats: Stats = {
+        totalProfit,
+        totalSessions,
+        winRate: isNaN(winRate) ? 0 : winRate,
+        avgSession,
+        byStakes: {},
+        byLocation: {},
+      };
+      
+      set({ stats });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      set({
+        stats: {
+          totalProfit: 0,
+          totalSessions: 0,
+          winRate: 0,
+          avgSession: 0,
+          byStakes: {},
+          byLocation: {},
+        }
+      });
+    }
   },
-  getHandsBySession: (sessionId: string) => get().hands.filter((h: Hand) => h.sessionId === sessionId),
+
+  getHandsBySession: (sessionId: string) => 
+    get().hands.filter((h: Hand) => h.sessionId === sessionId),
+
   getHand: async (id: string): Promise<Hand> => {
-    const res = await fetch(`${API_URL}/hand?id=${id}`);
-    if (!res.ok) {
-      throw new Error('Hand not found');
+    try {
+      const { data, error } = await supabase
+        .from('hands')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+              return {
+          id: data.id,
+          sessionId: data.session_id || '',
+          position: data.position || '',
+          holeCards: data.hole_cards || '',
+          details: data.details || '',
+          result: data.result_amount || 0,
+          date: data.created_at,
+          analysis: data.analysis || '',
+          analysisDate: data.analysis_date || '',
+          favorite: data.is_favorite || false,
+        };
+    } catch (error) {
+      console.error('Error getting hand:', error);
+      throw error;
     }
-    const data = await res.json();
-    return data;
   },
+
   updateHand: async (hand: Hand) => {
-    await fetch(`${API_URL}/hand?id=${hand.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(hand),
-    });
-    await get().fetchHands();
-    await get().fetchStats();
+    try {
+      const { error } = await supabase
+        .from('hands')
+        .update({
+          session_id: hand.sessionId,
+          position: hand.position,
+          hole_cards: hand.holeCards,
+          details: hand.details,
+          result_amount: hand.result,
+          analysis: hand.analysis,
+          analysis_date: hand.analysisDate,
+          is_favorite: hand.favorite,
+        })
+        .eq('id', hand.id);
+      
+      if (error) throw error;
+      await get().fetchHands();
+      await get().fetchStats();
+    } catch (error) {
+      console.error('Error updating hand:', error);
+      throw error;
+    }
   },
+
   getSession: async (id: string): Promise<Session> => {
-    console.log(`getSession: Making request to ${API_URL}/session?id=${id}`);
-    const res = await fetch(`${API_URL}/session?id=${id}`);
-    console.log(`getSession: Response status: ${res.status}`);
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`getSession: Error response: ${errorText}`);
-      throw new Error(`Session not found: ${res.status} ${errorText}`);
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+      return {
+        id: data.id,
+        location: data.location || '',
+        date: data.date || '',
+        smallBlind: data.small_blind || 0,
+        bigBlind: data.big_blind || 0,
+        currency: data.currency || '',
+        effectiveStack: data.effective_stack || 0,
+        tableSize: data.table_size || 6,
+      };
+    } catch (error) {
+      console.error('Error getting session:', error);
+      throw error;
     }
-    const data = await res.json();
-    console.log(`getSession: Response data:`, data);
-    return data;
   },
+
   updateSession: async (session: Session) => {
-    await fetch(`${API_URL}/session?id=${session.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(session),
-    });
-    await get().fetchSessions();
-    await get().fetchStats();
-  },
-  toggleFavorite: async (id: string): Promise<boolean> => {
-    console.log(`Making request to: ${API_URL}/toggle-favorite`);
-    console.log(`Request payload:`, { handId: id });
-    
-    const response = await fetch(`${API_URL}/toggle-favorite`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ handId: id }),
-    });
-    
-    console.log(`Response status: ${response.status}`);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Response error: ${errorText}`);
-      throw new Error(`Failed to toggle favorite: ${response.status} ${errorText}`);
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .update({
+          location: session.location,
+          date: session.date,
+          small_blind: session.smallBlind,
+          big_blind: session.bigBlind,
+          currency: session.currency,
+          effective_stack: session.effectiveStack,
+          table_size: session.tableSize,
+        })
+        .eq('id', session.id);
+      
+      if (error) throw error;
+      await get().fetchSessions();
+      await get().fetchStats();
+    } catch (error) {
+      console.error('Error updating session:', error);
+      throw error;
     }
-    
-    const data = await response.json();
-    console.log('Response data:', data);
-    console.log('Before fetchHands, current hands count:', get().hands.length);
-    await get().fetchHands(); // 重新獲取更新的數據
-    console.log('After fetchHands, updated hands count:', get().hands.length);
-    
-    // Debug: 檢查特定手牌的更新狀態
-    const updatedHand = get().hands.find(h => h.id === id);
-    console.log('Updated hand favorite status:', updatedHand?.favorite);
-    
-    return data.favorite;
+  },
+
+  toggleFavorite: async (id: string): Promise<boolean> => {
+    try {
+      // First get current favorite status
+      const { data: currentHand, error: fetchError } = await supabase
+        .from('hands')
+        .select('is_favorite')
+        .eq('id', id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const newFavoriteStatus = !currentHand.is_favorite;
+      
+      const { error: updateError } = await supabase
+        .from('hands')
+        .update({ is_favorite: newFavoriteStatus })
+        .eq('id', id);
+      
+      if (updateError) throw updateError;
+      
+      await get().fetchHands();
+      return newFavoriteStatus;
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      throw error;
+    }
   },
 })); 

@@ -8,9 +8,9 @@
 ✅ Port 8080 is available
 
 🗄️  Initializing database...
-2025/06/10 17:25:09 Migration warning: duplicate column name: board
-2025/06/10 17:25:09 Migration warning: duplicate column name: note
-2025/06/10 17:25:09 Migration warning: duplicate column name: villains
+2025/06/10 19:04:08 Migration warning: duplicate column name: board
+2025/06/10 19:04:08 Migration warning: duplicate column name: note
+2025/06/10 19:04:08 Migration warning: duplicate column name: villains
 ✅ Database ready
 
 🛣️  Registering routes...
@@ -40,3 +40,6 @@
 =====================================
 🔄 Starting HTTP server on :8080...
 
+DEBUG CreateSession: Received session data: {ID:1749608437629 Location:Club Date:2025/06/10 19:20 SmallBlind:1 BigBlind:2 Currency:USD ($) EffectiveStack:100 TableSize:9 Tag:}
+DEBUG CreateSession: Tag value: ''
+DEBUG CreateSession: Executing INSERT with tag: ''

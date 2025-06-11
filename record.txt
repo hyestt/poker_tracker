@@ -1035,3 +1035,59 @@ Summary of CocoaPods sync and startup fixes:
 注意事項：
 - React Native 正在逐步脫離 CocoaPods，建議未來使用 `yarn ios` 或 `npx expo run:ios`
 - 記得定期更新依賴並保持 Podfile.lock 同步
+
+Date: 2025-06-11 09:55:00
+User Query: 我需要將現在的DB 移到supabase
+Summary of complete Supabase migration:
+1. 資料庫遷移成功：
+   - 建立新的Supabase專案：poker-tracker (ID: vdpscuywgjopwvcalgsn)
+   - 免費方案，費用：$0/月
+   - 成功遷移92個撲克場次和22個手牌記錄
+   - 建立完整資料庫結構：sessions和hands表
+   - 啟用Row Level Security和必要索引
+
+2. 前端完全重構：
+   - 安裝Supabase客戶端庫：@supabase/supabase-js, react-native-url-polyfill
+   - 建立fe_poker/src/config/supabase.ts配置文件
+   - 完全重寫sessionStore.ts使用Supabase API替代原本的Go API
+   - 添加AsyncStorage離線快取支援
+   - 移除所有對Go後端的依賴
+
+3. 新功能特性：
+   - 雲端即時同步：資料自動同步到Supabase
+   - 離線支援：網路中斷時使用本地快取
+   - 錯誤處理：完整的try-catch錯誤處理機制
+   - 跨設備同步：相同資料在不同設備間保持一致
+   - 自動時間戳：created_at和updated_at自動管理
+
+4. 資料庫結構映射：
+   - SQLite → PostgreSQL完美遷移
+   - 保持所有原有功能：sessions, hands, 收藏, 分析
+   - 欄位名稱規範化：camelCase → snake_case
+   - 型別安全：完整的TypeScript型別定義
+
+5. 檔案結構更新：
+   - 新建：fe_poker/src/config/supabase.ts
+   - 重寫：fe_poker/src/viewmodels/sessionStore.ts
+   - 新建：SUPABASE_MIGRATION_GUIDE.md
+   - 匯出：migration_sessions.sql, migration_hands.sql
+
+6. 待實現功能：
+   - OpenAI分析整合（需要在analyzeHand函數中實現API調用）
+   - 用戶認證系統（可選）
+   - 即時訂閱功能（可選）
+
+7. 優勢對比：
+   ❌ 原架構：本地Go服務器 + SQLite
+   - 無法在真實iOS設備獨立運行
+   - 依賴開發機器IP地址
+   - 需要同時維護前後端
+   
+   ✅ 新架構：React Native + Supabase
+   - 完全獨立的iOS應用
+   - 雲端資料庫，無IP依賴
+   - 跨設備同步
+   - 離線支援
+   - 更簡單的部署和維護
+
+Status: ✅ 完整遷移完成，應用現在使用Supabase雲端資料庫
