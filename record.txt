@@ -199,6 +199,41 @@ Summary of 404 error debugging and resolution:
    - 發現舊進程佔用端口8080，使用lsof -ti:8080找到並kill
    - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
 
+Date: 2025-06-11 15:00:00
+User Query: 將現有的SQLite資料遷移到Supabase，目前已經有hands, sessions兩個table，但是我沒看到villain相關column
+Summary of complete Supabase migration:
+
+1. 資料庫Schema更新：
+   - 檢查Supabase PostgreSQL專案(vdpscuywgjopwvcalgsn)現有表結構
+   - 發現hands table缺少villain相關欄位：board, note, villains, date
+   - 成功添加缺失欄位：ALTER TABLE hands ADD COLUMN board TEXT, note TEXT, villains TEXT, date TEXT
+
+2. 資料遷移：
+   - 從本地SQLite(poker_tracker.db)匯出1筆手牌資料
+   - 成功匯入Supabase PostgreSQL
+   - 驗證所有villain手牌資料正常讀取
+
+3. 程式碼完全重構：
+   - 更新go.mod：移除github.com/mattn/go-sqlite3，新增github.com/lib/pq v1.10.9
+   - 重寫be_poker/db/db.go：
+     * 改用PostgreSQL驅動連接Supabase
+     * 連接字串：postgres://postgres.vdpscuywgjopwvcalgsn:Kyy850425%40@aws-0-us-west-1.pooler.supabase.com:6543/postgres
+     * 移除createTables()和migrateTables()函數(Supabase中已建立)
+   - 更新be_poker/main.go：顯示Supabase連接信息而非SQLite路徑
+
+4. 測試驗證：
+   - API完全正常運作(http://localhost:8080/hands)
+   - 所有手牌資料包含villain資訊成功讀取
+   - Villain手牌格式：JSON陣列，包含id、holeCards、position
+   - 確認3筆手牌含有villain資料正常顯示
+
+5. 技術棧更新：
+   - 資料庫：SQLite → Supabase PostgreSQL 17.4.1.042
+   - 連接：本地檔案 → 雲端資料庫
+   - 備份：保留原始poker_tracker.db檔案作為備份
+
+結果：Poker Tracker已完全遷移至Supabase，所有功能包括villain手牌分析正常運作，提供更好的擴展性和雲端同步能力。
+
 Date: 2025-01-28 00:30:00
 User Query: 在Hand Details的下面增加一個區域，區域裡面放上各種德州撲克的按鈕，點擊按鈕以後會快速寫入到Hand detail
 Summary of quick button area implementation:

@@ -2,15 +2,25 @@ package db
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"fmt"
 	"log"
+	"os"
+	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
 
 func InitDB(filepath string) {
+	// 使用 Supabase 連接字串
+	supabaseURL := "postgres://postgres.vdpscuywgjopwvcalgsn:Kyy850425%40@aws-0-us-west-1.pooler.supabase.com:6543/postgres"
+	
+	// 如果有設定環境變數則使用環境變數
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		supabaseURL = dbURL
+	}
+	
 	var err error
-	DB, err = sql.Open("sqlite3", filepath)
+	DB, err = sql.Open("postgres", supabaseURL)
 	if err != nil {
 		log.Fatal("Cannot open database:", err)
 	}
@@ -20,62 +30,11 @@ func InitDB(filepath string) {
 		log.Fatal("Cannot ping database:", err)
 	}
 	
-	createTables()
-	migrateTables()
-}
-
-func createTables() {
-	sessionTable := `CREATE TABLE IF NOT EXISTS sessions (
-		id TEXT PRIMARY KEY,
-		location TEXT,
-		date TEXT,
-		small_blind INTEGER,
-		big_blind INTEGER,
-		currency TEXT,
-		effective_stack INTEGER,
-		table_size INTEGER DEFAULT 6,
-		tag TEXT
-	);`
-	_, err := DB.Exec(sessionTable)
-	if err != nil {
-		log.Fatal("Cannot create sessions table:", err)
-	}
-
-	handTable := `CREATE TABLE IF NOT EXISTS hands (
-		id TEXT PRIMARY KEY,
-		session_id TEXT,
-		hole_cards TEXT,
-		board TEXT,
-		position TEXT,
-		details TEXT,
-		note TEXT,
-		result INTEGER,
-		date TEXT,
-		villains TEXT,
-		analysis TEXT,
-		analysis_date TEXT,
-		favorite INTEGER DEFAULT 0,
-		FOREIGN KEY(session_id) REFERENCES sessions(id)
-	);`
-	_, err = DB.Exec(handTable)
-	if err != nil {
-		log.Fatal("Cannot create hands table:", err)
-	}
-}
-
-func migrateTables() {
-	// 添加新欄位，如果已存在會自動忽略
-	migrations := []string{
-		"ALTER TABLE hands ADD COLUMN board TEXT",
-		"ALTER TABLE hands ADD COLUMN note TEXT", 
-		"ALTER TABLE hands ADD COLUMN villains TEXT",
-	}
+	fmt.Println("✅ Connected to Supabase PostgreSQL")
 	
-	for _, migration := range migrations {
-		_, err := DB.Exec(migration)
-		if err != nil {
-			// 忽略 "duplicate column name" 錯誤
-			log.Printf("Migration warning: %v", err)
-		}
-	}
-} 
+	// Supabase 中的表已經存在，不需要創建
+	// createTables() 和 migrateTables() 已經不需要了
+}
+
+// createTables 和 migrateTables 函數已移除
+// 因為 Supabase 中的表結構已經建立完成 

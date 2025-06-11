@@ -75,7 +75,8 @@ func printStartupInfo() {
 	fmt.Println("🚀 Server Configuration:")
 	fmt.Println("   📍 Address: http://localhost:8080")
 	fmt.Println("   📍 Network: http://192.168.1.28:8080")
-	fmt.Println("   🗄️  Database: poker_tracker.db")
+	fmt.Println("   🗄️  Database: Supabase PostgreSQL")
+	fmt.Println("   🌐 Project: vdpscuywgjopwvcalgsn")
 	fmt.Println()
 	
 	fmt.Println("📱 API Endpoints:")
@@ -105,8 +106,8 @@ func main() {
 	checkEnvironment()
 	
 	// 初始化資料庫
-	fmt.Println("🗄️  Initializing database...")
-	db.InitDB("poker_tracker.db")
+	fmt.Println("🗄️  Connecting to Supabase...")
+	db.InitDB("") // 不再需要檔案路徑參數
 	fmt.Println("✅ Database ready")
 	fmt.Println()
 	
