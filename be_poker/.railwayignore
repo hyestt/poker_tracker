@@ -1,0 +1,17 @@
+# 忽略本地資料庫檔案
+*.db
+*.sqlite
+*.sqlite3
+
+# 忽略本地設定
+.env
+.env.local
+
+# 忽略臨時檔案
+*.log
+*.pid
+
+# 忽略建置產出
+main
+poker_tracker_backend
+poker_tracker 

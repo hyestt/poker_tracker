@@ -72,11 +72,21 @@ func stopExistingServer() {
 }
 
 func printStartupInfo() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	
 	fmt.Println("🚀 Server Configuration:")
-	fmt.Println("   📍 Address: http://localhost:8080")
-	fmt.Println("   📍 Network: http://192.168.1.28:8080")
+	fmt.Printf("   📍 Port: %s\n", port)
 	fmt.Println("   🗄️  Database: Supabase PostgreSQL")
 	fmt.Println("   🌐 Project: vdpscuywgjopwvcalgsn")
+	
+	// 只在本地開發時顯示本地地址
+	if port == "8080" {
+		fmt.Println("   📍 Local: http://localhost:8080")
+		fmt.Println("   📍 Network: http://192.168.1.28:8080")
+	}
 	fmt.Println()
 	
 	fmt.Println("📱 API Endpoints:")
@@ -121,11 +131,16 @@ func main() {
 	printStartupInfo()
 	
 	// 啟動服務器
-	fmt.Println("🔄 Starting HTTP server on :8080...")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	
+	fmt.Printf("🔄 Starting HTTP server on port %s...\n", port)
 	fmt.Println()
 	
 	// 使用 log.Fatal 來捕獲啟動錯誤
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("❌ Server failed to start: %v", err)
 	}
 } 
