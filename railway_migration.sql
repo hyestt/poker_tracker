@@ -1,8 +1,19 @@
--- Railway PostgreSQL 初始化腳本
--- 建立Poker Tracker所需的表格（匹配Supabase結構）
+-- Railway 資料庫遷移腳本
+-- 修復sessions和hands表格結構，匹配Supabase
 
--- Sessions 表格（匹配Supabase結構）
-CREATE TABLE IF NOT EXISTS sessions (
+-- 檢查並修復sessions表格
+DO $$
+BEGIN
+    -- 檢查sessions表格是否存在且結構正確
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'sessions') THEN
+        -- 如果表格存在但結構不正確，重建它
+        DROP TABLE IF EXISTS hands CASCADE;
+        DROP TABLE IF EXISTS sessions CASCADE;
+    END IF;
+END $$;
+
+-- 重新建立sessions表格（正確結構）
+CREATE TABLE sessions (
     id TEXT PRIMARY KEY,
     location TEXT DEFAULT '',
     date TEXT DEFAULT '',
@@ -16,8 +27,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Hands 表格（匹配Supabase結構）
-CREATE TABLE IF NOT EXISTS hands (
+-- 重新建立hands表格（正確結構）
+CREATE TABLE hands (
     id TEXT PRIMARY KEY,
     session_id TEXT DEFAULT '',
     position TEXT DEFAULT '',
@@ -37,11 +48,11 @@ CREATE TABLE IF NOT EXISTS hands (
     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 
--- 建立索引以提升效能
-CREATE INDEX IF NOT EXISTS idx_hands_session_id ON hands(session_id);
-CREATE INDEX IF NOT EXISTS idx_hands_date ON hands(date);
-CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(date);
-CREATE INDEX IF NOT EXISTS idx_hands_result_amount ON hands(result_amount);
+-- 建立索引
+CREATE INDEX idx_hands_session_id ON hands(session_id);
+CREATE INDEX idx_hands_date ON hands(date);
+CREATE INDEX idx_sessions_date ON sessions(date);
+CREATE INDEX idx_hands_result_amount ON hands(result_amount);
 
--- 顯示建立完成訊息
-SELECT 'Railway PostgreSQL tables created successfully with Supabase-compatible structure!' as status; 
+-- 確認遷移完成
+SELECT 'Database migration completed successfully!' as status; 

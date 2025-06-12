@@ -60,7 +60,9 @@ func InitDB() error {
 
 // 確保數據表存在
 func ensureTablesExist() error {
-	// 檢查sessions表是否存在
+	log.Println("🔍 Checking database schema...")
+	
+	// 檢查sessions表是否存在且包含所有必需欄位
 	var sessionsExists bool
 	err := DB.QueryRow(`SELECT EXISTS (
 		SELECT FROM information_schema.tables 
@@ -70,6 +72,21 @@ func ensureTablesExist() error {
 	
 	if err != nil {
 		return fmt.Errorf("failed to check sessions table: %v", err)
+	}
+	
+	// 檢查sessions表是否有tag欄位
+	var tagColumnExists bool
+	if sessionsExists {
+		err = DB.QueryRow(`SELECT EXISTS (
+			SELECT FROM information_schema.columns 
+			WHERE table_schema = 'public' 
+			AND table_name = 'sessions'
+			AND column_name = 'tag'
+		)`).Scan(&tagColumnExists)
+		
+		if err != nil {
+			return fmt.Errorf("failed to check tag column: %v", err)
+		}
 	}
 	
 	// 檢查hands表是否存在
@@ -84,81 +101,89 @@ func ensureTablesExist() error {
 		return fmt.Errorf("failed to check hands table: %v", err)
 	}
 	
-	// 如果表不存在，創建它們
-	if !sessionsExists || !handsExists {
-		log.Println("⚠️ Tables missing, creating schema...")
+	// 如果表不存在或結構不完整，重建它們
+	if !sessionsExists || !tagColumnExists || !handsExists {
+		log.Println("⚠️ Database schema incomplete, recreating tables...")
 		
-		// 創建sessions表
-		if !sessionsExists {
-			_, err = DB.Exec(`
-				CREATE TABLE IF NOT EXISTS sessions (
-					id text NOT NULL,
-					location text NULL,
-					date text NULL,
-					small_blind integer NULL,
-					big_blind integer NULL,
-					currency text NULL,
-					effective_stack integer NULL,
-					table_size integer NULL DEFAULT 6,
-					created_at timestamp with time zone NULL DEFAULT now(),
-					updated_at timestamp with time zone NULL DEFAULT now(),
-					CONSTRAINT sessions_pkey PRIMARY KEY (id)
-				)
-			`)
-			
-			if err != nil {
-				return fmt.Errorf("failed to create sessions table: %v", err)
-			}
-			
-			_, err = DB.Exec(`CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions USING btree (date)`)
-			if err != nil {
-				return fmt.Errorf("failed to create sessions index: %v", err)
-			}
-			
-			log.Println("✅ Created sessions table")
+		// 先刪除現有表格（如果存在）以確保乾淨的狀態
+		_, err = DB.Exec(`DROP TABLE IF EXISTS hands CASCADE`)
+		if err != nil {
+			return fmt.Errorf("failed to drop hands table: %v", err)
 		}
 		
-		// 創建hands表
-		if !handsExists {
-			_, err = DB.Exec(`
-				CREATE TABLE IF NOT EXISTS hands (
-					id text NOT NULL,
-					session_id text NULL,
-					position text NULL,
-					hole_cards text NULL,
-					details text NULL,
-					result_amount integer NULL DEFAULT 0,
-					analysis text NULL,
-					analysis_date timestamp with time zone NULL,
-					is_favorite boolean NULL DEFAULT false,
-					tag text NULL,
-					created_at timestamp with time zone NULL DEFAULT now(),
-					updated_at timestamp with time zone NULL DEFAULT now(),
-					board text NULL,
-					note text NULL,
-					villains text NULL,
-					date text NULL,
-					CONSTRAINT hands_pkey PRIMARY KEY (id),
-					CONSTRAINT hands_session_id_fkey FOREIGN KEY (session_id) REFERENCES sessions (id) ON DELETE CASCADE
-				)
-			`)
-			
-			if err != nil {
-				return fmt.Errorf("failed to create hands table: %v", err)
-			}
-			
-			_, err = DB.Exec(`CREATE INDEX IF NOT EXISTS idx_hands_session_id ON hands USING btree (session_id)`)
-			if err != nil {
-				return fmt.Errorf("failed to create hands session_id index: %v", err)
-			}
-			
-			_, err = DB.Exec(`CREATE INDEX IF NOT EXISTS idx_hands_is_favorite ON hands USING btree (is_favorite)`)
-			if err != nil {
-				return fmt.Errorf("failed to create hands is_favorite index: %v", err)
-			}
-			
-			log.Println("✅ Created hands table")
+		_, err = DB.Exec(`DROP TABLE IF EXISTS sessions CASCADE`)
+		if err != nil {
+			return fmt.Errorf("failed to drop sessions table: %v", err)
 		}
+		
+		// 重新創建sessions表（包含所有必需欄位）
+		_, err = DB.Exec(`
+			CREATE TABLE sessions (
+				id TEXT PRIMARY KEY,
+				location TEXT DEFAULT '',
+				date TEXT DEFAULT '',
+				small_blind INTEGER DEFAULT 0,
+				big_blind INTEGER DEFAULT 0,
+				currency TEXT DEFAULT '',
+				effective_stack INTEGER DEFAULT 0,
+				table_size INTEGER DEFAULT 6,
+				tag TEXT DEFAULT '',
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			)
+		`)
+		
+		if err != nil {
+			return fmt.Errorf("failed to create sessions table: %v", err)
+		}
+		
+		// 重新創建hands表（包含所有必需欄位）
+		_, err = DB.Exec(`
+			CREATE TABLE hands (
+				id TEXT PRIMARY KEY,
+				session_id TEXT DEFAULT '',
+				position TEXT DEFAULT '',
+				hole_cards TEXT DEFAULT '',
+				board TEXT DEFAULT '',
+				details TEXT DEFAULT '',
+				note TEXT DEFAULT '',
+				result_amount INTEGER DEFAULT 0,
+				date TEXT DEFAULT '',
+				villains TEXT DEFAULT '[]',
+				analysis TEXT DEFAULT '',
+				analysis_date TEXT DEFAULT '',
+				is_favorite BOOLEAN DEFAULT FALSE,
+				tag TEXT DEFAULT '',
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+			)
+		`)
+		
+		if err != nil {
+			return fmt.Errorf("failed to create hands table: %v", err)
+		}
+		
+		// 創建索引
+		indexes := []string{
+			`CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(date)`,
+			`CREATE INDEX IF NOT EXISTS idx_hands_session_id ON hands(session_id)`,
+			`CREATE INDEX IF NOT EXISTS idx_hands_date ON hands(date)`,
+			`CREATE INDEX IF NOT EXISTS idx_hands_result_amount ON hands(result_amount)`,
+			`CREATE INDEX IF NOT EXISTS idx_hands_is_favorite ON hands(is_favorite)`,
+		}
+		
+		for _, indexSQL := range indexes {
+			_, err = DB.Exec(indexSQL)
+			if err != nil {
+				log.Printf("⚠️ Warning: failed to create index: %v", err)
+				// 繼續執行，索引錯誤不應該阻止應用啟動
+			}
+		}
+		
+		log.Println("✅ Database schema recreated successfully")
+	} else {
+		log.Println("✅ Database schema is up to date")
 	}
 	
 	return nil
