@@ -28,6 +28,7 @@ type Hand struct {
 	Note         *string   `json:"note"`         // 筆記
 	Result       int       `json:"result"`
 	Date         string    `json:"date"`
+	Tag          string    `json:"tag"`          // 標籤
 	Villains     []Villain `json:"villains"`     // Villains 陣列
 	Analysis     string    `json:"analysis,omitempty"`     // OpenAI 分析結果
 	AnalysisDate string    `json:"analysisDate,omitempty"` // 分析時間
