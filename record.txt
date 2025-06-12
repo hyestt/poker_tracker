@@ -1329,3 +1329,20 @@ Summary of Railway migration preparation:
 **生產部署：⚠️ 待修復**
 - Railway 部署問題待解決
 - 本地測試環境可用作備案
+
+Date: 2025-06-11 23:55:00
+User Query: 修好railway的server error 
+Summary of changes:
+1. 發現Railway部署出現"Failed to create code snapshot"錯誤
+2. 修復步驟：
+   - 從Git提交中移除敏感資訊(API密鑰)
+   - 推送修復後的程式碼到GitHub
+   - 更新資料庫連線代碼支援Railway PostgreSQL
+   - 建立railway_init.sql初始化資料庫結構
+   - 在Railway中連接PostgreSQL和主應用服務
+   - 執行資料庫結構初始化腳本解決"relation does not exist"錯誤
+
+Railway部署成功狀態：
+- URL: https://poker-production-12db.up.railway.app
+- 資料庫: PostgreSQL (Railway提供)
+- 環境變數: 已正確配置
