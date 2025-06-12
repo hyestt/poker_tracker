@@ -39,15 +39,31 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// 設置Content-Type頭
+	// 設置Content-Type頭和CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(session)
 }
 
 func GetSessions(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions ORDER BY created_at DESC`)
+	// 移除ORDER BY created_at，因為Railway資料庫可能沒有這個欄位
+	// 改用date欄位排序
+	rows, err := db.DB.Query(`
+		SELECT 
+			id, 
+			COALESCE(location, ''), 
+			COALESCE(date, ''), 
+			COALESCE(small_blind, 0), 
+			COALESCE(big_blind, 0), 
+			COALESCE(currency, ''), 
+			COALESCE(effective_stack, 0), 
+			COALESCE(table_size, 6), 
+			COALESCE(tag, '') 
+		FROM sessions 
+		ORDER BY date DESC
+	`)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Database query error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -57,65 +73,120 @@ func GetSessions(w http.ResponseWriter, r *http.Request) {
 		var s models.Session
 		err := rows.Scan(&s.ID, &s.Location, &s.Date, &s.SmallBlind, &s.BigBlind, &s.Currency, &s.EffectiveStack, &s.TableSize, &s.Tag)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			// 記錄錯誤但繼續處理其他行
+			fmt.Printf("Error scanning session row: %v\n", err)
+			continue
 		}
 		sessions = append(sessions, s)
 	}
+	
+	// 設置CORS和Content-Type頭
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sessions)
 }
 
 func GetSession(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions WHERE id = $1`, id)
+	if id == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+		return
+	}
+	
+	row := db.DB.QueryRow(`
+		SELECT 
+			id, 
+			COALESCE(location, ''), 
+			COALESCE(date, ''), 
+			COALESCE(small_blind, 0), 
+			COALESCE(big_blind, 0), 
+			COALESCE(currency, ''), 
+			COALESCE(effective_stack, 0), 
+			COALESCE(table_size, 6), 
+			COALESCE(tag, '') 
+		FROM sessions 
+		WHERE id = $1
+	`, id)
+	
 	var s models.Session
 	err := row.Scan(&s.ID, &s.Location, &s.Date, &s.SmallBlind, &s.BigBlind, &s.Currency, &s.EffectiveStack, &s.TableSize, &s.Tag)
 	if err != nil {
-		http.Error(w, "Session not found", http.StatusNotFound)
+		http.Error(w, "Session not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
+	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(s)
 }
 
 func UpdateSession(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
+		return
+	}
+	
 	var session models.Session
 	if err := json.NewDecoder(r.Body).Decode(&session); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	
 	stmt, err := db.DB.Prepare(`UPDATE sessions SET location = $1, date = $2, small_blind = $3, big_blind = $4, currency = $5, effective_stack = $6, table_size = $7, tag = $8 WHERE id = $9`)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 	
 	_, err = stmt.Exec(session.Location, session.Date, session.SmallBlind, session.BigBlind, session.Currency, session.EffectiveStack, session.TableSize, session.Tag, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Database update error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
 	// 返回更新後的session
-	row := db.DB.QueryRow(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions WHERE id = $1`, id)
+	row := db.DB.QueryRow(`
+		SELECT 
+			id, 
+			COALESCE(location, ''), 
+			COALESCE(date, ''), 
+			COALESCE(small_blind, 0), 
+			COALESCE(big_blind, 0), 
+			COALESCE(currency, ''), 
+			COALESCE(effective_stack, 0), 
+			COALESCE(table_size, 6), 
+			COALESCE(tag, '') 
+		FROM sessions 
+		WHERE id = $1
+	`, id)
+	
 	var updatedSession models.Session
 	err = row.Scan(&updatedSession.ID, &updatedSession.Location, &updatedSession.Date, &updatedSession.SmallBlind, &updatedSession.BigBlind, &updatedSession.Currency, &updatedSession.EffectiveStack, &updatedSession.TableSize, &updatedSession.Tag)
 	if err != nil {
-		http.Error(w, "Failed to retrieve updated session", http.StatusInternalServerError)
+		http.Error(w, "Failed to retrieve updated session: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(updatedSession)
 }
 
 func DeleteSession(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	_, err := db.DB.Exec(`DELETE FROM sessions WHERE id = $1`, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if id == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
 		return
 	}
+	
+	_, err := db.DB.Exec(`DELETE FROM sessions WHERE id = $1`, id)
+	if err != nil {
+		http.Error(w, "Database delete error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusNoContent)
 } 
