@@ -1346,3 +1346,27 @@ Railway部署成功狀態：
 - URL: https://poker-production-12db.up.railway.app
 - 資料庫: PostgreSQL (Railway提供)
 - 環境變數: 已正確配置
+
+Date: 2025-06-12 00:40:00
+User Query: 修復Railway部署和資料庫連接
+Summary of changes:
+1. 修復Railway部署問題:
+   - 從Git提交中移除敏感資訊(API密鑰)
+   - 更新資料庫連線代碼支援Railway PostgreSQL
+   - 新增自動初始化資料表的功能
+   - 修改資料模型以匹配Supabase結構
+
+2. 資料庫架構調整:
+   - 將sessions表結構調整為與Supabase相符
+   - 將hands表結構調整為與Supabase相符
+   - 創建必要的索引提升性能
+
+3. 提供資料遷移工具:
+   - 創建Supabase到Railway的資料導出腳本
+   - 創建導入指南
+   - 提供API測試腳本
+
+Railway部署成功，服務已上線:
+- URL: https://poker-production-12db.up.railway.app
+- 資料庫: Railway PostgreSQL
+- 環境變數: 已正確配置
