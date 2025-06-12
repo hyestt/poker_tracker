@@ -9,8 +9,19 @@ import (
 )
 
 func GetStats(w http.ResponseWriter, r *http.Request) {
-	handsRows, _ := db.DB.Query(`SELECT result, session_id FROM hands`)
-	sessionsRows, _ := db.DB.Query(`SELECT id, location, small_blind, big_blind FROM sessions`)
+	handsRows, err := db.DB.Query(`SELECT COALESCE(result_amount, 0), COALESCE(session_id, '') FROM hands`)
+	if err != nil {
+		http.Error(w, "Error querying hands: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer handsRows.Close()
+	
+	sessionsRows, err := db.DB.Query(`SELECT id, COALESCE(location, ''), COALESCE(small_blind, 0), COALESCE(big_blind, 0) FROM sessions`)
+	if err != nil {
+		http.Error(w, "Error querying sessions: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer sessionsRows.Close()
 
 	totalProfit := 0
 	sessionProfits := map[string]int{}
@@ -22,7 +33,10 @@ func GetStats(w http.ResponseWriter, r *http.Request) {
 	for handsRows.Next() {
 		var result int
 		var sessionId string
-		handsRows.Scan(&result, &sessionId)
+		err := handsRows.Scan(&result, &sessionId)
+		if err != nil {
+			continue
+		}
 		totalProfit += result
 		if _, ok := sessionProfits[sessionId]; !ok {
 			sessionProfits[sessionId] = 0
@@ -33,7 +47,10 @@ func GetStats(w http.ResponseWriter, r *http.Request) {
 	for sessionsRows.Next() {
 		var id, location string
 		var sb, bb int
-		sessionsRows.Scan(&id, &location, &sb, &bb)
+		err := sessionsRows.Scan(&id, &location, &sb, &bb)
+		if err != nil {
+			continue
+		}
 		sessionCount++
 		profit := sessionProfits[id]
 		if profit > 0 {
@@ -61,6 +78,10 @@ func GetStats(w http.ResponseWriter, r *http.Request) {
 		ByStakes:       byStakes,
 		ByLocation:     byLocation,
 	}
+	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	
 	json.NewEncoder(w).Encode(stats)
 }
 

@@ -13,10 +13,13 @@ import (
 
 func CreateHand(w http.ResponseWriter, r *http.Request) {
 	var hand models.Hand
-	if err := json.NewDecoder(r.Body).Decode(&hand); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&hand)
+	if err != nil {
 		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	
+	hand.ID = uuid.New().String()
 	
 	// 調試信息
 	holeCardsStr := ""
@@ -29,40 +32,77 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("DEBUG CreateHand: HoleCards='%s', Position='%s'\n", holeCardsStr, positionStr)
 	
-	// 只有當前端沒有提供ID時才生成新的UUID
-	if hand.ID == "" {
-		hand.ID = uuid.New().String()
-	}
-	
-	// 將 villains 序列化為 JSON
-	villainsJSON, err := json.Marshal(hand.Villains)
+	// 使用新的資料庫結構欄位
+	stmt, err := db.DB.Prepare(`
+		INSERT INTO hands (
+			id, session_id, position, hole_cards, details, result_amount, 
+			analysis, analysis_date, is_favorite, tag, board, note, villains, date
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+	`)
 	if err != nil {
-		http.Error(w, "Failed to serialize villains: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	
-	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, board, position, details, note, result_amount, date, villains, analysis, is_favorite, tag) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`)
-	if err != nil {
-		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 	
-	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Analysis, hand.Favorite, "")
+	// 處理villains JSON
+	villainsJSON := "[]"
+	if hand.Villains != nil && len(hand.Villains) > 0 {
+		villainsBytes, err := json.Marshal(hand.Villains)
+		if err == nil {
+			villainsJSON = string(villainsBytes)
+		}
+	}
+	
+	_, err = stmt.Exec(
+		hand.ID, 
+		hand.SessionID, 
+		hand.Position, 
+		hand.HoleCards, 
+		hand.Details, 
+		hand.Result, 
+		hand.Analysis, 
+		hand.AnalysisDate, 
+		hand.Favorite, 
+		"", // tag
+		hand.Board, 
+		hand.Note, 
+		villainsJSON, 
+		hand.Date,
+	)
+	
 	if err != nil {
-		http.Error(w, "Database insert error: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Insert error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
-	// 返回完整的hand對象，包括新添加的欄位
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(hand)
 }
 
 func GetHands(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag FROM hands ORDER BY created_at DESC`)
+	rows, err := db.DB.Query(`
+		SELECT 
+			id, 
+			COALESCE(session_id, ''), 
+			COALESCE(position, ''), 
+			COALESCE(hole_cards, ''), 
+			COALESCE(details, ''), 
+			COALESCE(result_amount, 0), 
+			COALESCE(analysis, ''), 
+			COALESCE(analysis_date, ''), 
+			COALESCE(is_favorite, false), 
+			COALESCE(tag, ''), 
+			COALESCE(board, ''), 
+			COALESCE(note, ''), 
+			COALESCE(villains, '[]'), 
+			COALESCE(date, '')
+		FROM hands 
+		ORDER BY created_at DESC
+	`)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Query error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
@@ -71,54 +111,106 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var h models.Hand
 		var villainsJSON string
-		var tag string
-		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.Favorite, &tag)
+		
+		err := rows.Scan(
+			&h.ID, 
+			&h.SessionID, 
+			&h.Position, 
+			&h.HoleCards, 
+			&h.Details, 
+			&h.Result, 
+			&h.Analysis, 
+			&h.AnalysisDate, 
+			&h.Favorite, 
+			&h.Tag, 
+			&h.Board, 
+			&h.Note, 
+			&villainsJSON, 
+			&h.Date,
+		)
+		
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			continue // 跳過錯誤的行
 		}
 		
-		// 設置空的 analysis_date
-		h.AnalysisDate = ""
-		
-		// 反序列化 villains JSON
+		// 解析villains JSON
 		if villainsJSON != "" && villainsJSON != "[]" {
-			if err := json.Unmarshal([]byte(villainsJSON), &h.Villains); err != nil {
+			err := json.Unmarshal([]byte(villainsJSON), &h.Villains)
+			if err != nil {
 				h.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
 			}
-		} else {
-			h.Villains = []models.Villain{}
 		}
 		
 		hands = append(hands, h)
 	}
+	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(hands)
 }
 
 func GetHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag FROM hands WHERE id = $1`, id)
-	var h models.Hand
-	var villainsJSON string
-	var tag string
-	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.Favorite, &tag)
-	if err != nil {
-		http.Error(w, "Hand not found", http.StatusNotFound)
+	if id == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
 		return
 	}
 	
-	// 設置空的 analysis_date
-	h.AnalysisDate = ""
+	row := db.DB.QueryRow(`
+		SELECT 
+			id, 
+			COALESCE(session_id, ''), 
+			COALESCE(position, ''), 
+			COALESCE(hole_cards, ''), 
+			COALESCE(details, ''), 
+			COALESCE(result_amount, 0), 
+			COALESCE(analysis, ''), 
+			COALESCE(analysis_date, ''), 
+			COALESCE(is_favorite, false), 
+			COALESCE(tag, ''), 
+			COALESCE(board, ''), 
+			COALESCE(note, ''), 
+			COALESCE(villains, '[]'), 
+			COALESCE(date, '')
+		FROM hands 
+		WHERE id = $1
+	`, id)
 	
-	// 反序列化 villains JSON
-	if villainsJSON != "" && villainsJSON != "[]" {
-		if err := json.Unmarshal([]byte(villainsJSON), &h.Villains); err != nil {
-			h.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
-		}
-	} else {
-		h.Villains = []models.Villain{}
+	var h models.Hand
+	var villainsJSON string
+	
+	err := row.Scan(
+		&h.ID, 
+		&h.SessionID, 
+		&h.Position, 
+		&h.HoleCards, 
+		&h.Details, 
+		&h.Result, 
+		&h.Analysis, 
+		&h.AnalysisDate, 
+		&h.Favorite, 
+		&h.Tag, 
+		&h.Board, 
+		&h.Note, 
+		&villainsJSON, 
+		&h.Date,
+	)
+	
+	if err != nil {
+		http.Error(w, "Hand not found: "+err.Error(), http.StatusNotFound)
+		return
 	}
 	
+	// 解析villains JSON
+	if villainsJSON != "" && villainsJSON != "[]" {
+		err := json.Unmarshal([]byte(villainsJSON), &h.Villains)
+		if err != nil {
+			h.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
+		}
+	}
+	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(h)
 }
 
@@ -178,11 +270,18 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 
 func DeleteHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	_, err := db.DB.Exec(`DELETE FROM hands WHERE id = $1`, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if id == "" {
+		http.Error(w, "Missing id parameter", http.StatusBadRequest)
 		return
 	}
+	
+	_, err := db.DB.Exec(`DELETE FROM hands WHERE id = $1`, id)
+	if err != nil {
+		http.Error(w, "Delete error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusNoContent)
 }
 
