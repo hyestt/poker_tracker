@@ -8,9 +8,9 @@
 ✅ Port 8080 is available
 
 🗄️  Initializing database...
-2025/06/11 11:18:28 Migration warning: duplicate column name: board
-2025/06/11 11:18:28 Migration warning: duplicate column name: note
-2025/06/11 11:18:28 Migration warning: duplicate column name: villains
+2025/06/11 21:57:08 Migration warning: duplicate column name: board
+2025/06/11 21:57:08 Migration warning: duplicate column name: note
+2025/06/11 21:57:08 Migration warning: duplicate column name: villains
 ✅ Database ready
 
 🛣️  Registering routes...

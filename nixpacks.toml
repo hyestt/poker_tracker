@@ -1,0 +1,17 @@
+[variables]
+GO_VERSION = "1.21"
+
+[phases.setup]
+nixPkgs = ["go", "gcc"]
+
+[phases.build]
+dependsOn = ["setup"]
+cmds = [
+    "cd be_poker",
+    "go mod tidy", 
+    "go build -o main ."
+]
+
+[phases.start]
+dependsOn = ["build"]
+cmd = "cd be_poker && ./main" 

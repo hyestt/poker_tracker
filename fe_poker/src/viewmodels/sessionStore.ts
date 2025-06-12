@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Session, Hand, Stats } from '../models';
-import { supabase } from '../config/supabase';
+import { API_BASE_URL } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface State {
@@ -23,6 +23,23 @@ interface State {
   updateSession: (session: Session) => Promise<void>;
 }
 
+// API 調用輔助函數
+const apiCall = async (url: string, options?: RequestInit) => {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+  
+  return response.json();
+};
+
 export const useSessionStore = create<State>((set, get) => ({
   sessions: [],
   hands: [],
@@ -37,22 +54,20 @@ export const useSessionStore = create<State>((set, get) => ({
 
   fetchSessions: async () => {
     try {
-      const { data, error } = await supabase
-        .from('sessions')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const data = await apiCall(`${API_BASE_URL}/sessions`);
       
-      if (error) throw error;
-      
-      const sessions: Session[] = data.map(session => ({
+      const sessions: Session[] = data.map((session: any) => ({
         id: session.id,
         location: session.location || '',
         date: session.date || '',
-        smallBlind: session.small_blind || 0,
-        bigBlind: session.big_blind || 0,
+        smallBlind: session.smallBlind || 0,
+        bigBlind: session.bigBlind || 0,
         currency: session.currency || '',
-        effectiveStack: session.effective_stack || 0,
-        tableSize: session.table_size || 6,
+        effectiveStack: session.effectiveStack || 0,
+        tableSize: session.tableSize || 6,
+        tag: session.tag || '',
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
       }));
       
       set({ sessions });
@@ -68,20 +83,18 @@ export const useSessionStore = create<State>((set, get) => ({
 
   addSession: async (session: Session) => {
     try {
-      const { error } = await supabase
-        .from('sessions')
-        .insert({
-          id: session.id,
-          location: session.location,
-          date: session.date,
-          small_blind: session.smallBlind,
-          big_blind: session.bigBlind,
-          currency: session.currency,
-          effective_stack: session.effectiveStack,
-          table_size: session.tableSize,
-        });
+      // 確保必填欄位有預設值
+      const sessionData = {
+        ...session,
+        tableSize: session.tableSize || 6,
+        tag: session.tag || '',
+      };
       
-      if (error) throw error;
+      await apiCall(`${API_BASE_URL}/sessions`, {
+        method: 'POST',
+        body: JSON.stringify(sessionData),
+      });
+      
       await get().fetchSessions();
     } catch (error) {
       console.error('Error adding session:', error);
@@ -91,12 +104,10 @@ export const useSessionStore = create<State>((set, get) => ({
 
   deleteSession: async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('sessions')
-        .delete()
-        .eq('id', id);
+      await apiCall(`${API_BASE_URL}/sessions?id=${id}`, {
+        method: 'DELETE',
+      });
       
-      if (error) throw error;
       await get().fetchSessions();
     } catch (error) {
       console.error('Error deleting session:', error);
@@ -106,24 +117,25 @@ export const useSessionStore = create<State>((set, get) => ({
 
   fetchHands: async () => {
     try {
-      const { data, error } = await supabase
-        .from('hands')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const data = await apiCall(`${API_BASE_URL}/hands`);
       
-      if (error) throw error;
-      
-      const hands: Hand[] = data.map(hand => ({
+      const hands: Hand[] = data.map((hand: any) => ({
         id: hand.id,
-        sessionId: hand.session_id || '',
+        sessionId: hand.sessionId || '',
         position: hand.position || '',
-        holeCards: hand.hole_cards || '',
+        holeCards: hand.holeCards || '',
+        board: hand.board || '',
         details: hand.details || '',
-        result: hand.result_amount || 0,
-        date: hand.created_at,
+        note: hand.note || '',
+        result: hand.result || 0,
         analysis: hand.analysis || '',
-        analysisDate: hand.analysis_date || '',
-        favorite: hand.is_favorite || false,
+        analysisDate: hand.analysisDate || '',
+        favorite: hand.favorite || false,
+        tag: hand.tag || '',
+        villains: hand.villains || [],
+        date: hand.date || '',
+        createdAt: hand.createdAt,
+        updatedAt: hand.updatedAt,
       }));
       
       set({ hands });
@@ -139,21 +151,19 @@ export const useSessionStore = create<State>((set, get) => ({
 
   addHand: async (hand: Hand) => {
     try {
-      const { error } = await supabase
-        .from('hands')
-        .insert({
-          id: hand.id,
-          session_id: hand.sessionId,
-          position: hand.position,
-          hole_cards: hand.holeCards,
-          details: hand.details,
-          result_amount: hand.result,
-          analysis: hand.analysis,
-          analysis_date: hand.analysisDate,
-          is_favorite: hand.favorite,
-        });
+      // 確保必填欄位有預設值
+      const handData = {
+        ...hand,
+        favorite: hand.favorite || false,
+        result: hand.result || 0,
+        villains: hand.villains || [],
+      };
       
-      if (error) throw error;
+      await apiCall(`${API_BASE_URL}/hands`, {
+        method: 'POST',
+        body: JSON.stringify(handData),
+      });
+      
       await get().fetchHands();
       await get().fetchStats();
     } catch (error) {
@@ -164,12 +174,10 @@ export const useSessionStore = create<State>((set, get) => ({
 
   deleteHand: async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('hands')
-        .delete()
-        .eq('id', id);
+      await apiCall(`${API_BASE_URL}/hands?id=${id}`, {
+        method: 'DELETE',
+      });
       
-      if (error) throw error;
       await get().fetchHands();
       await get().fetchStats();
     } catch (error) {
@@ -180,32 +188,13 @@ export const useSessionStore = create<State>((set, get) => ({
 
   analyzeHand: async (id: string): Promise<string> => {
     try {
-      // First get the hand
-      const { data: handData, error: handError } = await supabase
-        .from('hands')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (handError) throw handError;
-      
-      // Call OpenAI API directly (you'll need to implement this)
-      // For now, return a placeholder
-      const analysis = 'AI analysis would go here - you need to implement OpenAI API call';
-      
-      // Update the hand with analysis
-      const { error: updateError } = await supabase
-        .from('hands')
-        .update({ 
-          analysis,
-          analysis_date: new Date().toISOString()
-        })
-        .eq('id', id);
-      
-      if (updateError) throw updateError;
+      const response = await apiCall(`${API_BASE_URL}/analyze`, {
+        method: 'POST',
+        body: JSON.stringify({ handId: id }),
+      });
       
       await get().fetchHands();
-      return analysis;
+      return response.analysis || 'Analysis completed';
     } catch (error) {
       console.error('Error analyzing hand:', error);
       throw error;
@@ -214,24 +203,15 @@ export const useSessionStore = create<State>((set, get) => ({
 
   fetchStats: async () => {
     try {
-      const { data: hands, error } = await supabase
-        .from('hands')
-        .select('result_amount, session_id');
-      
-      if (error) throw error;
-      
-      const totalProfit = hands.reduce((sum, hand) => sum + (hand.result_amount || 0), 0);
-      const totalSessions = new Set(hands.map(h => h.session_id)).size;
-      const winRate = hands.filter(h => (h.result_amount || 0) > 0).length / hands.length * 100;
-      const avgSession = totalSessions > 0 ? totalProfit / totalSessions : 0;
+      const data = await apiCall(`${API_BASE_URL}/stats`);
       
       const stats: Stats = {
-        totalProfit,
-        totalSessions,
-        winRate: isNaN(winRate) ? 0 : winRate,
-        avgSession,
-        byStakes: {},
-        byLocation: {},
+        totalProfit: data.totalProfit || 0,
+        totalSessions: data.totalSessions || 0,
+        winRate: data.winRate || 0,
+        avgSession: data.avgSession || 0,
+        byStakes: data.byStakes || {},
+        byLocation: data.byLocation || {},
       };
       
       set({ stats });
@@ -255,26 +235,26 @@ export const useSessionStore = create<State>((set, get) => ({
 
   getHand: async (id: string): Promise<Hand> => {
     try {
-      const { data, error } = await supabase
-        .from('hands')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const data = await apiCall(`${API_BASE_URL}/hand?id=${id}`);
       
-      if (error) throw error;
-      
-              return {
-          id: data.id,
-          sessionId: data.session_id || '',
-          position: data.position || '',
-          holeCards: data.hole_cards || '',
-          details: data.details || '',
-          result: data.result_amount || 0,
-          date: data.created_at,
-          analysis: data.analysis || '',
-          analysisDate: data.analysis_date || '',
-          favorite: data.is_favorite || false,
-        };
+      return {
+        id: data.id,
+        sessionId: data.sessionId || '',
+        position: data.position || '',
+        holeCards: data.holeCards || '',
+        board: data.board || '',
+        details: data.details || '',
+        note: data.note || '',
+        result: data.result || 0,
+        analysis: data.analysis || '',
+        analysisDate: data.analysisDate || '',
+        favorite: data.favorite || false,
+        tag: data.tag || '',
+        villains: data.villains || [],
+        date: data.date || '',
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      };
     } catch (error) {
       console.error('Error getting hand:', error);
       throw error;
@@ -283,21 +263,19 @@ export const useSessionStore = create<State>((set, get) => ({
 
   updateHand: async (hand: Hand) => {
     try {
-      const { error } = await supabase
-        .from('hands')
-        .update({
-          session_id: hand.sessionId,
-          position: hand.position,
-          hole_cards: hand.holeCards,
-          details: hand.details,
-          result_amount: hand.result,
-          analysis: hand.analysis,
-          analysis_date: hand.analysisDate,
-          is_favorite: hand.favorite,
-        })
-        .eq('id', hand.id);
+      // 確保所有欄位都正確傳送
+      const handData = {
+        ...hand,
+        favorite: hand.favorite || false,
+        result: hand.result || 0,
+        villains: hand.villains || [],
+      };
       
-      if (error) throw error;
+      await apiCall(`${API_BASE_URL}/hand?id=${hand.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(handData),
+      });
+      
       await get().fetchHands();
       await get().fetchStats();
     } catch (error) {
@@ -308,23 +286,20 @@ export const useSessionStore = create<State>((set, get) => ({
 
   getSession: async (id: string): Promise<Session> => {
     try {
-      const { data, error } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (error) throw error;
+      const data = await apiCall(`${API_BASE_URL}/session?id=${id}`);
       
       return {
         id: data.id,
         location: data.location || '',
         date: data.date || '',
-        smallBlind: data.small_blind || 0,
-        bigBlind: data.big_blind || 0,
+        smallBlind: data.smallBlind || 0,
+        bigBlind: data.bigBlind || 0,
         currency: data.currency || '',
-        effectiveStack: data.effective_stack || 0,
-        tableSize: data.table_size || 6,
+        effectiveStack: data.effectiveStack || 0,
+        tableSize: data.tableSize || 6,
+        tag: data.tag || '',
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
       };
     } catch (error) {
       console.error('Error getting session:', error);
@@ -334,20 +309,18 @@ export const useSessionStore = create<State>((set, get) => ({
 
   updateSession: async (session: Session) => {
     try {
-      const { error } = await supabase
-        .from('sessions')
-        .update({
-          location: session.location,
-          date: session.date,
-          small_blind: session.smallBlind,
-          big_blind: session.bigBlind,
-          currency: session.currency,
-          effective_stack: session.effectiveStack,
-          table_size: session.tableSize,
-        })
-        .eq('id', session.id);
+      // 確保所有欄位都正確傳送
+      const sessionData = {
+        ...session,
+        tableSize: session.tableSize || 6,
+        tag: session.tag || '',
+      };
       
-      if (error) throw error;
+      await apiCall(`${API_BASE_URL}/session?id=${session.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(sessionData),
+      });
+      
       await get().fetchSessions();
       await get().fetchStats();
     } catch (error) {
@@ -358,26 +331,13 @@ export const useSessionStore = create<State>((set, get) => ({
 
   toggleFavorite: async (id: string): Promise<boolean> => {
     try {
-      // First get current favorite status
-      const { data: currentHand, error: fetchError } = await supabase
-        .from('hands')
-        .select('is_favorite')
-        .eq('id', id)
-        .single();
+      const currentHand = get().hands.find(h => h.id === id);
+      if (!currentHand) throw new Error('Hand not found');
       
-      if (fetchError) throw fetchError;
+      const updatedHand = { ...currentHand, favorite: !currentHand.favorite };
+      await get().updateHand(updatedHand);
       
-      const newFavoriteStatus = !currentHand.is_favorite;
-      
-      const { error: updateError } = await supabase
-        .from('hands')
-        .update({ is_favorite: newFavoriteStatus })
-        .eq('id', id);
-      
-      if (updateError) throw updateError;
-      
-      await get().fetchHands();
-      return newFavoriteStatus;
+      return updatedHand.favorite;
     } catch (error) {
       console.error('Error toggling favorite:', error);
       throw error;

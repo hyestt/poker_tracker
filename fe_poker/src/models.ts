@@ -6,8 +6,10 @@ export interface Session {
   bigBlind: number;
   currency: string;
   effectiveStack: number;
-  tableSize?: number;
-  tag?: string;
+  tableSize: number;
+  tag: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Villain {
@@ -19,17 +21,20 @@ export interface Villain {
 export interface Hand {
   id: string;
   sessionId: string;
+  position?: string;
   holeCards?: string;
   board?: string;
-  position?: string;
   details: string;
   note?: string;
   result: number;
-  date: string;
   analysis?: string;
   analysisDate?: string;
-  favorite?: boolean;
+  favorite: boolean;
+  tag?: string;
   villains?: Villain[];
+  date?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Stats {

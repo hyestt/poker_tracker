@@ -25,7 +25,7 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 		session.ID = uuid.New().String()
 	}
 	
-	stmt, err := db.DB.Prepare(`INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size, tag) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	stmt, err := db.DB.Prepare(`INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size, tag) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`)
 	if err != nil {
 		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -45,7 +45,7 @@ func CreateSession(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSessions(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions`)
+	rows, err := db.DB.Query(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions ORDER BY created_at DESC`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -67,7 +67,7 @@ func GetSessions(w http.ResponseWriter, r *http.Request) {
 
 func GetSession(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions WHERE id = $1`, id)
 	var s models.Session
 	err := row.Scan(&s.ID, &s.Location, &s.Date, &s.SmallBlind, &s.BigBlind, &s.Currency, &s.EffectiveStack, &s.TableSize, &s.Tag)
 	if err != nil {
@@ -85,11 +85,12 @@ func UpdateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	stmt, err := db.DB.Prepare(`UPDATE sessions SET location = ?, date = ?, small_blind = ?, big_blind = ?, currency = ?, effective_stack = ?, table_size = ?, tag = ? WHERE id = ?`)
+	stmt, err := db.DB.Prepare(`UPDATE sessions SET location = $1, date = $2, small_blind = $3, big_blind = $4, currency = $5, effective_stack = $6, table_size = $7, tag = $8 WHERE id = $9`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer stmt.Close()
 	
 	_, err = stmt.Exec(session.Location, session.Date, session.SmallBlind, session.BigBlind, session.Currency, session.EffectiveStack, session.TableSize, session.Tag, id)
 	if err != nil {
@@ -98,7 +99,7 @@ func UpdateSession(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	// 返回更新後的session
-	row := db.DB.QueryRow(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, location, date, small_blind, big_blind, currency, effective_stack, COALESCE(table_size, 6), COALESCE(tag, '') FROM sessions WHERE id = $1`, id)
 	var updatedSession models.Session
 	err = row.Scan(&updatedSession.ID, &updatedSession.Location, &updatedSession.Date, &updatedSession.SmallBlind, &updatedSession.BigBlind, &updatedSession.Currency, &updatedSession.EffectiveStack, &updatedSession.TableSize, &updatedSession.Tag)
 	if err != nil {
@@ -111,7 +112,7 @@ func UpdateSession(w http.ResponseWriter, r *http.Request) {
 
 func DeleteSession(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	_, err := db.DB.Exec(`DELETE FROM sessions WHERE id = ?`, id)
+	_, err := db.DB.Exec(`DELETE FROM sessions WHERE id = $1`, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

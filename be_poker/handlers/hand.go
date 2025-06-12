@@ -41,12 +41,14 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, board, position, details, note, result, date, villains, analysis, analysis_date, favorite) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	stmt, err := db.DB.Prepare(`INSERT INTO hands (id, session_id, hole_cards, board, position, details, note, result_amount, date, villains, analysis, is_favorite, tag) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`)
 	if err != nil {
 		http.Error(w, "Database prepare error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Analysis, hand.AnalysisDate, hand.Favorite)
+	defer stmt.Close()
+	
+	_, err = stmt.Exec(hand.ID, hand.SessionID, hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Analysis, hand.Favorite, "")
 	if err != nil {
 		http.Error(w, "Database insert error: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -58,7 +60,7 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetHands(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.DB.Query(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, details, COALESCE(note, '') as note, result, date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands`)
+	rows, err := db.DB.Query(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag FROM hands ORDER BY created_at DESC`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,11 +71,15 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var h models.Hand
 		var villainsJSON string
-		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.AnalysisDate, &h.Favorite)
+		var tag string
+		err := rows.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.Favorite, &tag)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		
+		// 設置空的 analysis_date
+		h.AnalysisDate = ""
 		
 		// 反序列化 villains JSON
 		if villainsJSON != "" && villainsJSON != "[]" {
@@ -91,14 +97,18 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 
 func GetHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, details, COALESCE(note, '') as note, result, date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag FROM hands WHERE id = $1`, id)
 	var h models.Hand
 	var villainsJSON string
-	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.AnalysisDate, &h.Favorite)
+	var tag string
+	err := row.Scan(&h.ID, &h.SessionID, &h.HoleCards, &h.Board, &h.Position, &h.Details, &h.Note, &h.Result, &h.Date, &villainsJSON, &h.Analysis, &h.Favorite, &tag)
 	if err != nil {
 		http.Error(w, "Hand not found", http.StatusNotFound)
 		return
 	}
+	
+	// 設置空的 analysis_date
+	h.AnalysisDate = ""
 	
 	// 反序列化 villains JSON
 	if villainsJSON != "" && villainsJSON != "[]" {
@@ -127,27 +137,32 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = ?, board = ?, position = ?, details = ?, note = ?, result = ?, date = ?, villains = ?, favorite = ? WHERE id = ?`)
+	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = $1, board = $2, position = $3, details = $4, note = $5, result_amount = $6, date = $7, villains = $8, is_favorite = $9, tag = $10, analysis = $11 WHERE id = $12`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer stmt.Close()
 	
-	_, err = stmt.Exec(hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Favorite, id)
+	_, err = stmt.Exec(hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Favorite, "", hand.Analysis, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
 	// 返回更新後的手牌
-	row := db.DB.QueryRow(`SELECT id, session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, details, COALESCE(note, '') as note, result, date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(analysis_date, '') as analysis_date, COALESCE(favorite, 0) as favorite FROM hands WHERE id = ?`, id)
+	row := db.DB.QueryRow(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag FROM hands WHERE id = $1`, id)
 	var updatedHand models.Hand
 	var updatedVillainsJSON string
-	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Board, &updatedHand.Position, &updatedHand.Details, &updatedHand.Note, &updatedHand.Result, &updatedHand.Date, &updatedVillainsJSON, &updatedHand.Analysis, &updatedHand.AnalysisDate, &updatedHand.Favorite)
+	var tag string
+	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Board, &updatedHand.Position, &updatedHand.Details, &updatedHand.Note, &updatedHand.Result, &updatedHand.Date, &updatedVillainsJSON, &updatedHand.Analysis, &updatedHand.Favorite, &tag)
 	if err != nil {
 		http.Error(w, "Failed to retrieve updated hand", http.StatusInternalServerError)
 		return
 	}
+	
+	// 設置空的 analysis_date
+	updatedHand.AnalysisDate = ""
 	
 	// 反序列化 villains JSON
 	if updatedVillainsJSON != "" && updatedVillainsJSON != "[]" {
@@ -163,7 +178,7 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 
 func DeleteHand(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	_, err := db.DB.Exec(`DELETE FROM hands WHERE id = ?`, id)
+	_, err := db.DB.Exec(`DELETE FROM hands WHERE id = $1`, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -187,7 +202,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 獲取手牌詳情
-	row := db.DB.QueryRow(`SELECT details, result FROM hands WHERE id = ?`, request.HandID)
+	row := db.DB.QueryRow(`SELECT details, result_amount FROM hands WHERE id = $1`, request.HandID)
 	var details string
 	var result int
 	if err := row.Scan(&details, &result); err != nil {
@@ -198,34 +213,31 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	// 初始化 OpenAI 服務
 	openaiService := services.NewOpenAIService()
 	if openaiService == nil {
-		http.Error(w, "OpenAI service not available. Please set OPENAI_API_KEY environment variable.", http.StatusServiceUnavailable)
+		http.Error(w, "OpenAI service not available - please check API key configuration", http.StatusServiceUnavailable)
 		return
 	}
 
-	// 分析手牌
+	// 調用 OpenAI API 進行分析
 	analysis, err := openaiService.AnalyzeHand(details, result)
 	if err != nil {
-		http.Error(w, "Failed to analyze hand: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// 更新資料庫
-	analysisDate := time.Now().Format("2006-01-02 15:04:05")
-	_, err = db.DB.Exec(`UPDATE hands SET analysis = ?, analysis_date = ? WHERE id = ?`, 
-		analysis, analysisDate, request.HandID)
+	// 更新手牌的分析結果
+	analysisDate := time.Now().Format(time.RFC3339)
+	_, err = db.DB.Exec(`UPDATE hands SET analysis = $1, analysis_date = $2 WHERE id = $3`, analysis, analysisDate, request.HandID)
 	if err != nil {
-		http.Error(w, "Failed to save analysis", http.StatusInternalServerError)
+		http.Error(w, "Failed to save analysis: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// 返回分析結果
-	response := map[string]interface{}{
-		"handId":      request.HandID,
-		"analysis":    analysis,
-		"analysisDate": analysisDate,
-	}
-	
 	w.Header().Set("Content-Type", "application/json")
+	response := map[string]string{
+		"analysis": analysis,
+		"date":     analysisDate,
+	}
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -235,37 +247,32 @@ func ToggleFavorite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var request struct {
-		HandID string `json:"handId"`
-	}
-	
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "Hand ID is required", http.StatusBadRequest)
 		return
 	}
 
-	// 獲取當前最愛狀態
-	row := db.DB.QueryRow(`SELECT COALESCE(favorite, 0) FROM hands WHERE id = ?`, request.HandID)
+	// 獲取當前的 favorite 狀態
 	var currentFavorite bool
+	row := db.DB.QueryRow(`SELECT COALESCE(is_favorite, false) FROM hands WHERE id = $1`, id)
 	if err := row.Scan(&currentFavorite); err != nil {
 		http.Error(w, "Hand not found", http.StatusNotFound)
 		return
 	}
 
-	// 切換最愛狀態
+	// 切換 favorite 狀態
 	newFavorite := !currentFavorite
-	_, err := db.DB.Exec(`UPDATE hands SET favorite = ? WHERE id = ?`, newFavorite, request.HandID)
+	_, err := db.DB.Exec(`UPDATE hands SET is_favorite = $1 WHERE id = $2`, newFavorite, id)
 	if err != nil {
-		http.Error(w, "Failed to update favorite status", http.StatusInternalServerError)
+		http.Error(w, "Failed to update favorite status: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// 返回新的狀態
-	response := map[string]interface{}{
-		"handId":   request.HandID,
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]bool{
 		"favorite": newFavorite,
 	}
-	
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 } 
