@@ -10,26 +10,44 @@ import (
 
 var DB *sql.DB
 
-func InitDB(filepath string) {
-	// 使用 Railway PostgreSQL 連接字串
-	railwayURL := "postgresql://postgres:seUSLaxtymEhQHEgSZDdOhpfiPNwelQq@ballast.proxy.rlwy.net:23605/railway"
+func InitDB() error {
+	// 優先使用Railway PostgreSQL環境變數
+	var dbURL string
 	
-	// 如果有設定環境變數則使用環境變數
-	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
-		railwayURL = dbURL
+	// Railway會自動注入PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT
+	if pgHost := os.Getenv("PGHOST"); pgHost != "" {
+		pgUser := os.Getenv("PGUSER")
+		pgPassword := os.Getenv("PGPASSWORD") 
+		pgDatabase := os.Getenv("PGDATABASE")
+		pgPort := os.Getenv("PGPORT")
+		
+		if pgPort == "" {
+			pgPort = "5432"
+		}
+		
+		dbURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=require",
+			pgUser, pgPassword, pgHost, pgPort, pgDatabase)
+		log.Printf("🚂 Using Railway PostgreSQL: %s:%s/%s", pgHost, pgPort, pgDatabase)
+	} else if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
+		// 備用：使用DATABASE_URL環境變數
+		dbURL = envURL
+		log.Printf("🔗 Using DATABASE_URL")
+	} else {
+		// 最後備用：Supabase
+		dbURL = "postgres://postgres:sbp_a6a3750dc590637eeff1fa4e1c790e24a4163459@db.vdpscuywgjopwvcalgsn.supabase.co:5432/postgres?sslmode=require&connect_timeout=30"
+		log.Printf("⚠️  Using fallback Supabase connection")
 	}
-	
+
 	var err error
-	DB, err = sql.Open("postgres", railwayURL)
+	DB, err = sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatal("Cannot open database:", err)
+		return fmt.Errorf("failed to connect to database: %v", err)
 	}
-	
-	// 測試資料庫連接
+
 	if err = DB.Ping(); err != nil {
-		log.Fatal("Cannot ping database:", err)
+		return fmt.Errorf("failed to ping database: %v", err)
 	}
-	
-	fmt.Println("✅ Connected to Railway PostgreSQL")
-	fmt.Printf("📊 Database connected successfully\n")
+
+	log.Println("✅ Database connected successfully")
+	return nil
 }

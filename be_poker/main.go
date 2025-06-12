@@ -116,8 +116,10 @@ func main() {
 	checkEnvironment()
 	
 	// 初始化資料庫
-	fmt.Println("🗄️  Connecting to Supabase...")
-	db.InitDB("") // 不再需要檔案路徑參數
+	fmt.Println("🗄️  Connecting to database...")
+	if err := db.InitDB(); err != nil {
+		log.Fatalf("❌ Database connection failed: %v", err)
+	}
 	fmt.Println("✅ Database ready")
 	fmt.Println()
 	
