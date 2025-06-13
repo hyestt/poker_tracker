@@ -1459,3 +1459,50 @@ Railway部署成功，服務已上線:
 - 等待用戶測試前端應用連接
 
 **重要：** 用戶現在應該能夠在React Native應用中看到API連接成功，不再出現網路請求失敗的錯誤。
+
+---
+
+## 2024-12-19 AI Analysis Prompt 修復
+
+**問題：**
+用戶發現點擊 AI Analysis 按鈕後，分析結果不正確，並要求固定使用 hand_analysis 這個 prompt。
+
+**根本原因分析：**
+1. 前端 AIAnalysisScreen.tsx 使用 simulateAIAnalysis 本地模擬，沒有真正呼叫後端 API
+2. 後端 prompt_manager.go 使用錯誤的 prompt 檔案 (gto_analysis.txt 而非 hand_analysis.txt)
+3. 前端沒有與 Railway 後端 API 整合
+
+**修復步驟：**
+
+1. **修復後端 prompt 選擇**
+   - 修改 be_poker/services/prompt_manager.go
+   - 將 GetHandAnalysisPrompt 從使用 "gto_analysis.txt" 改為 "hand_analysis.txt"
+   - 確保所有 ChatGPT 請求都使用 hand_analysis prompt
+
+2. **修復前端 AI 分析呼叫**
+   - 修改 fe_poker/src/screens/AIAnalysisScreen.tsx
+   - 新增 performRealAIAnalysis 函數，真正呼叫 Railway API
+   - 將原本的 simulateAIAnalysis 改為備用方案
+   - 使用 Railway URL: https://poker-production-12db.up.railway.app/analyze
+
+3. **API 整合**
+   - 前端現在會發送 POST 請求到 /analyze 端點
+   - 傳送 handId 參數給後端
+   - 後端使用 hand_analysis.txt prompt 進行 OpenAI 分析
+   - 如果 API 失敗，會回退到本地模擬分析
+
+**部署狀態：**
+- ✅ 程式碼已提交並推送到 GitHub
+- ✅ Railway 自動部署已觸發
+- 🔄 等待部署完成
+
+**測試建議：**
+1. 在 React Native 應用中點擊 AI Analysis 按鈕
+2. 確認使用真正的 OpenAI API 而非模擬分析
+3. 驗證分析結果使用 hand_analysis prompt 格式
+4. 檢查分析結果是否符合預期的專業撲克教練風格
+
+**當前狀態：**
+- 所有 ChatGPT 請求現在固定使用 hand_analysis prompt
+- 前端與後端 API 完全整合
+- 分析結果會正確保存到 Railway PostgreSQL 資料庫
