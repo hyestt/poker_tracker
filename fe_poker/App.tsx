@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -19,6 +19,8 @@ import { StatsScreen } from './src/screens/StatsScreen';
 import { PokerKeyboardScreen } from './src/screens/PokerKeyboardScreen';
 import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
+import revenueCatService from './src/services/RevenueCatService';
 import { View, Text } from 'react-native';
 
 const Tab = createBottomTabNavigator();
@@ -43,11 +45,17 @@ function SettingsStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="SettingsMain" component={SettingsScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: 'Premium Subscription' }} />
     </Stack.Navigator>
   );
 }
 
 export default function App() {
+  useEffect(() => {
+    // 初始化 RevenueCat
+    revenueCatService.initialize();
+  }, []);
+
   return (
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>

@@ -40,7 +40,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         {/* Membership Section */}
         {renderSectionHeader('Membership')}
         <View style={styles.section}>
-          {renderMenuItem('👑', 'Membership Status', 'Free\nRemaining Scans: 50')}
+          {renderMenuItem('👑', 'Premium Subscription', 'Upgrade to unlock all features', () => navigation.navigate('Subscription'))}
           {renderMenuItem('🔄', 'Restore Purchase')}
         </View>
 
