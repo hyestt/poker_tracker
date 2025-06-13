@@ -28,7 +28,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const detailsInputRef = useRef<TextInput>(null);
   const { addHand, fetchHands, fetchStats } = useSessionStore();
 
-  const positions = ['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+  const positions = ['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
   const handleHoleCardsSelect = () => {
     setSelectedVillainIndex(null);

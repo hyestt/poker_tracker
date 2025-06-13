@@ -31,7 +31,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const detailsInputRef = useRef<TextInput>(null);
   const { updateHand, getHand, fetchHands, fetchStats } = useSessionStore();
 
-  const positions = ['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+  const positions = ['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
   const handleHoleCardsSelect = () => {
     setSelectedVillainIndex(null);
