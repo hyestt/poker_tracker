@@ -15,7 +15,6 @@ import { RecordHandScreen } from './src/screens/RecordHandScreen';
 import { EditHandScreen } from './src/screens/EditHandScreen';
 import { HandDetailScreen } from './src/screens/HandDetailScreen';
 import { EditSessionScreen } from './src/screens/EditSessionScreen';
-import { HistoryScreen } from './src/screens/HistoryScreen';
 import { StatsScreen } from './src/screens/StatsScreen';
 import { PokerKeyboardScreen } from './src/screens/PokerKeyboardScreen';
 import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
@@ -35,18 +34,6 @@ function HomeStack() {
       <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
       <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
       <Stack.Screen name="PokerKeyboard" component={PokerKeyboardScreen} options={{ title: 'Choose Cards' }} />
-      <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Analysis' }} />
-    </Stack.Navigator>
-  );
-}
-
-function HistoryStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="HistoryMain" component={HistoryScreen} options={{ title: 'History' }} />
-      <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
-      <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
-      <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
       <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Analysis' }} />
     </Stack.Navigator>
   );
@@ -78,7 +65,6 @@ export default function App() {
             },
           })}
         />
-        <Tab.Screen name="History" component={HistoryStack} />
         <Tab.Screen name="Stats" component={StatsScreen} />
         <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
