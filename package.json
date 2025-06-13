@@ -1,4 +1,11 @@
 {
+  "scripts": {
+    "ios": "cd fe_poker && npm run ios",
+    "android": "cd fe_poker && npm run android", 
+    "start": "cd fe_poker && npm run start",
+    "lint": "cd fe_poker && npm run lint",
+    "test": "cd fe_poker && npm run test"
+  },
   "dependencies": {
     "node-fetch": "^2.7.0"
   },

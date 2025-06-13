@@ -1707,3 +1707,36 @@ Summary of fix:
 - PokerKeyboardView 接收 onCardSelect={handleCardSelect}
 - 根據 selectedVillainIndex 決定初始化的牌組
 - 使用相同的 handlePokerKeyboardClose 處理關閉
+
+Date: 2025-06-13 22:50:00
+User Query: 我想將所有的DB從railway migrate到SQLite，幫我migrate
+Summary of migration:
+1. 資料庫遷移完成：
+   - 從 Railway PostgreSQL 遷移到本地 SQLite
+   - 更新 be_poker/db/db.go：移除 PostgreSQL 依賴，改用 SQLite
+   - 更新 be_poker/go.mod：移除 github.com/lib/pq，添加 github.com/mattn/go-sqlite3
+   - 修正 SQLite 語法差異（TIMESTAMP -> DATETIME, BOOLEAN -> INTEGER）
+
+2. 資料庫結構調整：
+   - 更新現有 SQLite 資料庫欄位名稱：result -> result_amount, favorite -> is_favorite
+   - 添加缺失欄位：created_at, updated_at
+   - 保持所有現有資料完整性
+
+3. 測試結果：
+   - ✅ 後端 API 正常運行 (http://localhost:8080)
+   - ✅ Sessions API 測試通過
+   - ✅ Hands API 測試通過
+   - ✅ 前端應用啟動測試
+
+4. 優勢：
+   - 本地資料庫，無需網路連接
+   - 更快的查詢速度
+   - 簡化部署流程
+   - 降低運營成本（無需 Railway 訂閱）
+
+5. 清理工作：
+   - Railway PostgreSQL 配置已移除
+   - 保留備份文件：railway_sessions_backup.json, railway_hands_backup.json
+   - 資料庫文件：poker_tracker.db (本地 SQLite)
+
+遷移成功完成！所有功能正常運行。

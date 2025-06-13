@@ -4,42 +4,19 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
-	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var DB *sql.DB
 
 func InitDB() error {
-	// 優先使用Railway PostgreSQL環境變數
-	var dbURL string
+	// 使用本地 SQLite 資料庫
+	dbPath := "poker_tracker.db"
 	
-	// Railway會自動注入PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT
-	if pgHost := os.Getenv("PGHOST"); pgHost != "" {
-		pgUser := os.Getenv("PGUSER")
-		pgPassword := os.Getenv("PGPASSWORD") 
-		pgDatabase := os.Getenv("PGDATABASE")
-		pgPort := os.Getenv("PGPORT")
-		
-		if pgPort == "" {
-			pgPort = "5432"
-		}
-		
-		dbURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=require",
-			pgUser, pgPassword, pgHost, pgPort, pgDatabase)
-		log.Printf("🚂 Using Railway PostgreSQL: %s:%s/%s", pgHost, pgPort, pgDatabase)
-	} else if envURL := os.Getenv("DATABASE_URL"); envURL != "" {
-		// 備用：使用DATABASE_URL環境變數
-		dbURL = envURL
-		log.Printf("🔗 Using DATABASE_URL")
-	} else {
-		// 最後備用：Supabase
-		dbURL = "postgres://postgres:sbp_a6a3750dc590637eeff1fa4e1c790e24a4163459@db.vdpscuywgjopwvcalgsn.supabase.co:5432/postgres?sslmode=require&connect_timeout=30"
-		log.Printf("⚠️  Using fallback Supabase connection")
-	}
+	log.Printf("🗄️  Using SQLite database: %s", dbPath)
 
 	var err error
-	DB, err = sql.Open("postgres", dbURL)
+	DB, err = sql.Open("sqlite3", dbPath)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %v", err)
 	}
@@ -62,61 +39,36 @@ func InitDB() error {
 func ensureTablesExist() error {
 	log.Println("🔍 Checking database schema...")
 	
-	// 檢查sessions表是否存在且包含所有必需欄位
-	var sessionsExists bool
-	err := DB.QueryRow(`SELECT EXISTS (
-		SELECT FROM information_schema.tables 
-		WHERE table_schema = 'public' 
-		AND table_name = 'sessions'
-	)`).Scan(&sessionsExists)
-	
+	// 檢查sessions表是否存在
+	var sessionsExists int
+	err := DB.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sessions'`).Scan(&sessionsExists)
 	if err != nil {
 		return fmt.Errorf("failed to check sessions table: %v", err)
 	}
 	
-	// 檢查sessions表是否有tag欄位
-	var tagColumnExists bool
-	if sessionsExists {
-		err = DB.QueryRow(`SELECT EXISTS (
-			SELECT FROM information_schema.columns 
-			WHERE table_schema = 'public' 
-			AND table_name = 'sessions'
-			AND column_name = 'tag'
-		)`).Scan(&tagColumnExists)
-		
-		if err != nil {
-			return fmt.Errorf("failed to check tag column: %v", err)
-		}
-	}
-	
 	// 檢查hands表是否存在
-	var handsExists bool
-	err = DB.QueryRow(`SELECT EXISTS (
-		SELECT FROM information_schema.tables 
-		WHERE table_schema = 'public' 
-		AND table_name = 'hands'
-	)`).Scan(&handsExists)
-	
+	var handsExists int
+	err = DB.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='hands'`).Scan(&handsExists)
 	if err != nil {
 		return fmt.Errorf("failed to check hands table: %v", err)
 	}
 	
-	// 如果表不存在或結構不完整，重建它們
-	if !sessionsExists || !tagColumnExists || !handsExists {
-		log.Println("⚠️ Database schema incomplete, recreating tables...")
+	// 如果表不存在，創建它們
+	if sessionsExists == 0 || handsExists == 0 {
+		log.Println("⚠️ Database schema incomplete, creating tables...")
 		
 		// 先刪除現有表格（如果存在）以確保乾淨的狀態
-		_, err = DB.Exec(`DROP TABLE IF EXISTS hands CASCADE`)
+		_, err = DB.Exec(`DROP TABLE IF EXISTS hands`)
 		if err != nil {
 			return fmt.Errorf("failed to drop hands table: %v", err)
 		}
 		
-		_, err = DB.Exec(`DROP TABLE IF EXISTS sessions CASCADE`)
+		_, err = DB.Exec(`DROP TABLE IF EXISTS sessions`)
 		if err != nil {
 			return fmt.Errorf("failed to drop sessions table: %v", err)
 		}
 		
-		// 重新創建sessions表（包含所有必需欄位）
+		// 創建sessions表（包含所有必需欄位）
 		_, err = DB.Exec(`
 			CREATE TABLE sessions (
 				id TEXT PRIMARY KEY,
@@ -128,8 +80,8 @@ func ensureTablesExist() error {
 				effective_stack INTEGER DEFAULT 0,
 				table_size INTEGER DEFAULT 6,
 				tag TEXT DEFAULT '',
-				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 			)
 		`)
 		
@@ -137,7 +89,7 @@ func ensureTablesExist() error {
 			return fmt.Errorf("failed to create sessions table: %v", err)
 		}
 		
-		// 重新創建hands表（包含所有必需欄位）
+		// 創建hands表（包含所有必需欄位）
 		_, err = DB.Exec(`
 			CREATE TABLE hands (
 				id TEXT PRIMARY KEY,
@@ -152,10 +104,10 @@ func ensureTablesExist() error {
 				villains TEXT DEFAULT '[]',
 				analysis TEXT DEFAULT '',
 				analysis_date TEXT DEFAULT '',
-				is_favorite BOOLEAN DEFAULT FALSE,
+				is_favorite INTEGER DEFAULT 0,
 				tag TEXT DEFAULT '',
-				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 			)
 		`)
@@ -181,7 +133,7 @@ func ensureTablesExist() error {
 			}
 		}
 		
-		log.Println("✅ Database schema recreated successfully")
+		log.Println("✅ Database schema created successfully")
 	} else {
 		log.Println("✅ Database schema is up to date")
 	}

@@ -79,8 +79,8 @@ func printStartupInfo() {
 	
 	fmt.Println("🚀 Server Configuration:")
 	fmt.Printf("   📍 Port: %s\n", port)
-	fmt.Println("   🗄️  Database: Supabase PostgreSQL")
-	fmt.Println("   🌐 Project: vdpscuywgjopwvcalgsn")
+	fmt.Println("   🗄️  Database: SQLite (Local)")
+	fmt.Println("   📁 Database File: poker_tracker.db")
 	
 	// 只在本地開發時顯示本地地址
 	if port == "8080" {

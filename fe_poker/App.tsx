@@ -21,6 +21,7 @@ import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
 import revenueCatService from './src/services/RevenueCatService';
+import adMobService from './src/services/AdMobService';
 import { View, Text } from 'react-native';
 
 const Tab = createBottomTabNavigator();
@@ -50,11 +51,25 @@ function SettingsStack() {
   );
 }
 
-export default function App() {
-  useEffect(() => {
-    // 初始化 RevenueCat
-    revenueCatService.initialize();
-  }, []);
+  export default function App() {
+    useEffect(() => {
+      // 初始化服務
+      const initializeServices = async () => {
+        try {
+          // 初始化 RevenueCat
+          await revenueCatService.initialize();
+          
+          // 初始化 AdMob（使用更安全的方式）
+          await adMobService.initialize();
+          
+          console.log('✅ Services initialized successfully');
+        } catch (error) {
+          console.error('❌ Failed to initialize services:', error);
+        }
+      };
+
+      initializeServices();
+    }, []);
 
   return (
     <NavigationContainer>
