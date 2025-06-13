@@ -253,18 +253,18 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     // 驗證 Hero 的 hole cards 和 position 都不為空白
     if (!holeCards || holeCards.trim() === '') {
       Alert.alert(
-        '無法保存',
-        '請選擇 Hero 的底牌才能保存手牌記錄',
-        [{ text: '確定', style: 'default' }]
+        'Cannot Save',
+        'Please select Hero\'s hole cards to save hand record',
+        [{ text: 'OK', style: 'default' }]
       );
       return;
     }
 
     if (!position || position.trim() === '') {
       Alert.alert(
-        '無法保存',
-        '請選擇 Hero 的位置才能保存手牌記錄',
-        [{ text: '確定', style: 'default' }]
+        'Cannot Save',
+        'Please select Hero\'s position to save hand record',
+        [{ text: 'OK', style: 'default' }]
       );
       return;
     }
@@ -644,7 +644,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
         {/* Position Buttons */}
         <View style={styles.buttonCategory}>
           <View style={styles.buttonRow}>
-                            {['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
+            {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
               <TouchableOpacity
                 key={position}
                 style={styles.quickButton}
@@ -655,6 +655,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             ))}
           </View>
         </View>
+
+
 
         {/* Action Buttons */}
         <View style={styles.buttonCategory}>

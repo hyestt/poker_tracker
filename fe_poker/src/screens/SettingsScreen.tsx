@@ -5,7 +5,7 @@ import { theme } from '../theme';
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleMenuPress = (item: string) => {
-    Alert.alert('功能開發中', `${item} 功能即將推出`);
+    Alert.alert('Feature in Development', `${item} feature coming soon`);
   };
 
   const renderSectionHeader = (title: string) => (

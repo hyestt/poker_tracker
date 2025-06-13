@@ -37,7 +37,18 @@ const apiCall = async (url: string, options?: RequestInit) => {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
   
-  return response.json();
+  // 檢查響應是否有內容
+  const text = await response.text();
+  if (!text) {
+    return null; // 空響應返回 null
+  }
+  
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('JSON Parse error:', error, 'Response text:', text);
+    throw new Error('Invalid JSON response');
+  }
 };
 
 export const useSessionStore = create<State>((set, get) => ({
@@ -56,7 +67,7 @@ export const useSessionStore = create<State>((set, get) => ({
     try {
       const data = await apiCall(`${API_BASE_URL}/sessions`);
       
-      const sessions: Session[] = data.map((session: any) => ({
+      const sessions: Session[] = (data || []).map((session: any) => ({
         id: session.id,
         location: session.location || '',
         date: session.date || '',
@@ -90,7 +101,7 @@ export const useSessionStore = create<State>((set, get) => ({
         tag: session.tag || '',
       };
       
-      await apiCall(`${API_BASE_URL}/sessions`, {
+      const result = await apiCall(`${API_BASE_URL}/sessions`, {
         method: 'POST',
         body: JSON.stringify(sessionData),
       });
@@ -104,7 +115,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   deleteSession: async (id: string) => {
     try {
-      await apiCall(`${API_BASE_URL}/sessions?id=${id}`, {
+      const result = await apiCall(`${API_BASE_URL}/sessions?id=${id}`, {
         method: 'DELETE',
       });
       
@@ -119,7 +130,7 @@ export const useSessionStore = create<State>((set, get) => ({
     try {
       const data = await apiCall(`${API_BASE_URL}/hands`);
       
-      const hands: Hand[] = data.map((hand: any) => ({
+      const hands: Hand[] = (data || []).map((hand: any) => ({
         id: hand.id,
         sessionId: hand.sessionId || '',
         position: hand.position || '',
@@ -159,7 +170,7 @@ export const useSessionStore = create<State>((set, get) => ({
         villains: hand.villains || [],
       };
       
-      await apiCall(`${API_BASE_URL}/hands`, {
+      const result = await apiCall(`${API_BASE_URL}/hands`, {
         method: 'POST',
         body: JSON.stringify(handData),
       });
@@ -174,7 +185,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   deleteHand: async (id: string) => {
     try {
-      await apiCall(`${API_BASE_URL}/hands?id=${id}`, {
+      const result = await apiCall(`${API_BASE_URL}/hands?id=${id}`, {
         method: 'DELETE',
       });
       
@@ -194,7 +205,7 @@ export const useSessionStore = create<State>((set, get) => ({
       });
       
       await get().fetchHands();
-      return response.analysis || 'Analysis completed';
+      return response?.analysis || 'Analysis completed';
     } catch (error) {
       console.error('Error analyzing hand:', error);
       throw error;
@@ -206,12 +217,12 @@ export const useSessionStore = create<State>((set, get) => ({
       const data = await apiCall(`${API_BASE_URL}/stats`);
       
       const stats: Stats = {
-        totalProfit: data.totalProfit || 0,
-        totalSessions: data.totalSessions || 0,
-        winRate: data.winRate || 0,
-        avgSession: data.avgSession || 0,
-        byStakes: data.byStakes || {},
-        byLocation: data.byLocation || {},
+        totalProfit: data?.totalProfit || 0,
+        totalSessions: data?.totalSessions || 0,
+        winRate: data?.winRate || 0,
+        avgSession: data?.avgSession || 0,
+        byStakes: data?.byStakes || {},
+        byLocation: data?.byLocation || {},
       };
       
       set({ stats });
@@ -236,6 +247,10 @@ export const useSessionStore = create<State>((set, get) => ({
   getHand: async (id: string): Promise<Hand> => {
     try {
       const data = await apiCall(`${API_BASE_URL}/hand?id=${id}`);
+      
+      if (!data) {
+        throw new Error('Hand not found');
+      }
       
       return {
         id: data.id,
@@ -271,7 +286,7 @@ export const useSessionStore = create<State>((set, get) => ({
         villains: hand.villains || [],
       };
       
-      await apiCall(`${API_BASE_URL}/hand?id=${hand.id}`, {
+      const result = await apiCall(`${API_BASE_URL}/hand?id=${hand.id}`, {
         method: 'PUT',
         body: JSON.stringify(handData),
       });
@@ -287,6 +302,10 @@ export const useSessionStore = create<State>((set, get) => ({
   getSession: async (id: string): Promise<Session> => {
     try {
       const data = await apiCall(`${API_BASE_URL}/session?id=${id}`);
+      
+      if (!data) {
+        throw new Error('Session not found');
+      }
       
       return {
         id: data.id,
@@ -316,7 +335,7 @@ export const useSessionStore = create<State>((set, get) => ({
         tag: session.tag || '',
       };
       
-      await apiCall(`${API_BASE_URL}/session?id=${session.id}`, {
+      const result = await apiCall(`${API_BASE_URL}/session?id=${session.id}`, {
         method: 'PUT',
         body: JSON.stringify(sessionData),
       });

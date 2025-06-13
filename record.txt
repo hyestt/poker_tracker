@@ -199,6 +199,30 @@ Summary of 404 error debugging and resolution:
    - 發現舊進程佔用端口8080，使用lsof -ti:8080找到並kill
    - 資料庫表結構缺少analysis和analysis_date欄位，使用ALTER TABLE更新
 
+Date: 2025-01-27 11:00:00
+User Query: 點擊edit hand出現console error，但是手牌還是會成功delete，麻煩fix
+Summary of JSON Parse error fix:
+1. 問題診斷：
+   - 發現sessionStore.ts第184行出現"JSON Parse error: Unexpected end of input"
+   - 錯誤來源是DELETE請求返回空響應體，但apiCall函數總是嘗試解析JSON
+
+2. 修復方案：
+   - 更新apiCall函數：先檢查響應是否有內容，空響應返回null
+   - 加入try-catch處理JSON解析錯誤，提供更好的錯誤訊息
+   - 更新所有API調用函數以處理可能的null響應：
+     * deleteHand, deleteSession: 接受null響應
+     * fetchSessions, fetchHands: 使用(data || [])防止null.map錯誤
+     * fetchStats: 使用可選鏈操作符(?.)
+     * getHand, getSession: 加入null檢查並拋出適當錯誤
+     * analyzeHand: 使用可選鏈操作符
+     * 所有update和add函數: 接受null響應
+
+3. 技術改進：
+   - 增強錯誤處理機制
+   - 提供更清晰的錯誤訊息
+   - 確保API響應的健壯性
+   - 防止因空響應導致的應用崩潰
+
 Date: 2025-06-11 15:00:00
 User Query: 將現有的SQLite資料遷移到Supabase，目前已經有hands, sessions兩個table，但是我沒看到villain相關column
 Summary of complete Supabase migration:

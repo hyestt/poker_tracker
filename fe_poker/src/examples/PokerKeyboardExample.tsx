@@ -7,18 +7,18 @@ export const PokerKeyboardExample: React.FC = () => {
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
 
   const handleBack = () => {
-    Alert.alert('返回', '你按了返回按鈕');
+    Alert.alert('Back', 'You pressed the back button');
   };
 
   const handleSave = () => {
     if (selectedCards.length === 0) {
-      Alert.alert('提醒', '請先選擇卡牌');
+      Alert.alert('Reminder', 'Please select cards first');
       return;
     }
     
     Alert.alert(
-      '儲存成功', 
-      `已選擇的卡牌：${selectedCards.join(', ')}`
+      'Save Successful', 
+      `Selected cards: ${selectedCards.join(', ')}`
     );
   };
 
