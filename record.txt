@@ -1506,3 +1506,42 @@ Railway部署成功，服務已上線:
 - 所有 ChatGPT 請求現在固定使用 hand_analysis prompt
 - 前端與後端 API 完全整合
 - 分析結果會正確保存到 Railway PostgreSQL 資料庫
+
+---
+
+## 2024-12-19 AI Analysis 結果美化
+
+**問題：**
+用戶反映 AI analysis 結果顯示有太多不必要的 markdown 符號（如 -**），影響閱讀體驗。
+
+**修復內容：**
+
+1. **優化 Prompt 格式**
+   - 修改 `be_poker/prompts/hand_analysis.txt`
+   - 移除過多的 markdown 標記（## 和 - 符號）
+   - 改用簡潔的段落格式
+   - 明確要求避免使用過多符號或標記
+
+2. **前端顯示美化**
+   - 在 `AIAnalysisScreen.tsx` 新增 `formatAnalysisText` 函數
+   - 自動移除多餘的 markdown 符號：
+     - 移除 **bold** 和 *italic* 標記
+     - 將 - 改為更美觀的 • 符號
+     - 移除 ## 和 # 標題符號
+     - 限制最多兩個連續換行
+   - 改善文字樣式：增加行高和字母間距
+
+3. **顯示效果改善**
+   - 分析結果現在更簡潔易讀
+   - 移除了干擾性的 markdown 符號
+   - 保持專業的分析內容，但格式更美觀
+
+**部署狀態：**
+- ✅ 程式碼已提交並推送到 GitHub
+- ✅ Railway 自動部署已完成
+- ✅ AI 分析結果顯示現在更加美觀易讀
+
+**效果：**
+- 用戶現在看到的 AI 分析結果將是乾淨、簡潔的格式
+- 移除了所有不必要的 markdown 符號
+- 保持了專業的分析內容和結構

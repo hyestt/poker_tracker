@@ -140,6 +140,21 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     performAIAnalysis();
   };
 
+  // 美化分析結果顯示
+  const formatAnalysisText = (text: string): string => {
+    if (!text) return text;
+    
+    return text
+      // 移除多餘的 markdown 符號
+      .replace(/\*\*([^*]+)\*\*/g, '$1')  // 移除 **bold**
+      .replace(/\*([^*]+)\*/g, '$1')      // 移除 *italic*
+      .replace(/^- /gm, '• ')             // 將 - 改為 •
+      .replace(/^## /gm, '\n')            // 移除 ## 標題符號
+      .replace(/^# /gm, '\n')             // 移除 # 標題符號
+      .replace(/\n{3,}/g, '\n\n')         // 限制最多兩個換行
+      .trim();
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -191,7 +206,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         <View style={styles.analysisCard}>
           <Text style={styles.analysisTitle}>🤖 AI Analysis Result</Text>
           <Text style={styles.analysisText}>
-            {analysis || 'Analysis is being generated...'}
+            {analysis ? formatAnalysisText(analysis) : 'Analysis is being generated...'}
           </Text>
           {hand.analysisDate && (
             <Text style={styles.analysisDate}>
@@ -321,8 +336,9 @@ const styles = StyleSheet.create({
   analysisText: {
     fontSize: theme.font.size.body,
     color: theme.colors.text,
-    lineHeight: 24,
+    lineHeight: 26,
     textAlign: 'left',
+    letterSpacing: 0.3,
   },
   analysisDate: {
     fontSize: theme.font.size.small,
