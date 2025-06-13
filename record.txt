@@ -1545,3 +1545,121 @@ Railway部署成功，服務已上線:
 - 用戶現在看到的 AI 分析結果將是乾淨、簡潔的格式
 - 移除了所有不必要的 markdown 符號
 - 保持了專業的分析內容和結構
+
+---
+
+## 2024-12-19 Settings 頁面創建
+
+**需求：**
+用戶要求創建一個類似 iOS 風格的 Settings 頁面，包含 Membership、Pro Features、Support 等區塊。
+
+**實現內容：**
+
+1. **創建 SettingsScreen.tsx**
+   - 使用 Apple iOS 設計風格
+   - 分為三個主要區塊：Membership、Pro Features、Support
+   - 每個選項都有對應的圖標和描述
+
+2. **頁面結構**
+   - **Membership 區塊**：
+     - Membership Status (顯示 Free 狀態和剩餘掃描次數)
+     - Restore Purchase
+   
+   - **Pro Features 區塊**：
+     - Export to Excel
+     - Advanced Analytics  
+     - Auto Save to Photo Library (Pro Only)
+     - AI Hand Analysis (Unlimited)
+   
+   - **Support 區塊**：
+     - Rate Us
+     - Contact Us
+     - User Guide
+     - Privacy Policy
+
+3. **設計特色**
+   - 使用圓角卡片設計
+   - 橘色區塊標題 (#FF8C00)
+   - 每個選項都有 emoji 圖標
+   - 右側箭頭指示可點擊
+   - 底部顯示版本資訊
+
+4. **導航整合**
+   - 將原本的 Profile tab 替換為 Settings
+   - 創建 SettingsStack 導航結構
+   - 隱藏預設 header，使用自定義設計
+
+**當前狀態：**
+- ✅ Settings 頁面已創建完成
+- ✅ 導航結構已更新
+- ✅ 使用 Apple iOS 設計標準
+- 🔄 功能邏輯待後續實現（目前點擊會顯示"功能開發中"提示）
+
+**技術細節：**
+- 使用 ScrollView 支援長內容滾動
+- 響應式設計適配不同螢幕尺寸
+- 遵循 MVVM 架構模式
+- 使用 theme 系統保持設計一致性
+
+Date: 2025-01-27 14:00:00
+User Query: 每一次我點擊Home時，都需要回到這個頁面，現在當我點開手牌 -> 點擊setting -> 點擊回去時會出現手牌頁面。這是錯誤的
+Summary of Home navigation fix:
+1. 問題分析：
+   - 用戶從手牌詳情頁面進入設定頁面，然後點擊Home tab時會回到手牌詳情頁面
+   - 這是因為每個Tab都有自己的Stack Navigator，保持各自的導航歷史
+   - 用戶期望點擊Home tab時總是回到主頁面（手牌歷史列表）
+
+2. 解決方案：
+   - 在App.tsx中為Home Tab.Screen添加listeners
+   - 當點擊Home tab時，使用navigation.reset()重置導航堆疊
+   - 確保每次點擊Home都會回到根頁面而不是保留導航歷史
+
+3. 技術實現：
+   - 使用tabPress事件監聽器
+   - 調用e.preventDefault()防止默認行為
+   - 使用navigation.reset()重置到根路由
+   - 設置index: 0和routes: [{ name: 'Home' }]
+
+4. 修改文件：
+   - fe_poker/App.tsx：為Home Tab.Screen添加listeners配置
+
+5. 預期效果：
+   - 無論用戶在哪個頁面，點擊Home tab都會回到主頁面
+   - 清除所有導航歷史，確保一致的用戶體驗
+   - 符合iOS設計標準的導航行為
+
+Date: 2025-06-13 13:08:00
+User Query: 加一個限制，只有在Hero的hole cards 和position都不為空白時才能save成功
+Summary of validation implementation:
+1. 修改內容：
+   - RecordHandScreen.tsx: 加入Alert import，修改handleSave函數加入驗證邏輯
+   - EditHandScreen.tsx: 加入Alert import，修改handleSave函數加入驗證邏輯
+   - 兩個畫面都加入favorite屬性以符合Hand模型要求
+
+2. 驗證邏輯：
+   - 檢查holeCards是否為空白或只有空格
+   - 檢查position是否為空白或只有空格
+   - 如果任一條件不滿足，顯示Alert對話框並阻止保存
+   - Alert訊息使用繁體中文，符合使用者偏好
+
+3. 技術實作：
+   - 使用React Native的Alert.alert()顯示錯誤訊息
+   - 在驗證失敗時使用return提早退出函數
+   - 保持原有的保存邏輯不變，只在驗證通過後執行
+
+4. 使用者體驗：
+   - 清楚的錯誤訊息告知使用者需要填寫的欄位
+   - 阻止不完整的手牌記錄被保存
+   - 確保資料完整性和一致性
+
+功能特色：
+- 強制要求Hero的底牌和位置資訊
+- 友善的錯誤提示訊息
+- 保持現有UI和UX不變
+- 適用於新增和編輯手牌記錄
+
+5. UI 優化：
+   - 移除 "Poker Keyboard" 文字標籤，保持界面簡潔
+   - 將 Hide 按鈕移到鍵盤標題列的最右邊
+   - 修改模態框標題從 "Select Hole Cards" 改為 "Select Cards"
+   - 保持 Apple iOS 設計標準的簡潔美觀

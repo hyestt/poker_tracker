@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions, Switch, Alert } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
@@ -31,7 +31,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const detailsInputRef = useRef<TextInput>(null);
   const { updateHand, getHand, fetchHands, fetchStats } = useSessionStore();
 
-  const positions = ['UTG', 'UTG+1', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+  const positions = ['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 
   const handleHoleCardsSelect = () => {
     setSelectedVillainIndex(null);
@@ -116,6 +116,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [note, setNote] = useState<string>('');
+  const [favorite, setFavorite] = useState<boolean>(false);
   const detailsRef = useRef(details);
   const selectionRef = useRef(selection);
 
@@ -251,6 +252,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         setResult(hand.result.toString());
         setSessionId(hand.sessionId);
         setVillains(hand.villains || []);
+        setFavorite(hand.favorite || false);
         console.log('Set villains to:', hand.villains || []);
         setLoading(false);
       } catch (error) {
@@ -268,6 +270,25 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   }, [handId, getHand]);
 
   const handleSave = useCallback(async () => {
+    // 驗證 Hero 的 hole cards 和 position 都不為空白
+    if (!holeCards || holeCards.trim() === '') {
+      Alert.alert(
+        '無法保存',
+        '請選擇 Hero 的底牌才能保存手牌記錄',
+        [{ text: '確定', style: 'default' }]
+      );
+      return;
+    }
+
+    if (!position || position.trim() === '') {
+      Alert.alert(
+        '無法保存',
+        '請選擇 Hero 的位置才能保存手牌記錄',
+        [{ text: '確定', style: 'default' }]
+      );
+      return;
+    }
+
     const hand: Hand = {
       id: handId,
       sessionId,
@@ -279,6 +300,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       result: parseInt(result) || 0,
       date: new Date().toISOString(),
       villains: villains,
+      favorite,
     };
     console.log('Saving hand with villains:', villains);
     console.log('Complete hand object:', hand);
@@ -286,7 +308,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     await fetchHands();
     await fetchStats();
     navigation.goBack();
-  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, updateHand, fetchHands, fetchStats, navigation]);
+  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, updateHand, fetchHands, fetchStats, navigation]);
 
   const handleSaveRef = useRef(handleSave);
   
@@ -345,7 +367,6 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             <View style={styles.labelRow}>
               <Text style={styles.label}>Hand Details</Text>
               <View style={styles.keyboardToggleContainer}>
-                <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
                   value={useCustomKeyboard}
                   onValueChange={(value) => {
@@ -385,7 +406,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           {useCustomKeyboard && showCustomKeyboard && (
             <View style={styles.customKeyboardContainer}>
               <View style={styles.keyboardHeader}>
-                <Text style={styles.keyboardTitle}>Poker Keyboard</Text>
+                <View style={{ flex: 1 }} />
                 <TouchableOpacity onPress={hideCustomKeyboard} style={styles.hideKeyboardButton}>
                   <Text style={styles.hideKeyboardButtonText}>Hide</Text>
                 </TouchableOpacity>
@@ -450,7 +471,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             {/* Position Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
+                                 {['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
                   <TouchableOpacity
                     key={position}
                     style={styles.quickButton}
@@ -793,7 +814,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Select Hole Cards</Text>
+            <Text style={styles.modalTitle}>Select Cards</Text>
             <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.doneButton}>
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
@@ -1181,8 +1202,8 @@ const styles = StyleSheet.create({
   },
   quickButtonText: {
     fontSize: Math.min(theme.font.size.small + 0.5, 12), // 響應式字體大小：調整到12px
-    color: theme.colors.text,
-    fontWeight: '500',
+    color: '#000000',
+    fontWeight: '700',
     textAlign: 'center',
   },
   actionButton: {
@@ -1191,7 +1212,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   roundButton: {
     backgroundColor: theme.colors.profit,
@@ -1207,7 +1228,7 @@ const styles = StyleSheet.create({
   },
   roundButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: Math.min(theme.font.size.small, 11), // 稍微減少字體大小以匹配較小按鈕
   },
   deleteButton: {
@@ -1216,7 +1237,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   enterButton: {
     backgroundColor: '#A7F3D0', // 淡綠色背景
@@ -1224,7 +1245,7 @@ const styles = StyleSheet.create({
   },
   enterButtonText: {
     color: '#065F46', // 深綠色文字配合淡綠色背景
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: theme.font.size.body, // 稍大的字體
   },
   wideButton: {

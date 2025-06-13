@@ -19,6 +19,7 @@ import { HistoryScreen } from './src/screens/HistoryScreen';
 import { StatsScreen } from './src/screens/StatsScreen';
 import { PokerKeyboardScreen } from './src/screens/PokerKeyboardScreen';
 import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
 import { View, Text } from 'react-native';
 
 const Tab = createBottomTabNavigator();
@@ -51,20 +52,35 @@ function HistoryStack() {
   );
 }
 
-const ProfileScreen = () => (
-  <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
-    <Text>Profile (Coming Soon)</Text>
-  </View>
-);
+function SettingsStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="SettingsMain" component={SettingsScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   return (
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
-        <Tab.Screen name="Home" component={HomeStack} />
+        <Tab.Screen 
+          name="Home" 
+          component={HomeStack}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              // 當點擊Home tab時，重置導航堆疊到根頁面
+              e.preventDefault();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home' }],
+              });
+            },
+          })}
+        />
         <Tab.Screen name="History" component={HistoryStack} />
         <Tab.Screen name="Stats" component={StatsScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Switch, Alert } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
@@ -28,7 +28,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const detailsInputRef = useRef<TextInput>(null);
   const { addHand, fetchHands, fetchStats } = useSessionStore();
 
-  const positions = ['UTG', 'UTG+1', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+  const positions = ['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 
   const handleHoleCardsSelect = () => {
     setSelectedVillainIndex(null);
@@ -250,6 +250,25 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   const handleSave = async () => {
+    // 驗證 Hero 的 hole cards 和 position 都不為空白
+    if (!holeCards || holeCards.trim() === '') {
+      Alert.alert(
+        '無法保存',
+        '請選擇 Hero 的底牌才能保存手牌記錄',
+        [{ text: '確定', style: 'default' }]
+      );
+      return;
+    }
+
+    if (!position || position.trim() === '') {
+      Alert.alert(
+        '無法保存',
+        '請選擇 Hero 的位置才能保存手牌記錄',
+        [{ text: '確定', style: 'default' }]
+      );
+      return;
+    }
+
     const hand: Hand = {
       id: Date.now().toString(),
       sessionId,
@@ -261,6 +280,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       result: parseInt(result) || 0,
       date: new Date().toISOString(),
       villains,
+      favorite: false,
     };
     await addHand(hand);
     await fetchHands();
@@ -286,7 +306,6 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             <View style={styles.labelRow}>
               <Text style={styles.label}>Hand Details</Text>
               <View style={styles.keyboardToggleContainer}>
-                <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
                   value={useCustomKeyboard}
                   onValueChange={(value) => {
@@ -496,7 +515,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Select Hole Cards</Text>
+            <Text style={styles.modalTitle}>Select Cards</Text>
             <TouchableOpacity onPress={handlePokerKeyboardClose} style={styles.doneButton}>
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
@@ -559,12 +578,12 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       {/* Direct Custom Keyboard */}
       {useCustomKeyboard && showCustomKeyboard && (
         <View style={styles.customKeyboardContainer}>
-          <View style={styles.keyboardHeader}>
-            <Text style={styles.keyboardTitle}>Poker Keyboard</Text>
-            <TouchableOpacity onPress={hideCustomKeyboard} style={styles.hideKeyboardButton}>
-              <Text style={styles.hideKeyboardButtonText}>Hide</Text>
-            </TouchableOpacity>
-          </View>
+                                      <View style={styles.keyboardHeader}>
+                <View style={{ flex: 1 }} />
+                <TouchableOpacity onPress={hideCustomKeyboard} style={styles.hideKeyboardButton}>
+                  <Text style={styles.hideKeyboardButtonText}>Hide</Text>
+                </TouchableOpacity>
+              </View>
           
           <View style={styles.quickButtonsSection}>
         
@@ -625,7 +644,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
         {/* Position Buttons */}
         <View style={styles.buttonCategory}>
           <View style={styles.buttonRow}>
-            {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
+                            {['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
               <TouchableOpacity
                 key={position}
                 style={styles.quickButton}
@@ -1076,8 +1095,8 @@ const styles = StyleSheet.create({
   },
   quickButtonText: {
     fontSize: theme.font.size.small,
-    color: theme.colors.text,
-    fontWeight: '500',
+    color: '#000000',
+    fontWeight: '700',
   },
   actionButton: {
     backgroundColor: theme.colors.primary,
@@ -1085,7 +1104,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   roundButton: {
     backgroundColor: theme.colors.profit,
@@ -1099,7 +1118,7 @@ const styles = StyleSheet.create({
   },
   roundButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   deleteButton: {
     backgroundColor: theme.colors.loss,
@@ -1107,7 +1126,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   enterButton: {
     backgroundColor: '#A7F3D0', // 淡綠色背景
@@ -1115,7 +1134,7 @@ const styles = StyleSheet.create({
   },
   enterButtonText: {
     color: '#065F46', // 深綠色文字配合淡綠色背景
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: theme.font.size.body, // 稍大的字體
   },
   wideButton: {
