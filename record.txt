@@ -1687,3 +1687,23 @@ Summary of validation implementation:
    - 將 Hide 按鈕移到鍵盤標題列的最右邊
    - 修改模態框標題從 "Select Hole Cards" 改為 "Select Cards"
    - 保持 Apple iOS 設計標準的簡潔美觀
+
+Date: 2025-01-27 14:00:00
+User Query: 點擊Hero select hole card沒有反應
+Summary of fix:
+問題發現：RecordHandScreen.tsx 中缺少 PokerKeyboard Modal 元件
+- 雖然有 handleHoleCardsSelect() 函數和 setShowPokerKeyboard(true) 
+- 但缺少實際的 Modal 元件來顯示撲克牌選擇界面
+- 與 EditHandScreen 相比，RecordHandScreen 遺漏了這個重要元件
+
+修復內容：
+1. 在 RecordHandScreen.tsx 中添加完整的 PokerKeyboard Modal 元件
+2. 包含標題欄、取消/完成按鈕和 PokerKeyboardView 
+3. 支援 Hero 和 Villain 選牌的智能初始化
+4. 修復後與 EditHandScreen 行為保持一致
+
+技術細節：
+- Modal visible={showPokerKeyboard} 控制顯示
+- PokerKeyboardView 接收 onCardSelect={handleCardSelect}
+- 根據 selectedVillainIndex 決定初始化的牌組
+- 使用相同的 handlePokerKeyboardClose 處理關閉

@@ -367,6 +367,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             <View style={styles.labelRow}>
               <Text style={styles.label}>Hand Details</Text>
               <View style={styles.keyboardToggleContainer}>
+                <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
                   value={useCustomKeyboard}
                   onValueChange={(value) => {
@@ -496,9 +497,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('All-IN ')}
+                  onPress={() => handleQuickInsert('All-In ')}
                 >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>ALL-IN</Text>
+                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>All-In</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
@@ -551,14 +552,14 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 {['1', '2', '3'].map((number) => (
                   <TouchableOpacity
                     key={number}
-                    style={styles.quickButton}
+                    style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
                     <Text style={styles.quickButtonText}>{number}</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
-                  style={styles.quickButton}
+                  style={[styles.quickButton, styles.numberButton]}
                   onPress={() => handleQuickInsert('0')}
                 >
                   <Text style={styles.quickButtonText}>0</Text>
@@ -590,7 +591,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 {['4', '5', '6'].map((number) => (
                   <TouchableOpacity
                     key={number}
-                    style={styles.quickButton}
+                    style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
                     <Text style={styles.quickButtonText}>{number}</Text>
@@ -626,7 +627,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 {['7', '8', '9'].map((number) => (
                   <TouchableOpacity
                     key={number}
-                    style={styles.quickButton}
+                    style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
                     <Text style={styles.quickButtonText}>{number}</Text>
@@ -1191,19 +1192,20 @@ const styles = StyleSheet.create({
   quickButton: {
     backgroundColor: theme.colors.inputBg,
     borderRadius: theme.radius.button,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: 0, // 完全移除水平padding
+    paddingVertical: 0, // 完全移除垂直padding
     borderWidth: 1,
     borderColor: theme.colors.border || theme.colors.gray,
-    minWidth: Math.max(Dimensions.get('window').width * 0.11, 42), // 響應式最小寬度：調整到11%，最低42px
-    maxWidth: Dimensions.get('window').width * 0.17, // 響應式最大寬度：調整到17%
-    height: 39, // 固定高度調整到39px（在原36px和42px之間）
+    flex: 1,
+    minWidth: Math.max(Dimensions.get('window').width * 0.09, 36), // 響應式最小寬度：調整到9%，最低36px
+    maxWidth: Dimensions.get('window').width * 0.16, // 增加最大寬度到16%
+    height: 32, // 進一步減少高度到32px
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 1,
+    marginHorizontal: 2, // 添加小間距
   },
   quickButtonText: {
-    fontSize: Math.min(theme.font.size.small + 0.5, 12), // 響應式字體大小：調整到12px
+    fontSize: Math.min(theme.font.size.small, 10), // 響應式字體大小：調整到10px
     color: '#000000',
     fontWeight: '700',
     textAlign: 'center',
@@ -1219,17 +1221,17 @@ const styles = StyleSheet.create({
   roundButton: {
     backgroundColor: theme.colors.profit,
     borderColor: theme.colors.profit,
-    minWidth: Math.max(Dimensions.get('window').width * 0.08, 32), // 減少最小寬度：從原本更大，調整到8%，最低32px
-    maxWidth: Dimensions.get('window').width * 0.12, // 最大寬度也相應調整到12%
-    paddingHorizontal: theme.spacing.xs / 2, // 減少水平padding
-    height: 35, // 稍微減少高度
+    minWidth: Math.max(Dimensions.get('window').width * 0.07, 28), // 減少最小寬度：從原本更大，調整到7%，最低28px
+    maxWidth: Dimensions.get('window').width * 0.10, // 最大寬度也相應調整到10%
+    paddingHorizontal: 0, // 完全移除水平padding
+    height: 32, // 與一般按鈕保持一致的高度
   },
   compactButton: {
-    minWidth: Math.max(Dimensions.get('window').width * 0.13, 50), // 調整為適中大小：13%，最低50px
+    minWidth: Math.max(Dimensions.get('window').width * 0.11, 44), // 調整為適中大小：11%，最低44px
     paddingHorizontal: theme.spacing.xs,
   },
   roundButtonText: {
-    color: '#FFFFFF',
+    color: '#000000',
     fontWeight: '700',
     fontSize: Math.min(theme.font.size.small, 11), // 稍微減少字體大小以匹配較小按鈕
   },
@@ -1238,21 +1240,21 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.loss,
   },
   deleteButtonText: {
-    color: '#FFFFFF',
+    color: '#000000',
     fontWeight: '700',
   },
   enterButton: {
-    backgroundColor: '#A7F3D0', // 淡綠色背景
-    borderColor: '#6EE7B7',
+    backgroundColor: '#BFDBFE', // 淡藍色
+    borderColor: '#93C5FD',
   },
   enterButtonText: {
-    color: '#065F46', // 深綠色文字配合淡綠色背景
+    color: '#000000', // 改為黑色
     fontWeight: '700',
     fontSize: theme.font.size.body, // 稍大的字體
   },
   wideButton: {
-    minWidth: 45, // 進一步縮小按鈕寬度
-    paddingHorizontal: theme.spacing.xs,
+    minWidth: Math.max(Dimensions.get('window').width * 0.09, 36), // 與一般按鈕相同大小
+    paddingHorizontal: 0,
   },
   heroRow: {
     flexDirection: 'row',
@@ -1332,5 +1334,9 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     fontWeight: '500',
     color: theme.colors.text,
+  },
+  numberButton: {
+    backgroundColor: '#A7F3D0', // 淡綠色
+    borderColor: '#6EE7B7',
   },
 }); 
