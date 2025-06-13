@@ -56,7 +56,7 @@
 
 1. **設定環境變數**
    ```bash
-   export DATABASE_URL="your_railway_postgres_url_here"
+   export DATABASE_URL="postgresql://postgres:seUSLaxtymEhQHEgSZDdOhpfiPNwelQq@postgres.railway.internal:5432/railway"
    ```
 
 2. **執行遷移腳本**

@@ -28,8 +28,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       }
 
       console.log('Performing new AI analysis...');
-      // 執行新的AI分析
-      const analysisResult = await simulateAIAnalysis(hand);
+      // 執行真正的AI分析
+      const analysisResult = await performRealAIAnalysis(hand);
       console.log('AI analysis completed:', analysisResult);
       
       // 更新hand數據
@@ -60,7 +60,34 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
   };
 
-  // 模擬AI分析功能
+  // 真正的AI分析功能
+  const performRealAIAnalysis = async (handData: Hand): Promise<string> => {
+    try {
+      const API_URL = 'https://poker-production-12db.up.railway.app';
+      const response = await fetch(`${API_URL}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          handId: handData.id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.analysis || 'No analysis available';
+    } catch (error) {
+      console.error('Real AI analysis error:', error);
+      // 如果API失敗，回退到模擬分析
+      return await simulateAIAnalysis(handData);
+    }
+  };
+
+  // 模擬AI分析功能（作為備用）
   const simulateAIAnalysis = async (handData: Hand): Promise<string> => {
     // 模擬網絡延遲
     await new Promise(resolve => setTimeout(resolve, 3000));
