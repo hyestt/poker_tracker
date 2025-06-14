@@ -1,0 +1,18 @@
+環境備份信息
+============
+備份時間: Fri Jun 13 23:52:53 PDT 2025
+Node版本: v20.15.0
+npm版本: 10.7.0
+Go版本: go version go1.24.4 darwin/arm64
+系統: Darwin MRP9FF24VD 24.5.0 Darwin Kernel Version 24.5.0: Tue Apr 22 19:54:49 PDT 2025; root:xnu-11417.121.6~2/RELEASE_ARM64_T6000 arm64
+
+專案狀態:
+- 後端服務: 1 個進程運行中
+- 資料庫: 3 個資料庫文件
+- Git分支: firebase-integration
+- Git狀態: 4 個未提交變更
+
+注意事項:
+- 這個備份包含所有依賴版本信息
+- 使用 restore.sh 可以恢復到此狀態
+- 建議在安裝Firebase前先提交當前變更到Git
