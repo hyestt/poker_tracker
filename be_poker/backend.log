@@ -43,3 +43,7 @@
 =====================================
 🔄 Starting HTTP server on port 8080...
 
+Successfully loaded prompt from file
+DEBUG CreateSession: Received session data: {ID: Location:Test Location Date:2025-06-13 23:30 SmallBlind:1 BigBlind:2 Currency:USD EffectiveStack:100 TableSize:6 Tag:test}
+DEBUG CreateSession: Tag value: 'test'
+DEBUG CreateSession: Executing INSERT with tag: 'test'
