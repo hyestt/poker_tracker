@@ -1,4 +1,4 @@
-=== Environment Snapshot Sat Jun 14 13:22:59 PDT 2025 ===
+=== Environment Snapshot Sat Jun 14 13:29:10 PDT 2025 ===
 
 === System Info ===
 OS: Darwin MRP9FF24VD 24.5.0 Darwin Kernel Version 24.5.0: Tue Apr 22 19:54:49 PDT 2025; root:xnu-11417.121.6~2/RELEASE_ARM64_T6000 arm64
@@ -7,7 +7,7 @@ NPM: 10.7.0
 Yarn: 
 
 === React Native ===
-RN CLI: 
+RN CLI: 18.0.0
 
 === iOS Environment ===
 Xcode: Xcode 16.4
@@ -31,9 +31,9 @@ DevDependencies from package.json:
 }
 
 === Git Status ===
-?? env-snapshot.txt
+ M env-snapshot.txt
+d597c9c4 Add react-native-sqlite-storage successfully
+2916d895 Checkpoint before installing react-native-sqlite-storage
 218b47cf fix: fix broken env
 55a251ad feat: install google admob
 68808eb1 feat: add revenueCat and interface
-2b988bc5 chore: refactor
-58361d0e feat: fix keyboard
