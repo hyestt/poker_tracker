@@ -1,0 +1,27 @@
+{
+  "totalSessions": 93,
+  "totalHands": 22,
+  "migrationDate": "2025-06-14T20:42:38.618Z",
+  "locations": [
+    "Club",
+    "Live Casino",
+    "Online",
+    "Debug Test",
+    "Unknown",
+    "Final Test",
+    "Debug Location",
+    "Test Location",
+    "Home Game",
+    "Test Casino"
+  ],
+  "currencies": [
+    "USD ($)",
+    "USD",
+    "GBP (£)",
+    "EUR (!)"
+  ],
+  "dateRange": {
+    "earliest": "",
+    "latest": "2025/06/10 19:20"
+  }
+}

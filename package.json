@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "@react-native-firebase/app": "^22.2.1",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@react-native-community/cli": "^18.0.0"
