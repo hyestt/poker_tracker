@@ -1,0 +1,45 @@
+🎯 Poker Tracker Backend Starting...
+====================================
+
+✅ OpenAI API Key loaded: sk-proj-Y7...
+🤖 AI analysis features enabled!
+
+🔍 Checking port 8080...
+✅ Port 8080 is available
+
+🗄️  Connecting to database...
+2025/06/13 22:51:33 🗄️  Using SQLite database: poker_tracker.db
+2025/06/13 22:51:33 ✅ Database connected successfully
+2025/06/13 22:51:33 🔍 Checking database schema...
+2025/06/13 22:51:33 ✅ Database schema is up to date
+✅ Database ready
+
+🛣️  Registering routes...
+✅ Routes registered
+
+🚀 Server Configuration:
+   📍 Port: 8080
+   🗄️  Database: SQLite (Local)
+   📁 Database File: poker_tracker.db
+   📍 Local: http://localhost:8080
+   📍 Network: http://192.168.1.28:8080
+
+📱 API Endpoints:
+   GET  /hands     - List hands
+   POST /hands     - Create hand
+   POST /analyze   - AI analysis
+   GET  /sessions  - List sessions
+   GET  /stats     - Statistics
+
+💡 Frontend Connection:
+   Make sure your React Native app points to:
+   http://192.168.1.28:8080
+
+💰 Cost Info:
+   AI Analysis: ~$0.0003-0.0008 per request
+   Model: GPT-4o-mini
+
+🎉 Server ready! Happy poker tracking! 🃏
+=====================================
+🔄 Starting HTTP server on port 8080...
+
