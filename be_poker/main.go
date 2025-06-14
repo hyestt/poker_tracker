@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"poker_tracker_backend/db"
-	"poker_tracker_backend/routes"
+	"poker_tracker/db"
+	"poker_tracker/routes"
 	"strings"
 	"time"
 )
@@ -123,26 +123,18 @@ func main() {
 	fmt.Println("✅ Database ready")
 	fmt.Println()
 	
-	// 註冊路由
-	fmt.Println("🛣️  Registering routes...")
-	routes.RegisterRoutes()
-	fmt.Println("✅ Routes registered")
-	fmt.Println()
+	// 設置路由
+	router := routes.SetupRoutes()
 	
 	// 顯示啟動信息
 	printStartupInfo()
 	
-	// 啟動服務器
+	// 獲取端口
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 	
-	fmt.Printf("🔄 Starting HTTP server on port %s...\n", port)
-	fmt.Println()
-	
-	// 使用 log.Fatal 來捕獲啟動錯誤
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatalf("❌ Server failed to start: %v", err)
-	}
+	log.Printf("🚀 Server starting on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, router))
 } 

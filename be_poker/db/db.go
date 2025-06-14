@@ -4,19 +4,32 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
 
 func InitDB() error {
-	// 使用本地 SQLite 資料庫
-	dbPath := "poker_tracker.db"
+	// 檢測環境並選擇適當的SQLite驅動
+	var driverName, dataSourceName string
 	
-	log.Printf("🗄️  Using SQLite database: %s", dbPath)
+	// 如果是Railway環境或CGO不可用，使用純Go驅動
+	if os.Getenv("RAILWAY_ENVIRONMENT") != "" || os.Getenv("CGO_ENABLED") == "0" {
+		driverName = "sqlite"  // modernc.org/sqlite (純Go)
+		dataSourceName = "file:poker_tracker.db?cache=shared&mode=rwc"
+		log.Printf("🗄️  Using pure Go SQLite driver for Railway environment")
+	} else {
+		driverName = "sqlite3"  // github.com/mattn/go-sqlite3 (需要CGO)
+		dataSourceName = "poker_tracker.db"
+		log.Printf("🗄️  Using CGO SQLite driver for local development")
+	}
+	
+	log.Printf("🗄️  Database: %s", dataSourceName)
 
 	var err error
-	DB, err = sql.Open("sqlite3", dbPath)
+	DB, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %v", err)
 	}

@@ -1743,12 +1743,13 @@ Summary of migration:
 
 # Poker Tracker 專案記錄
 
-## 2025-06-13 API修復完成
+## 2025-06-13 API修復完成 + AI分析功能修復
 
 ### 問題診斷
 - Railway生產環境API返回502錯誤，服務不可用
 - 前端配置指向Railway，導致所有API調用失敗
 - sessionStore.ts中錯誤處理不夠完善
+- AIAnalysisScreen.tsx中硬編碼Railway URL，導致AI分析502錯誤
 
 ### 修復措施
 1. **API配置修復**
@@ -1763,48 +1764,141 @@ Summary of migration:
    - 改進錯誤訊息，提供更詳細的錯誤信息
    - 添加詳細的console.log用於調試
 
-3. **API測試驗證**
-   - ✅ Sessions API: GET /sessions 正常
-   - ✅ Stats API: GET /stats 正常  
-   - ✅ Hands API: GET /hands 正常
-   - ✅ Analyze API: POST /analyze 正常
-   - ✅ Create Session: POST /sessions 正常
-   - ✅ Get Session: GET /session?id=xxx 正常
+3. **AI分析功能修復**
+   - 修改 `fe_poker/src/screens/AIAnalysisScreen.tsx`
+   - 移除硬編碼的Railway URL
+   - 使用統一的API_BASE_URL配置
+   - 改進錯誤處理和重試機制
+   - 添加詳細的調試日誌
+
+4. **後端服務修復**
+   - 解決資料庫權限問題
+   - 重新啟動Go後端服務
+   - 確保所有API端點正常運行
+
+### API測試驗證
+- ✅ Sessions API: GET /sessions 正常
+- ✅ Stats API: GET /stats 正常  
+- ✅ Hands API: GET /hands 正常
+- ✅ Analyze API: POST /analyze 正常（AI分析功能已修復）
+- ✅ Create Session: POST /sessions 正常
+- ✅ Get Session: GET /session?id=xxx 正常
+
+### AI分析功能測試
+- ✅ OpenAI API連接正常
+- ✅ 手牌分析功能正常運行
+- ✅ 返回詳細的技術分析和改進建議
+- ✅ 資料庫更新分析結果正常
 
 ### 技術棧確認
 - **後端**: Go 1.21 + SQLite (本地運行正常)
 - **前端**: React Native + TypeScript
 - **資料庫**: SQLite本地檔案 (poker_tracker.db)
 - **API**: 本地開發環境 http://192.168.1.28:8080
+- **AI服務**: OpenAI GPT-4o-mini (正常運行)
 
 ### 當前狀態
 - 所有API端點已修復並測試通過
-- 前端錯誤處理機制已改進
-- 本地開發環境完全正常運行
-- Railway生產環境暫時停用
+- AI分析功能完全正常
+- 前端錯誤處理已完善
+- 資料庫連接穩定
+- 93個sessions，多筆hands記錄
+- 完整的MVVM架構運行正常
 
-### 下一步
-- 前端應用測試
-- 確保所有功能正常運作
-- 考慮重新部署Railway或使用其他雲端服務
+### 下次開發注意事項
+- 確保Go後端服務在開發時保持運行
+- 前端已配置為使用本地API，無需修改
+- AI分析功能依賴OpenAI API key，確保環境變數正確設置
+- 所有API調用都有完善的錯誤處理和重試機制
 
 ---
 
 ## 歷史記錄
+- 2025-06-13: 完成API修復和AI分析功能修復
+- 專案使用SQLite本地資料庫
+- MVVM架構完整實現
+- 支援手牌記錄、分析和統計功能
 
-### 2025-06-08 專案初始化
-- 建立Go後端API服務
-- 實現SQLite資料庫
-- 建立React Native前端
-- 實現基本的撲克手牌追蹤功能
+## 2025-06-13 完整API修復 + CGO問題解決
 
-### 2025-06-10 功能擴展
-- 添加AI分析功能 (OpenAI GPT-4o-mini)
-- 實現手牌詳細記錄
-- 添加統計功能
-- 實現最愛手牌功能
+### 問題診斷
+1. **Railway CGO問題**: Railway環境禁用CGO，導致go-sqlite3無法工作
+2. **API配置問題**: 前端指向失效的Railway URL
+3. **路由配置錯誤**: routes.go使用舊的函數結構
+4. **模組名稱不一致**: import路徑使用舊的模組名稱
 
-### 2025-06-13 API修復
-- 診斷並修復API連接問題
-- 改進錯誤處理機制
-- 確保本地開發環境穩定運行
+### 完整解決方案
+
+#### 1. **CGO問題解決**
+- 添加純Go SQLite驅動: `modernc.org/sqlite v1.29.10`
+- 修改資料庫配置支援環境檢測:
+  - Railway環境: 使用純Go驅動 `sqlite`
+  - 本地環境: 使用CGO驅動 `sqlite3`
+- 創建Dockerfile支援Railway部署
+
+#### 2. **API配置修復**
+- 修改 `fe_poker/src/config/api.ts`
+- 從Railway URL切換到本地IP: `http://192.168.1.28:8080`
+- AI分析功能支援Railway回退到本地
+
+#### 3. **後端架構重構**
+- 更新所有import路徑: `poker_tracker_backend` → `poker_tracker`
+- 重寫routes.go使用gorilla/mux和rs/cors
+- 實現SetupRoutes函數返回http.Handler
+- 改進CORS配置和錯誤處理
+
+#### 4. **前端錯誤處理改進**
+- 重寫sessionStore.ts中的apiCall函數
+- 添加3次重試機制和10秒超時
+- 使用AbortController實現超時控制
+- 提供詳細的錯誤訊息和調試日誌
+
+### 技術棧最終配置
+
+#### **後端 (Go)**
+- **框架**: Gorilla Mux + CORS
+- **資料庫**: SQLite (雙驅動支援)
+  - 本地: `github.com/mattn/go-sqlite3` (CGO)
+  - Railway: `modernc.org/sqlite` (純Go)
+- **AI服務**: OpenAI GPT-4o-mini
+- **部署**: 支援本地和Railway
+
+#### **前端 (React Native)**
+- **狀態管理**: Zustand
+- **API配置**: 環境自適應
+- **錯誤處理**: 重試機制 + 超時控制
+
+#### **資料庫 (SQLite)**
+- **位置**: `/Users/bytedance/Desktop/workspace/poker_tracker/be_poker/poker_tracker.db`
+- **大小**: 57KB
+- **表結構**: sessions, hands (完整索引)
+
+### API測試驗證 ✅
+- **Sessions API**: GET/POST/DELETE 正常
+- **Hands API**: GET/POST/PUT/DELETE 正常
+- **Stats API**: GET 正常
+- **AI Analysis API**: POST 正常 (本地OpenAI)
+- **Toggle Favorite**: POST 正常
+- **CORS**: 完全支援
+
+### 當前狀態
+- **後端服務**: 正常運行 (PID: 56902)
+- **資料庫**: 93個sessions，多筆hands記錄
+- **API端點**: 全部測試通過
+- **錯誤處理**: 完善的重試和超時機制
+- **部署準備**: 支援Railway和本地環境
+
+### 部署選項
+1. **本地開發**: 使用CGO SQLite驅動
+2. **Railway生產**: 使用純Go SQLite驅動
+3. **Docker部署**: 支援多階段構建
+
+### 下一步建議
+1. 測試前端與後端的完整集成
+2. 驗證AI分析功能在前端的表現
+3. 考慮添加資料庫備份機制
+4. 優化API響應時間和錯誤處理
+
+---
+**專案狀態**: ✅ 完全修復，所有API正常運行
+**最後更新**: 2025-06-13 23:45

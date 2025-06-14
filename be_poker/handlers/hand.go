@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"poker_tracker_backend/db"
-	"poker_tracker_backend/models"
-	"poker_tracker_backend/services"
+	"poker_tracker/db"
+	"poker_tracker/models"
+	"poker_tracker/services"
 	"github.com/google/uuid"
 )
 

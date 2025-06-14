@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"poker_tracker_backend/db"
-	"poker_tracker_backend/models"
+	"poker_tracker/db"
+	"poker_tracker/models"
 )
 
 func GetStats(w http.ResponseWriter, r *http.Request) {

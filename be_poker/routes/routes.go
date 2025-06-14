@@ -2,110 +2,57 @@ package routes
 
 import (
 	"net/http"
-	"poker_tracker_backend/handlers"
+	"poker_tracker/handlers"
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
-// CORS middleware
-func enableCORS(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+func SetupRoutes() http.Handler {
+	// 創建新的路由器
+	r := mux.NewRouter()
+
+	// API路由
+	api := r.PathPrefix("/").Subrouter()
+
+	// Sessions路由
+	api.HandleFunc("/sessions", handlers.GetSessions).Methods("GET")
+	api.HandleFunc("/sessions", handlers.CreateSession).Methods("POST")
+	api.HandleFunc("/sessions", handlers.DeleteSession).Methods("DELETE")
 	
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-}
+	// Session路由
+	api.HandleFunc("/session", handlers.GetSession).Methods("GET")
+	api.HandleFunc("/session", handlers.UpdateSession).Methods("PUT")
 
-func RegisterRoutes() {
-	http.HandleFunc("/sessions", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		switch r.Method {
-		case http.MethodGet:
-			handlers.GetSessions(w, r)
-		case http.MethodPost:
-			handlers.CreateSession(w, r)
-		case http.MethodDelete:
-			handlers.DeleteSession(w, r)
-		}
-	})
+	// Hands路由
+	api.HandleFunc("/hands", handlers.GetHands).Methods("GET")
+	api.HandleFunc("/hands", handlers.CreateHand).Methods("POST")
+	api.HandleFunc("/hands", handlers.DeleteHand).Methods("DELETE")
+	
+	// Hand路由
+	api.HandleFunc("/hand", handlers.GetHand).Methods("GET")
+	api.HandleFunc("/hand", handlers.UpdateHand).Methods("PUT")
 
-	http.HandleFunc("/session", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		switch r.Method {
-		case http.MethodGet:
-			handlers.GetSession(w, r)
-		case http.MethodPut:
-			handlers.UpdateSession(w, r)
-		}
-	})
-
-	http.HandleFunc("/hands", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		switch r.Method {
-		case http.MethodGet:
-			handlers.GetHands(w, r)
-		case http.MethodPost:
-			handlers.CreateHand(w, r)
-		case http.MethodDelete:
-			handlers.DeleteHand(w, r)
-		}
-	})
-
-	http.HandleFunc("/hand", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		switch r.Method {
-		case http.MethodGet:
-			handlers.GetHand(w, r)
-		case http.MethodPut:
-			handlers.UpdateHand(w, r)
-		}
-	})
-
-	// 測試路由
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		w.Write([]byte("Test route works"))
-	})
-
-	// 暫時註釋掉analyze路由
-	http.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		handlers.AnalyzeHand(w, r)
-	})
+	// AI分析路由
+	api.HandleFunc("/analyze", handlers.AnalyzeHand).Methods("POST")
 
 	// 切換最愛狀態
-	http.HandleFunc("/toggle-favorite", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		handlers.ToggleFavorite(w, r)
+	api.HandleFunc("/toggle-favorite", handlers.ToggleFavorite).Methods("POST")
+
+	// 統計路由
+	api.HandleFunc("/stats", handlers.GetStats).Methods("GET")
+
+	// 測試路由
+	api.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Test route works"))
+	}).Methods("GET")
+
+	// 設置CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"*"},
+		AllowCredentials: true,
 	})
 
-	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
-		enableCORS(w, r)
-		if r.Method == "OPTIONS" {
-			return
-		}
-		handlers.GetStats(w, r)
-	})
+	return c.Handler(r)
 } 

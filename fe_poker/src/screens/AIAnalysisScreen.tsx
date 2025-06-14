@@ -3,88 +3,118 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIn
 import { theme } from '../theme';
 import { Hand } from '../models';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSessionStore } from '../viewmodels/sessionStore';
+import { API_BASE_URL } from '../config/api';
+
+// AI分析優先使用Railway，失敗時回退到本地
+const RAILWAY_URL = 'https://poker-production-12db.up.railway.app';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
+  const { handId } = route.params;
+  const { getHand } = useSessionStore();
+  const [hand, setHand] = useState<Hand | null>(null);
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const { hand } = route.params;
 
   console.log('AIAnalysisScreen mounted with hand:', hand);
 
   useEffect(() => {
-    performAIAnalysis();
-  }, []);
+    loadHandAndAnalysis();
+  }, [handId]);
 
-  const performAIAnalysis = async () => {
-    console.log('performAIAnalysis started');
+  const loadHandAndAnalysis = async () => {
+    try {
+      const handData = await getHand(handId);
+      setHand(handData);
+      
+      if (handData.analysis) {
+        setAnalysis(handData.analysis);
+        setLoading(false);
+      } else {
+        await performAIAnalysis(handData);
+      }
+    } catch (error) {
+      console.error('Failed to load hand:', error);
+      setLoading(false);
+    }
+  };
+
+  const performAIAnalysis = async (handData?: Hand) => {
+    const targetHand = handData || hand;
+    if (!targetHand) return;
+    
     setLoading(true);
     try {
-      // 檢查是否已有分析結果
-      if (hand.analysis) {
-        console.log('Found existing analysis:', hand.analysis);
-        setAnalysis(hand.analysis);
-        setLoading(false);
-        return;
-      }
-
-      console.log('Performing new AI analysis...');
-      // 執行真正的AI分析
-      const analysisResult = await performRealAIAnalysis(hand);
-      console.log('AI analysis completed:', analysisResult);
-      
-      // 更新hand數據
-      const updatedHand = {
-        ...hand,
-        analysis: analysisResult,
-        analysisDate: new Date().toLocaleDateString()
-      };
-      
-      // 保存到localStorage
-      const existingHands = await AsyncStorage.getItem('poker_hands');
-      if (existingHands) {
-        const hands = JSON.parse(existingHands);
-        const handIndex = hands.findIndex((h: any) => h.id === hand.id);
-        if (handIndex !== -1) {
-          hands[handIndex] = updatedHand;
-          await AsyncStorage.setItem('poker_hands', JSON.stringify(hands));
-          console.log('Analysis saved to localStorage');
-        }
-      }
-      
+      // 首先嘗試Railway API
+      console.log('Attempting Railway AI analysis...');
+      const analysisResult = await performRailwayAIAnalysis(targetHand);
       setAnalysis(analysisResult);
-    } catch (error) {
-      console.error('AI analysis error:', error);
-      Alert.alert('Error', 'Failed to perform AI analysis');
+      console.log('Railway AI analysis successful');
+    } catch (railwayError) {
+      console.log('Railway AI analysis failed, trying local API...');
+      try {
+        // Railway失敗時，嘗試本地API
+        const analysisResult = await performLocalAIAnalysis(targetHand);
+        setAnalysis(analysisResult);
+        console.log('Local AI analysis successful');
+      } catch (localError) {
+        console.log('Local AI analysis also failed, using simulation...');
+        // 兩個都失敗時，使用模擬分析
+        const simulatedAnalysis = await simulateAIAnalysis(targetHand);
+        setAnalysis(simulatedAnalysis);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // 真正的AI分析功能
-  const performRealAIAnalysis = async (handData: Hand): Promise<string> => {
-    try {
-      const API_URL = 'https://poker-production-12db.up.railway.app';
-      const response = await fetch(`${API_URL}/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          handId: handData.id
-        })
-      });
+  const performRailwayAIAnalysis = async (handData: Hand): Promise<string> => {
+    console.log('Performing Railway AI analysis for hand:', handData.id);
+    
+    const response = await fetch(`${RAILWAY_URL}/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        handId: handData.id
+      }),
+      // 設置較短的超時時間
+      signal: AbortSignal.timeout(10000) // 10秒超時
+    });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
+    console.log(`Railway API Response: ${response.status} ${response.statusText}`);
 
-      const result = await response.json();
-      return result.analysis || 'No analysis available';
-    } catch (error) {
-      console.error('Real AI analysis error:', error);
-      // 如果API失敗，回退到模擬分析
-      return await simulateAIAnalysis(handData);
+    if (!response.ok) {
+      throw new Error(`Railway API error: ${response.status} ${response.statusText}`);
     }
+
+    const result = await response.json();
+    return result.analysis || 'No analysis available';
+  };
+
+  const performLocalAIAnalysis = async (handData: Hand): Promise<string> => {
+    console.log('Performing local AI analysis for hand:', handData.id);
+    
+    const response = await fetch(`${API_BASE_URL}/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        handId: handData.id
+      }),
+      signal: AbortSignal.timeout(10000) // 10秒超時
+    });
+
+    console.log(`Local API Response: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      throw new Error(`Local API error: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.analysis || 'No analysis available';
   };
 
   // 模擬AI分析功能（作為備用）
@@ -185,19 +215,19 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <Text style={styles.summaryTitle}>Hand Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Position:</Text>
-            <Text style={styles.summaryValue}>{hand.position || 'Unknown'}</Text>
+            <Text style={styles.summaryValue}>{hand?.position || 'Unknown'}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Hole Cards:</Text>
-            <Text style={styles.summaryValue}>{hand.holeCards || 'Unknown'}</Text>
+            <Text style={styles.summaryValue}>{hand?.holeCards || 'Unknown'}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Result:</Text>
             <Text style={[
               styles.summaryValue,
-              { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+              { color: (hand?.result ?? 0) >= 0 ? theme.colors.profit : theme.colors.loss }
             ]}>
-              {hand.result >= 0 ? '+' : ''}${hand.result}
+              {(hand?.result ?? 0) >= 0 ? '+' : ''}${hand?.result ?? 0}
             </Text>
           </View>
         </View>
@@ -208,7 +238,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <Text style={styles.analysisText}>
             {analysis ? formatAnalysisText(analysis) : 'Analysis is being generated...'}
           </Text>
-          {hand.analysisDate && (
+          {hand?.analysisDate && (
             <Text style={styles.analysisDate}>
               Analysis completed: {new Date().toLocaleString()}
             </Text>
