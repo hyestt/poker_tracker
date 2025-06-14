@@ -1,0 +1,39 @@
+=== Environment Snapshot Sat Jun 14 13:22:59 PDT 2025 ===
+
+=== System Info ===
+OS: Darwin MRP9FF24VD 24.5.0 Darwin Kernel Version 24.5.0: Tue Apr 22 19:54:49 PDT 2025; root:xnu-11417.121.6~2/RELEASE_ARM64_T6000 arm64
+Node: v20.15.0
+NPM: 10.7.0
+Yarn: 
+
+=== React Native ===
+RN CLI: 
+
+=== iOS Environment ===
+Xcode: Xcode 16.4
+Build version 16F6
+iOS Simulator: iOS 18.5 (18.5 - 22F77) - com.apple.CoreSimulator.SimRuntime.iOS-18-5
+CocoaPods: 1.16.2
+
+=== Ruby (for CocoaPods) ===
+Ruby: ruby 2.6.10p210 (2022-04-12 revision 67958) [universal.arm64e-darwin24]
+Bundler: Bundler version 1.17.2
+
+=== Package Versions ===
+Dependencies from package.json:
+{
+  "node-fetch": "^2.7.0"
+}
+
+DevDependencies from package.json:
+{
+  "@react-native-community/cli": "^18.0.0"
+}
+
+=== Git Status ===
+?? env-snapshot.txt
+218b47cf fix: fix broken env
+55a251ad feat: install google admob
+68808eb1 feat: add revenueCat and interface
+2b988bc5 chore: refactor
+58361d0e feat: fix keyboard
