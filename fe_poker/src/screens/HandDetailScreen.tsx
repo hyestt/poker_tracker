@@ -163,7 +163,7 @@ Shared from Poker Tracker`;
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          onPress={() => navigation.navigate('AIAnalysis', { hand })} 
+          onPress={() => navigation.navigate('AIAnalysis', { handId: hand.id })} 
           style={styles.aiAnalysisButton}
         >
           <Text style={styles.aiAnalysisButtonText}>AI Analysis</Text>
