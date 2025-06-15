@@ -22,6 +22,7 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
 import revenueCatService from './src/services/RevenueCatService';
 import adMobService from './src/services/AdMobService';
+import { useSessionStore } from './src/viewmodels/sessionStore';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -51,10 +52,15 @@ function SettingsStack() {
 }
 
 export default function App() {
+  const { initialize } = useSessionStore();
+
   useEffect(() => {
     // 初始化服務
     const initializeServices = async () => {
       try {
+        // 初始化 SessionStore（本地模式）
+        await initialize();
+        
         // 初始化 RevenueCat
         await revenueCatService.initialize();
         
@@ -68,7 +74,7 @@ export default function App() {
     };
 
     initializeServices();
-  }, []);
+  }, [initialize]);
 
   return (
     <NavigationContainer>

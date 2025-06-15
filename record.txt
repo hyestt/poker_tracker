@@ -1,3 +1,54 @@
+# Poker Tracker 專案記錄
+
+## 2025-01-27 - 開始後端功能遷移到 React Native SQLite
+
+### 遷移目標：
+- 將 Sessions/Hands CRUD 從後端遷移到前端 SQLite
+- 保留 AI Analysis 功能在後端 (Railway + Go)
+- 確保可以安全 rollback
+
+### 備份狀態：
+- 創建 migration-backup 分支
+- 當前版本可正常運行 iOS 模擬器
+- SQLite 套件已安裝且正常運作
+
+### 遷移階段：
+1. ✅ 創建 Rollback 機制
+2. ⏳ 增強 DatabaseService 功能
+3. ⏳ 創建混合模式 Store
+4. ⏳ 逐步切換到本地存儲
+5. ⏳ 保留 AI Analysis API
+6. ⏳ 測試所有功能
+7. ⏳ 清理後端代碼
+
+### 風險控制：
+- 不安裝新 library
+- 不改動環境配置
+- 保持後端運行直到測試完成
+- 每個階段都可以 rollback
+
+---
+
+## 歷史記錄
+
+### 2025-01-27 - iOS 建置問題修復
+- 移除 Firebase 套件解決 C++20 兼容性問題
+- 保留 SQLite 套件正常運作
+- iOS 模擬器可正常運行
+
+### 2025-01-27 - SQLite 資料庫測試
+- 在 SettingsScreen 加入資料庫測試功能
+- 可檢查 SQLite 資料庫狀態和資料
+
+### 2025-01-27 - Expo 套件清理
+- 移除所有 Expo 相關依賴
+- 清理 package-lock.json
+- 重新安裝依賴
+
+### 2025-01-27 - ngrok 檢查
+- 確認專案中沒有使用 ngrok
+- 所有網路配置都是本地開發環境
+
 Poker Tracker 專案環境安裝與技術棧說明
 
 一、技術棧總覽
