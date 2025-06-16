@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="23C71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Hand" representedClassName="Hand" syncable="YES" codeGenerationType="class">
+        <attribute name="analysis" optional="YES" attributeType="String"/>
+        <attribute name="analysisDate" optional="YES" attributeType="String"/>
+        <attribute name="board" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="date" optional="YES" attributeType="String"/>
+        <attribute name="details" attributeType="String" defaultValue=""/>
+        <attribute name="favorite" attributeType="Boolean" defaultValue="NO" usesScalarValueType="YES"/>
+        <attribute name="holeCards" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="position" optional="YES" attributeType="String"/>
+        <attribute name="result" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="sessionId" attributeType="String"/>
+        <attribute name="tag" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="villains" optional="YES" attributeType="String"/>
+        <relationship name="session" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Session" inverseName="hands" inverseEntity="Session"/>
+    </entity>
+    <entity name="Session" representedClassName="Session" syncable="YES" codeGenerationType="class">
+        <attribute name="bigBlind" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="currency" attributeType="String" defaultValue="USD"/>
+        <attribute name="date" attributeType="String" defaultValue=""/>
+        <attribute name="effectiveStack" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="location" attributeType="String" defaultValue=""/>
+        <attribute name="smallBlind" attributeType="Double" defaultValue="0.0" usesScalarValueType="YES"/>
+        <attribute name="tableSize" attributeType="Integer 16" defaultValue="6" usesScalarValueType="YES"/>
+        <attribute name="tag" attributeType="String" defaultValue=""/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="hands" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Hand" inverseName="session" inverseEntity="Hand"/>
+    </entity>
+</model> 
