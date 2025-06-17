@@ -1,5 +1,37 @@
 # Poker Tracker 專案記錄
 
+## 2025-06-18 - iOS 專案重建與 Metro 依賴修復
+
+### 背景
+在試圖加入新功能後，iOS 專案出現了頑固的原生建置錯誤 (`Could not build module 'UIKit'`)，且在修復過程中暴露了專案設定損壞的問題。在解決原生問題後，又回到了最初的 JavaScript 依賴問題。
+
+### 修復過程摘要
+
+1.  **初步診斷 (JS)**：遇到 `Unable to resolve module @babel/runtime` 錯誤。嘗試將 `@babel/runtime` 從 `devDependencies` 移至 `dependencies`。
+2.  **問題惡化 (原生)**：JS 問題暫時消失，但出現了 `Could not build module 'UIKit'` 的 Xcode 建置錯誤，起初由 Hermes 引發，禁用 Hermes 後由 JSC 引發，證實問題根源在原生專案。
+3.  **標準修復無效**：嘗試了標準的 `pod install`、清理 `Pods` 目錄和 `build` 目錄、清理 Xcode 的 `Derived Data`，但問題依舊存在，暗示 `.xcodeproj` 檔案可能已損壞。
+4.  **最終手段 (專案重建)**：
+    -   備份了 `Info.plist` 和 `AppDelegate.swift` 中的重要設定。
+    -   徹底刪除了整個 `fe_poker/ios` 目錄。
+    -   透過在臨時資料夾中執行 `npx @react-native-community/cli init`，建立了一個全新的、乾淨的 `ios` 專案範本。
+    -   將新產生的 `ios` 目錄複製回 `fe_poker` 專案中。
+    -   恢復了 `Info.plist` 和 `AppDelegate.swift` 的設定。
+    -   在新目錄中執行 `pod install`，成功重建了原生專案。
+5.  **回到起點 (JS)**：原生建置錯誤消失，但 `@babel/runtime` 的解析錯誤再次出現。
+6.  **最終修復 (JS)**：
+    -   再次確認 `@babel/runtime` 位於 `dependencies` 中。
+    -   徹底刪除了 `node_modules` 和 `package-lock.json`。
+    -   執行 `npm install` 進行乾淨的依賴安裝。
+7.  **伺服器啟動問題**：
+    -   解決了因在錯誤目錄執行而導致的 `unknown command 'start'` 問題。
+    -   解決了因舊程序佔用 8081 通訊埠而導致的 `EADDRINUSE` 問題（使用 `lsof` 和 `kill -9`）。
+8.  **成功**：Metro 伺服器最終成功啟動，應用程式能夠正常建置並連接。
+
+### 結論
+這次修復的核心是**徹底重建損壞的 `ios` 目錄**，並確保 JavaScript 依賴 (`@babel/runtime`) 被正確地放置在 `dependencies` 中。
+
+---
+
 ## 2025-01-27 - 開始後端功能遷移到 React Native SQLite
 
 ### 遷移目標：

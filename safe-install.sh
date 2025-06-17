@@ -1,42 +1,40 @@
 #!/bin/bash
 
-# Safe Library Installation Script
-# Usage: ./safe-install.sh <package-name>
+# This script performs a thorough cleanup of the React Native project environment.
+# It should be run from the project root directory.
+# Use this script when switching branches or encountering persistent build issues.
 
-if [ -z "$1" ]; then
-    echo "Usage: ./safe-install.sh <package-name>"
-    exit 1
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+echo "🟢 Starting the safe installation process..."
+
+# Navigate to the frontend project directory
+# This assumes you run the script from the project root (poker_tracker/)
+if [ ! -d "fe_poker" ]; then
+  echo "❌ Error: 'fe_poker' directory not found. Please run this script from the project root."
+  exit 1
 fi
+cd fe_poker
 
-PACKAGE_NAME=$1
-BRANCH_NAME="feature/add-$PACKAGE_NAME-$(date +%Y%m%d-%H%M%S)"
+# --- Step 1: Clean JavaScript Dependencies ---
+echo "🧹 Step 1/3: Cleaning JavaScript dependencies (node_modules, package-lock.json)..."
+rm -rf node_modules
+rm -f package-lock.json
 
-echo "🔄 Creating safety checkpoint..."
+echo "📦 Step 2/3: Installing fresh JavaScript dependencies..."
+npm install
 
-# 1. Create environment snapshot
-./environment-snapshot.sh
+# --- Step 3: Clean iOS Native Dependencies ---
+echo "🧹 Step 3/3: Cleaning and installing iOS (CocoaPods) dependencies..."
+cd ios
+rm -rf Pods
+rm -f Podfile.lock
+pod install
+cd ..
 
-# 2. Commit current state
-git add .
-git commit -m "Checkpoint before installing $PACKAGE_NAME"
-
-# 3. Create new branch
-git checkout -b "$BRANCH_NAME"
-
-echo "✅ Safety checkpoint created on branch: $BRANCH_NAME"
-echo "📦 Installing $PACKAGE_NAME..."
-
-# 4. Install package
-if command -v yarn &> /dev/null; then
-    yarn add "$PACKAGE_NAME"
-else
-    npm install "$PACKAGE_NAME"
-fi
-
-# 5. Update iOS dependencies
-echo "🍎 Updating iOS dependencies..."
-cd ios && pod install && cd ..
-
-echo "🧪 Testing installation..."
-echo "Run your app now. If it works, commit the changes."
-echo "If it fails, run: git checkout main && git branch -D $BRANCH_NAME" 
+echo ""
+echo "✅ Safe installation process completed successfully!"
+echo "🚀 You can now try to build and run your app."
+echo "   In one terminal, run: cd fe_poker && npx react-native start --reset-cache"
+echo "   In another terminal, run: cd fe_poker && npx react-native run-ios" 
