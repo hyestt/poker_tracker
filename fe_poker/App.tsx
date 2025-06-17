@@ -21,7 +21,6 @@ import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
 import revenueCatService from './src/services/RevenueCatService';
-import adMobService from './src/services/AdMobService';
 import { useSessionStore } from './src/viewmodels/sessionStore';
 
 const Tab = createBottomTabNavigator();
@@ -63,9 +62,6 @@ export default function App() {
         
         // 初始化 RevenueCat
         await revenueCatService.initialize();
-        
-        // 初始化 AdMob（使用更安全的方式）
-        await adMobService.initialize();
         
         console.log('✅ Services initialized successfully');
       } catch (error) {

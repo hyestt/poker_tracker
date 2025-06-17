@@ -4,7 +4,6 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
-import { AdBanner } from '../components/AdBanner';
 
 const filterOptions = [
   { key: 'all', label: 'All Hands' },
@@ -422,9 +421,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {filteredHands.length > 0 && (
         <Text style={styles.usageHint}>Tap to view • Long press for more actions</Text>
       )}
-
-      {/* Ad Banner */}
-      <AdBanner style={styles.adBanner} />
 
       {/* Hands List */}
       <ScrollView 
@@ -940,10 +936,6 @@ const styles = StyleSheet.create({
     color: theme.colors.gray,
     marginTop: theme.spacing.lg,
     fontSize: theme.font.size.body,
-  },
-  adBanner: {
-    marginHorizontal: theme.spacing.md,
-    marginVertical: theme.spacing.sm,
   },
 
   // Modal styles
