@@ -1,8 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { theme } from '../theme';
 import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
+import revenueCatService from '../services/RevenueCatService';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { 
@@ -14,6 +15,26 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     fetchHands,
     fetchStats 
   } = useSessionStore();
+
+  const [isPremium, setIsPremium] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const initializeAndCheckStatus = async () => {
+      try {
+        await revenueCatService.initialize();
+        const premiumStatus = await revenueCatService.isPremiumUser();
+        setIsPremium(premiumStatus);
+      } catch (error) {
+        console.error("Failed to check premium status:", error);
+        Alert.alert("錯誤", "無法檢查會員狀態。");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAndCheckStatus();
+  }, []);
 
   const handleMenuPress = (item: string) => {
     Alert.alert('Feature in Development', `${item} feature coming soon`);
@@ -116,6 +137,23 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
     }
   };
 
+  const handleRestorePurchases = async () => {
+    setIsLoading(true);
+    try {
+      const customerInfo = await revenueCatService.restorePurchases();
+      if (customerInfo.entitlements.active && Object.keys(customerInfo.entitlements.active).length > 0) {
+        setIsPremium(true);
+        Alert.alert("成功", "您的購買已成功恢復！");
+      } else {
+        Alert.alert("提示", "未找到有效的購買紀錄。");
+      }
+    } catch (error) {
+      Alert.alert("錯誤", "恢復購買失敗，請稍後再試。");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -125,6 +163,34 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         
+        {/* 會員資格區段 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>💎 會員資格</Text>
+          
+          <View style={styles.menuItem}>
+            <Text style={styles.menuText}>當前狀態</Text>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : (
+              <Text style={[styles.statusTag, isPremium ? styles.premiumTag : styles.freeTag]}>
+                {isPremium ? '高級會員' : '免費會員'}
+              </Text>
+            )}
+          </View>
+
+          {!isPremium && (
+             <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Subscription')}>
+                <Text style={styles.menuText}>🚀 升級到高級版</Text>
+                <Text style={styles.menuArrow}>›</Text>
+             </TouchableOpacity>
+          )}
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleRestorePurchases}>
+            <Text style={styles.menuText}>🔄 恢復購買</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* 資料管理區段 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📊 資料管理</Text>
@@ -255,14 +321,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   menuArrow: {
-    fontSize: 18,
-    color: theme.colors.gray,
+    fontSize: 20,
+    color: theme.colors.lightGray,
   },
   statusSection: {
-    margin: 16,
+    marginTop: 30,
     padding: 16,
-    backgroundColor: theme.colors.lightGray,
-    borderRadius: 12,
+    alignItems: 'center',
   },
   statusTitle: {
     fontSize: 16,
@@ -272,7 +337,23 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    color: theme.colors.gray,
+    color: theme.colors.textMuted,
     marginBottom: 4,
   },
+  statusTag: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  premiumTag: {
+    backgroundColor: 'gold',
+    color: theme.colors.text,
+  },
+  freeTag: {
+    backgroundColor: theme.colors.lightGray,
+    color: theme.colors.textMuted,
+  }
 }); 

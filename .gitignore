@@ -1,1 +1,88 @@
-node_modules
+# General
+# ===============================================
+# 忽略環境變數檔案 (非常重要！)
+.env
+docker.env
+
+# 忽略編輯器/IDE的設定
+.vscode/
+
+# 忽略macOS系統檔案
+.DS_Store
+
+# 忽略我們的修復紀錄 (這通常是本地參考用的)
+/record.txt
+
+# 忽略臨時產生的腳本輸出 (如果有的話)
+/env-snapshot.txt
+
+# React Native - fe_poker
+# ===============================================
+
+# 依賴項
+/fe_poker/node_modules/
+/fe_poker/ios/Pods/
+/fe_poker/vendor/bundle/
+/fe_poker/.yarn/*
+!/fe_poker/.yarn/patches
+!/fe_poker/.yarn/plugins
+!/fe_poker/.yarn/releases
+!/fe_poker/.yarn/sdks
+!/fe_poker/.yarn/versions
+
+# 建置產物 & 快取
+/fe_poker/ios/build/
+/fe_poker/android/build/
+/fe_poker/android/.gradle/
+/fe_poker/android/.idea/
+/fe_poker/coverage/
+*.jsbundle
+.metro-health-check*
+
+# Xcode
+/fe_poker/ios/DerivedData/
+/fe_poker/ios/*.hmap
+/fe_poker/ios/*.ipa
+/fe_poker/ios/*.xcuserstate
+/fe_poker/ios/**/*.pbxuser
+/fe_poker/ios/**/*.mode1v3
+/fe_poker/ios/**/*.mode2v3
+/fe_poker/ios/**/*.perspectivev3
+/fe_poker/ios/**/xcuserdata/
+/fe_poker/ios/**/*.xccheckout
+/fe_poker/ios/*.moved-aside
+/fe_poker/**/.xcode.env.local
+
+# Android
+/fe_poker/android/local.properties
+/fe_poker/android/**/*.iml
+/fe_poker/android/**/*.hprof
+/fe_poker/android/.cxx/
+/fe_poker/android/**/*.keystore
+!/fe_poker/android/debug.keystore
+/fe_poker/android/.kotlin/
+
+# fastlane
+/fe_poker/**/fastlane/report.xml
+/fe_poker/**/fastlane/Preview.html
+/fe_poker/**/fastlane/screenshots
+/fe_poker/**/fastlane/test_output
+
+# Log files
+/fe_poker/npm-debug.log
+/fe_poker/yarn-error.log
+
+# Backend (Go) - be_poker
+# ===============================================
+# 忽略 Go 的建置產物
+/be_poker/poker_tracker
+/be_poker/poker_tracker_backend
+/be_poker/main
+
+# 忽略 Go 的資料庫檔案 (通常不建議將資料庫本身放入版控)
+/be_poker/*.db
+/be_poker/*.db-journal
+
+# 忽略後端日誌和進程ID檔案
+/backend.log
+/backend.pid

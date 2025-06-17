@@ -8,11 +8,13 @@ import {
   Alert,
   ActivityIndicator,
   ViewStyle,
+  Platform
 } from 'react-native';
 import { theme } from '../theme';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import revenueCatService, { SubscriptionPlan, PremiumFeatures } from '../services/RevenueCatService';
+import Purchases, { PurchasesPackage } from 'react-native-purchases';
 
 export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -61,41 +63,30 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   };
 
   const handlePurchase = async (plan: SubscriptionPlan) => {
-    try {
-      setPurchasing(plan.id);
-      
-      const offerings = await revenueCatService.getOfferings();
-      let packageToPurchase = null;
+    const offerings = await Purchases.getOfferings();
+    let packageToPurchase: PurchasesPackage | null = null;
 
-      // 找到對應的package
-      for (const offering of offerings) {
-        packageToPurchase = offering.availablePackages.find(
-          pkg => pkg.identifier === plan.id
-        );
-        if (packageToPurchase) break;
-      }
+    Object.values(offerings.all).forEach(offering => {
+        const foundPackage = offering.availablePackages.find(p => p.identifier === plan.id);
+        if (foundPackage) {
+            packageToPurchase = foundPackage;
+        }
+    });
 
-      if (!packageToPurchase) {
-        throw new Error('Package not found');
-      }
-
-      await revenueCatService.purchasePackage(packageToPurchase);
-      
-      Alert.alert(
-        'Purchase Successful!',
-        'Thank you for subscribing to Poker Tracker Premium!',
-        [{ text: 'OK', onPress: () => loadSubscriptionData() }]
-      );
-    } catch (error: any) {
-      if (error.userCancelled) {
-        // User cancelled the purchase
+    if (!packageToPurchase) {
+        Alert.alert("錯誤", "找不到可購買的產品。");
         return;
-      }
+    }
       
-      Alert.alert(
-        'Purchase Failed',
-        error.message || 'Something went wrong. Please try again.'
-      );
+    setPurchasing(plan.id);
+    try {
+      await revenueCatService.purchasePackage(packageToPurchase);
+      Alert.alert("成功！", "感謝您的訂閱，您現在是高級會員了！");
+      navigation.goBack();
+    } catch (e: any) {
+      if (!e.userCancelled) {
+        Alert.alert("購買失敗", e.message);
+      }
     } finally {
       setPurchasing(null);
     }
@@ -217,10 +208,8 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Poker Tracker Premium</Text>
-        <Text style={styles.subtitle}>
-          Unlock advanced features and take your poker game to the next level
-        </Text>
+        <Text style={styles.title}>🚀 升級到高級版</Text>
+        <Text style={styles.subtitle}>解鎖所有強大功能，提升您的撲克技巧！</Text>
       </View>
 
       {renderPremiumStatus()}
@@ -263,7 +252,10 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: theme.spacing.lg,
+    paddingTop: Platform.OS === 'android' ? 40 : 60,
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
   },
   title: {
     fontSize: theme.font.size.title,
@@ -422,4 +414,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     paddingHorizontal: theme.spacing.md,
   },
-}); 
+});
+
+export default SubscriptionScreen; 
