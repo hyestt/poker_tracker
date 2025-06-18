@@ -77,6 +77,11 @@ class RevenueCatService {
   }
 
   async getOfferings(): Promise<PurchasesOffering[]> {
+    // 在開發環境中返回空陣列
+    if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
+      return [];
+    }
+
     if (!this.isInitialized) {
       throw new Error('RevenueCat not initialized');
     }
@@ -181,6 +186,12 @@ class RevenueCatService {
         return false;
       }
 
+      // 確保服務已初始化
+      if (!this.isInitialized) {
+        console.warn('⚠️ RevenueCat not initialized yet, returning false for premium status');
+        return false;
+      }
+
       const customerInfo = await this.getCustomerInfo();
       return Object.keys(customerInfo.entitlements.active).length > 0;
     } catch (error) {
@@ -267,82 +278,36 @@ class RevenueCatService {
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: 'poker_tracker_monthly_premium',
-        title: 'Monthly Premium',
-        description: 'Full access to all premium features',
-        price: '$9.99',
-        period: 'Monthly',
-        features: [
-          'Unlimited session recording',
-          'AI-powered hand analysis',
-          'Advanced statistics',
-          'Data export',
-          'Cloud synchronization',
-          'Custom tags and notes',
-          'Priority support'
-        ],
-        isPopular: true
+        id: 'pro_monthly_mock',
+        title: '月度 PRO 會員',
+        description: '解鎖所有進階功能',
+        price: '$4.99',
+        period: '每月',
+        features: this.getFeaturesForPlan('pro_monthly_mock'),
+        isPopular: true,
       },
       {
-        id: 'poker_tracker_yearly_premium',
-        title: 'Yearly Premium',
-        description: 'Best value - Save 17% with annual billing',
-        price: '$99.99',
-        period: 'Yearly',
-        features: [
-          'Unlimited session recording',
-          'AI-powered hand analysis',
-          'Advanced statistics',
-          'Data export',
-          'Cloud synchronization',
-          'Custom tags and notes',
-          'Priority support',
-          'Exclusive premium features',
-          'Early access to new features'
-        ],
-        isPopular: false
-      }
+        id: 'pro_yearly_mock',
+        title: '年度 PRO 會員',
+        description: '解鎖所有進階功能，並享有折扣',
+        price: '$49.99',
+        period: '每年',
+        features: this.getFeaturesForPlan('pro_yearly_mock'),
+      },
     ];
   }
 
   private getMockCustomerInfo(isPremium: boolean): any {
-    // 創建一個基本的 CustomerInfo 模擬對象
+    const entitlements = isPremium 
+      ? { active: { pro: { identifier: 'pro', isActive: true } } }
+      : { active: {} };
+
     return {
-      originalAppUserId: 'mock_user_id',
-      allPurchaseDates: {},
-      allExpirationDates: {},
-      entitlements: {
-        active: isPremium ? {
-          'premium': {
-            identifier: 'premium',
-            isActive: true,
-            willRenew: true,
-            periodType: 'NORMAL',
-            latestPurchaseDate: new Date().toISOString(),
-            originalPurchaseDate: new Date().toISOString(),
-            expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-            store: 'APP_STORE',
-            productIdentifier: 'poker_tracker_monthly_premium',
-            isSandbox: true,
-            unsubscribeDetectedAt: null,
-            billingIssueDetectedAt: null
-          }
-        } : {},
-        all: {}
-      },
-      activeSubscriptions: isPremium ? ['poker_tracker_monthly_premium'] : [],
-      allPurchasedProductIdentifiers: isPremium ? ['poker_tracker_monthly_premium'] : [],
-      nonSubscriptionTransactions: [],
-      firstSeen: new Date().toISOString(),
-      originalApplicationVersion: '1.0.0',
-      requestDate: new Date().toISOString(),
-      latestExpirationDate: isPremium ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null,
-      originalPurchaseDate: isPremium ? new Date().toISOString() : null,
-      managementURL: null,
-      subscriptionsByProductIdentifier: {}
+      entitlements,
+      // ...其他模擬的 CustomerInfo 屬性
     };
   }
 }
 
-export const revenueCatService = new RevenueCatService();
+const revenueCatService = new RevenueCatService();
 export default revenueCatService; 

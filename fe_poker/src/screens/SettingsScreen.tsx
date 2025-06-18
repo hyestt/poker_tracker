@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { theme } from '../theme';
 import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
+import RevenueCatService from '../services/RevenueCatService';
+import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { 
@@ -15,57 +17,118 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     fetchStats 
   } = useSessionStore();
 
+  const [isPremium, setIsPremium] = useState(false);
+  const [offerings, setOfferings] = useState<PurchasesOffering[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        setIsLoading(true);
+        const premiumStatus = await RevenueCatService.isPremiumUser();
+        setIsPremium(premiumStatus);
+        
+        if (!premiumStatus) {
+          const availableOfferings = await RevenueCatService.getOfferings();
+          setOfferings(availableOfferings);
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch subscription status.');
+        console.error("Failed to fetch subscription status:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSubscription();
+  }, []);
+
+  const handlePurchase = async (pkg: PurchasesPackage) => {
+    try {
+      setIsLoading(true);
+      await RevenueCatService.purchasePackage(pkg);
+      const customerInfo = await RevenueCatService.getCustomerInfo();
+      if (customerInfo.entitlements.active.pro) {
+        setIsPremium(true);
+        Alert.alert('Success', 'You are now a PRO member!');
+      }
+    } catch (e: any) {
+      if (!e.userCancelled) {
+        Alert.alert('Purchase Error', e.message);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    try {
+      setIsLoading(true);
+      const customerInfo = await RevenueCatService.restorePurchases();
+      if (customerInfo.entitlements.active.pro) {
+        setIsPremium(true);
+        Alert.alert('Success', 'Your purchases have been restored.');
+      } else {
+        Alert.alert('Info', 'No active subscriptions found to restore.');
+      }
+    } catch (e: any) {
+      Alert.alert('Restore Error', e.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleMenuPress = (item: string) => {
     Alert.alert('Feature in Development', `${item} feature coming soon`);
   };
 
   const handleDatabaseTest = async () => {
     try {
-      // 初始化資料庫
+      // Initialize database
       await DatabaseService.initialize();
       
-      // 獲取資料統計
+      // Get data statistics
       const stats = await DatabaseService.getDataStats();
       
-      // 獲取一些樣本資料
+      // Get some sample data
       const sessions = await DatabaseService.getAllSessions();
       const hands = await DatabaseService.getAllHands();
       
-      const message = `📊 SQLite 資料庫狀態：
+      const message = `📊 SQLite Database Status:
 
-📈 統計資料：
+📈 Statistics:
 • Sessions: ${stats.sessionsCount}
 • Hands: ${stats.handsCount}
 
-📋 最近的 Sessions (前3個)：
+📋 Recent Sessions (first 3):
 ${sessions.slice(0, 3).map(s => `• ${s.location} - ${s.date}`).join('\n')}
 
-🃏 最近的 Hands (前3個)：
+🃏 Recent Hands (first 3):
 ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).join('\n')}
 
-🔧 當前模式: ${isLocalMode ? '本地 SQLite' : 'API 模式'}`;
+🔧 Current Mode: ${isLocalMode ? 'Local SQLite' : 'API Mode'}`;
       
-      Alert.alert('SQLite 資料庫測試', message);
+      Alert.alert('SQLite Database Test', message);
     } catch (error) {
-      Alert.alert('錯誤', `資料庫測試失敗: ${error}`);
+      Alert.alert('Error', `Database test failed: ${error}`);
     }
   };
 
   const handleMigrateToLocal = async () => {
     Alert.alert(
-      '遷移資料到本地',
-      '這將從後端 API 獲取所有資料並存儲到本地 SQLite 資料庫。確定要繼續嗎？',
+      'Migrate Data to Local',
+      'This will fetch all data from the backend API and store it in the local SQLite database. Do you want to continue?',
       [
-        { text: '取消', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: '開始遷移',
+          text: 'Start Migration',
           onPress: async () => {
             try {
-              Alert.alert('遷移中', '正在遷移資料，請稍候...');
+              Alert.alert('Migrating', 'Migrating data, please wait...');
               await migrateToLocal();
-              Alert.alert('成功', '資料遷移完成！現在使用本地 SQLite 存儲。');
+              Alert.alert('Success', 'Data migration completed! Now using local SQLite storage.');
             } catch (error) {
-              Alert.alert('錯誤', `遷移失敗: ${error}`);
+              Alert.alert('Error', `Migration failed: ${error}`);
             }
           }
         }
@@ -74,27 +137,27 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
   };
 
   const handleSwitchMode = async () => {
-    const newMode = isLocalMode ? 'API 模式' : '本地模式';
-    const currentMode = isLocalMode ? '本地模式' : 'API 模式';
+    const newMode = isLocalMode ? 'API Mode' : 'Local Mode';
+    const currentMode = isLocalMode ? 'Local Mode' : 'API Mode';
     
     Alert.alert(
-      '切換存儲模式',
-      `當前模式: ${currentMode}\n要切換到: ${newMode}\n\n確定要切換嗎？`,
+      'Switch Storage Mode',
+      `Current Mode: ${currentMode}\nSwitch to: ${newMode}\n\nAre you sure you want to switch?`,
       [
-        { text: '取消', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: '切換',
+          text: 'Switch',
           onPress: async () => {
             try {
               if (isLocalMode) {
                 await switchToApiMode();
-                Alert.alert('成功', '已切換到 API 模式');
+                Alert.alert('Success', 'Switched to API mode');
               } else {
                 await switchToLocalMode();
-                Alert.alert('成功', '已切換到本地模式');
+                Alert.alert('Success', 'Switched to local mode');
               }
             } catch (error) {
-              Alert.alert('錯誤', `切換失敗: ${error}`);
+              Alert.alert('Error', `Switch failed: ${error}`);
             }
           }
         }
@@ -104,15 +167,15 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
   const handleRefreshData = async () => {
     try {
-      Alert.alert('刷新中', '正在重新載入資料...');
+      Alert.alert('Refreshing', 'Reloading data...');
       await Promise.all([
         fetchSessions(),
         fetchHands(),
         fetchStats()
       ]);
-      Alert.alert('成功', '資料已刷新');
+      Alert.alert('Success', 'Data refreshed');
     } catch (error) {
-      Alert.alert('錯誤', `刷新失敗: ${error}`);
+      Alert.alert('Error', `Refresh failed: ${error}`);
     }
   };
 
@@ -125,78 +188,105 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         
-        {/* 資料管理區段 */}
+        {/* Subscription Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 資料管理</Text>
+          <Text style={styles.sectionTitle}>💎 Upgrade to PRO</Text>
+          {isLoading ? (
+            <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }}/>
+          ) : isPremium ? (
+            <View style={styles.menuItem}>
+              <Text style={styles.menuText}>🎉 You are a PRO member</Text>
+            </View>
+          ) : (
+            <>
+              {offerings.map((offering) => 
+                offering.availablePackages.map((pkg) => (
+                  <TouchableOpacity key={pkg.identifier} style={styles.menuItem} onPress={() => handlePurchase(pkg)}>
+                    <Text style={styles.menuText}>{`${pkg.product.title} - ${pkg.product.priceString}`}</Text>
+                    <Text style={styles.menuArrow}>›</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+              <TouchableOpacity style={styles.menuItem} onPress={handleRestorePurchases}>
+                <Text style={styles.menuText}>🔄 Restore Purchases</Text>
+                <Text style={styles.menuArrow}>›</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        {/* Data Management Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📊 Data Management</Text>
           
           <TouchableOpacity style={styles.menuItem} onPress={handleDatabaseTest}>
-            <Text style={styles.menuText}>🔍 SQLite 資料庫測試</Text>
+            <Text style={styles.menuText}>🔍 SQLite Database Test</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={handleMigrateToLocal}>
-            <Text style={styles.menuText}>🚀 遷移資料到本地</Text>
+            <Text style={styles.menuText}>🚀 Migrate Data to Local</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={handleSwitchMode}>
             <Text style={styles.menuText}>
-              🔄 切換存儲模式 ({isLocalMode ? '本地' : 'API'})
+              🔄 Switch Storage Mode ({isLocalMode ? 'Local' : 'API'})
             </Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={handleRefreshData}>
-            <Text style={styles.menuText}>🔄 刷新資料</Text>
+            <Text style={styles.menuText}>🔄 Refresh Data</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 應用設定區段 */}
+        {/* App Settings Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚙️ 應用設定</Text>
+          <Text style={styles.sectionTitle}>⚙️ App Settings</Text>
           
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Notifications')}>
-            <Text style={styles.menuText}>🔔 通知設定</Text>
+            <Text style={styles.menuText}>🔔 Notification Settings</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Privacy')}>
-            <Text style={styles.menuText}>🔒 隱私設定</Text>
+            <Text style={styles.menuText}>🔒 Privacy Settings</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Backup')}>
-            <Text style={styles.menuText}>💾 備份與同步</Text>
+            <Text style={styles.menuText}>💾 Backup & Sync</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 支援區段 */}
+        {/* Support Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🛠️ 支援</Text>
+          <Text style={styles.sectionTitle}>🛠️ Support</Text>
           
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Help')}>
-            <Text style={styles.menuText}>❓ 幫助中心</Text>
+            <Text style={styles.menuText}>❓ Help Center</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Contact')}>
-            <Text style={styles.menuText}>📧 聯絡我們</Text>
+            <Text style={styles.menuText}>📧 Contact Us</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('About')}>
-            <Text style={styles.menuText}>ℹ️ 關於應用</Text>
+            <Text style={styles.menuText}>ℹ️ About App</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
 
-        {/* 狀態資訊 */}
+        {/* Status Information */}
         <View style={styles.statusSection}>
-          <Text style={styles.statusTitle}>📱 系統狀態</Text>
-          <Text style={styles.statusText}>存儲模式: {isLocalMode ? '本地 SQLite' : 'API 模式'}</Text>
-          <Text style={styles.statusText}>版本: 1.0.0</Text>
+          <Text style={styles.statusTitle}>📱 System Status</Text>
+          <Text style={styles.statusText}>Storage Mode: {isLocalMode ? 'Local SQLite' : 'API Mode'}</Text>
+          <Text style={styles.statusText}>Version: 1.0.0</Text>
         </View>
 
       </ScrollView>
