@@ -89,17 +89,28 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log('API error response:', errorText);
-        throw new Error(`API error: ${response.status}`);
+        console.error('API error response:', errorText);
+        console.error('Request details:', JSON.stringify({ hand: handPayload }, null, 2));
+        
+        // 顯示具體錯誤而不是回退到模擬
+        Alert.alert('API Error', `Server returned ${response.status}: ${errorText}`);
+        throw new Error(`API error: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log('API analysis result received');
+      console.log('API analysis result received successfully');
       return result.analysis || 'No analysis available';
     } catch (error) {
       console.error('Real AI analysis error:', error);
-      // 如果API失敗，回退到模擬分析
-      return await simulateAIAnalysis(handData);
+      
+      // 只有在網路錯誤時才回退到模擬分析
+      if (error instanceof Error && (error.message.includes('Network request failed') || error.message.includes('fetch'))) {
+        console.log('Network error detected, falling back to simulation');
+        return await simulateAIAnalysis(handData);
+      }
+      
+      // 其他錯誤直接拋出
+      throw error;
     }
   };
 
