@@ -1571,429 +1571,79 @@ Railway部署成功，服務已上線:
 
 ## 對話總結
 
-用戶遇到Railway部署錯誤："Failed to create code snapshot"，請求修復server error。
-
-**問題診斷：**
-- 檢查Git狀態發現有未推送的commit，內容為"API testing is wrong"
-- 嘗試推送時被GitHub阻止，因為docker.env檔案包含敏感資訊(OpenAI API Key和資料庫連線字串)
-
-**修復過程：**
-1. 移除docker.env中的敏感資訊，替換為環境變數佔位符
-2. 修改commit移除敏感資料並成功推送
-3. 發現PostgreSQL服務配置錯誤(也在建置程式碼而非純資料庫服務)
-4. 用戶決定使用Railway PostgreSQL替代Supabase
-
-**技術調整：**
-- 更新be_poker/db/db.go支援Railway PostgreSQL環境變數連線
-- 建立railway_init.sql初始化腳本
-- 在Railway中連接PostgreSQL和主應用服務
-
-**資料庫結構問題：**
-- API測試失敗，錯誤為"relation hands does not exist"
-- 用戶提供實際Supabase schema，與假設結構不同：
-  - Sessions表：id(text), location, date, small_blind, big_blind, currency等
-  - Hands表：id(text), session_id, position, hole_cards, details, result_amount等
-- 更新export_supabase_data.sql以匹配正確結構
-- 修改db.go添加自動創建表格功能(ensureTablesExist)
-- 創建前端配置檔案(config.ts, api.ts, types.ts)
-
-**部署結果：**
-- 成功推送更新程式碼
-- Railway自動重新部署完成
-- 創建了完整的資料遷移工具和測試腳本
-
-**最終狀態：**
-- 用戶確認不需要移動資料(都是測試資料)
-- 請求測試backend API是否能正確更新Railway PostgreSQL
-- Railway URL: https://poker-production-12db.up.railway.app
-- 環境變數已正確配置，資料庫連線成功
-
-專案現已完全配置為使用Railway PostgreSQL，包含自動表格創建、資料遷移工具、API測試腳本等。
-
----
-
-## 2024-12-19 網路請求錯誤修復
-
-**問題：**
-前端出現網路請求失敗錯誤："Network request failed"，無法正常獲取stats數據。
-
-**根本原因分析：**
-1. Railway部署失敗 - models.Hand結構缺少Tag欄位
-2. handlers使用錯誤的資料庫欄位名稱 (result vs result_amount)
-3. session handler查詢不存在的created_at欄位
-4. 前端API配置指向localhost而非Railway URL
-
-**修復步驟：**
-
-1. **修復Hand模型結構**
-   - 在be_poker/models/models.go的Hand結構中添加缺少的Tag欄位
-   - 修復Railway編譯錯誤
-
-2. **修復handlers的資料庫欄位對應**
-   - stats.go: 修改查詢從 `result` 改為 `result_amount`
-   - hand.go: 更新所有SQL查詢使用正確的欄位名稱
-   - 添加適當的錯誤處理和CORS標頭
-
-3. **修復session handler**
-   - 移除查詢不存在的 `created_at` 欄位
-   - 改用 `date` 欄位進行排序
-   - 添加COALESCE處理NULL值
-   - 改善錯誤處理，避免單個錯誤中斷整個查詢
-
-4. **修復前端API配置**
-   - fe_poker/src/config/api.ts: 從localhost改為Railway URL
-   - 確保前端正確連接到生產環境
-
-**測試結果：**
-- ✅ /test 端點正常 (200 OK)
-- ✅ /stats 端點正常 (200 OK) - 返回正確的統計數據結構
-- ✅ /hands 端點正常 (200 OK) - 返回空數組
-- 🔄 /sessions 和其他端點需要進一步測試
-
-**當前狀態：**
-- Railway後端服務正常運行
-- API端點基本功能恢復
-- 前端現在正確指向Railway生產環境
-- 等待用戶測試前端應用連接
-
-**重要：** 用戶現在應該能夠在React Native應用中看到API連接成功，不再出現網路請求失敗的錯誤。
-
----
-
-## 2024-12-19 AI Analysis Prompt 修復
-
-**問題：**
-用戶發現點擊 AI Analysis 按鈕後，分析結果不正確，並要求固定使用 hand_analysis 這個 prompt。
-
-**根本原因分析：**
-1. 前端 AIAnalysisScreen.tsx 使用 simulateAIAnalysis 本地模擬，沒有真正呼叫後端 API
-2. 後端 prompt_manager.go 使用錯誤的 prompt 檔案 (gto_analysis.txt 而非 hand_analysis.txt)
-3. 前端沒有與 Railway 後端 API 整合
-
-**修復步驟：**
-
-1. **修復後端 prompt 選擇**
-   - 修改 be_poker/services/prompt_manager.go
-   - 將 GetHandAnalysisPrompt 從使用 "gto_analysis.txt" 改為 "hand_analysis.txt"
-   - 確保所有 ChatGPT 請求都使用 hand_analysis prompt
-
-2. **修復前端 AI 分析呼叫**
-   - 修改 fe_poker/src/screens/AIAnalysisScreen.tsx
-   - 新增 performRealAIAnalysis 函數，真正呼叫 Railway API
-   - 將原本的 simulateAIAnalysis 改為備用方案
-   - 使用 Railway URL: https://poker-production-12db.up.railway.app/analyze
-
-3. **API 整合**
-   - 前端現在會發送 POST 請求到 /analyze 端點
-   - 傳送 handId 參數給後端
-   - 後端使用 hand_analysis.txt prompt 進行 OpenAI 分析
-   - 如果 API 失敗，會回退到本地模擬分析
-
-**部署狀態：**
-- ✅ 程式碼已提交並推送到 GitHub
-- ✅ Railway 自動部署已觸發
-- 🔄 等待部署完成
-
-**測試建議：**
-1. 在 React Native 應用中點擊 AI Analysis 按鈕
-2. 確認使用真正的 OpenAI API 而非模擬分析
-3. 驗證分析結果使用 hand_analysis prompt 格式
-4. 檢查分析結果是否符合預期的專業撲克教練風格
-
-**當前狀態：**
-- 所有 ChatGPT 請求現在固定使用 hand_analysis prompt
-- 前端與後端 API 完全整合
-- 分析結果會正確保存到 Railway PostgreSQL 資料庫
-
----
-
-## 2024-12-19 AI Analysis 結果美化
-
-**問題：**
-用戶反映 AI analysis 結果顯示有太多不必要的 markdown 符號（如 -**），影響閱讀體驗。
-
-**修復內容：**
-
-1. **優化 Prompt 格式**
-   - 修改 `be_poker/prompts/hand_analysis.txt`
-   - 移除過多的 markdown 標記（## 和 - 符號）
-   - 改用簡潔的段落格式
-   - 明確要求避免使用過多符號或標記
-
-2. **前端顯示美化**
-   - 在 `AIAnalysisScreen.tsx` 新增 `formatAnalysisText` 函數
-   - 自動移除多餘的 markdown 符號：
-     - 移除 **bold** 和 *italic* 標記
-     - 將 - 改為更美觀的 • 符號
-     - 移除 ## 和 # 標題符號
-     - 限制最多兩個連續換行
-   - 改善文字樣式：增加行高和字母間距
-
-3. **顯示效果改善**
-   - 分析結果現在更簡潔易讀
-   - 移除了干擾性的 markdown 符號
-   - 保持專業的分析內容，但格式更美觀
-
-**部署狀態：**
-- ✅ 程式碼已提交並推送到 GitHub
-- ✅ Railway 自動部署已完成
-- ✅ AI 分析結果顯示現在更加美觀易讀
-
-**效果：**
-- 用戶現在看到的 AI 分析結果將是乾淨、簡潔的格式
-- 移除了所有不必要的 markdown 符號
-- 保持了專業的分析內容和結構
-
----
-
-## 2024-12-19 Settings 頁面創建
-
-**需求：**
-用戶要求創建一個類似 iOS 風格的 Settings 頁面，包含 Membership、Pro Features、Support 等區塊。
-
-**實現內容：**
-
-1. **創建 SettingsScreen.tsx**
-   - 使用 Apple iOS 設計風格
-   - 分為三個主要區塊：Membership、Pro Features、Support
-   - 每個選項都有對應的圖標和描述
-
-2. **頁面結構**
-   - **Membership 區塊**：
-     - Membership Status (顯示 Free 狀態和剩餘掃描次數)
-     - Restore Purchase
-   
-   - **Pro Features 區塊**：
-     - Export to Excel
-     - Advanced Analytics  
-     - Auto Save to Photo Library (Pro Only)
-     - AI Hand Analysis (Unlimited)
-   
-   - **Support 區塊**：
-     - Rate Us
-     - Contact Us
-     - User Guide
-     - Privacy Policy
-
-3. **設計特色**
-   - 使用圓角卡片設計
-   - 橘色區塊標題 (#FF8C00)
-   - 每個選項都有 emoji 圖標
-   - 右側箭頭指示可點擊
-   - 底部顯示版本資訊
-
-4. **導航整合**
-   - 將原本的 Profile tab 替換為 Settings
-   - 創建 SettingsStack 導航結構
-   - 隱藏預設 header，使用自定義設計
-
-**當前狀態：**
-- ✅ Settings 頁面已創建完成
-- ✅ 導航結構已更新
-- ✅ 使用 Apple iOS 設計標準
-- 🔄 功能邏輯待後續實現（目前點擊會顯示"功能開發中"提示）
-
-**技術細節：**
-- 使用 ScrollView 支援長內容滾動
-- 響應式設計適配不同螢幕尺寸
-- 遵循 MVVM 架構模式
-- 使用 theme 系統保持設計一致性
-
-Date: 2025-01-27 14:00:00
-User Query: 每一次我點擊Home時，都需要回到這個頁面，現在當我點開手牌 -> 點擊setting -> 點擊回去時會出現手牌頁面。這是錯誤的
-Summary of Home navigation fix:
-1. 問題分析：
-   - 用戶從手牌詳情頁面進入設定頁面，然後點擊Home tab時會回到手牌詳情頁面
-   - 這是因為每個Tab都有自己的Stack Navigator，保持各自的導航歷史
-   - 用戶期望點擊Home tab時總是回到主頁面（手牌歷史列表）
-
-2. 解決方案：
-   - 在App.tsx中為Home Tab.Screen添加listeners
-   - 當點擊Home tab時，使用navigation.reset()重置導航堆疊
-   - 確保每次點擊Home都會回到根頁面而不是保留導航歷史
-
-3. 技術實現：
-   - 使用tabPress事件監聽器
-   - 調用e.preventDefault()防止默認行為
-   - 使用navigation.reset()重置到根路由
-   - 設置index: 0和routes: [{ name: 'Home' }]
-
-4. 修改文件：
-   - fe_poker/App.tsx：為Home Tab.Screen添加listeners配置
-
-5. 預期效果：
-   - 無論用戶在哪個頁面，點擊Home tab都會回到主頁面
-   - 清除所有導航歷史，確保一致的用戶體驗
-   - 符合iOS設計標準的導航行為
-
-Date: 2025-06-13 13:08:00
-User Query: 加一個限制，只有在Hero的hole cards 和position都不為空白時才能save成功
-Summary of validation implementation:
-1. 修改內容：
-   - RecordHandScreen.tsx: 加入Alert import，修改handleSave函數加入驗證邏輯
-   - EditHandScreen.tsx: 加入Alert import，修改handleSave函數加入驗證邏輯
-   - 兩個畫面都加入favorite屬性以符合Hand模型要求
-
-2. 驗證邏輯：
-   - 檢查holeCards是否為空白或只有空格
-   - 檢查position是否為空白或只有空格
-   - 如果任一條件不滿足，顯示Alert對話框並阻止保存
-   - Alert訊息使用繁體中文，符合使用者偏好
-
-3. 技術實作：
-   - 使用React Native的Alert.alert()顯示錯誤訊息
-   - 在驗證失敗時使用return提早退出函數
-   - 保持原有的保存邏輯不變，只在驗證通過後執行
-
-4. 使用者體驗：
-   - 清楚的錯誤訊息告知使用者需要填寫的欄位
-   - 阻止不完整的手牌記錄被保存
-   - 確保資料完整性和一致性
-
-功能特色：
-- 強制要求Hero的底牌和位置資訊
-- 友善的錯誤提示訊息
-- 保持現有UI和UX不變
-- 適用於新增和編輯手牌記錄
-
-5. UI 優化：
-   - 移除 "Poker Keyboard" 文字標籤，保持界面簡潔
-   - 將 Hide 按鈕移到鍵盤標題列的最右邊
-   - 修改模態框標題從 "Select Hole Cards" 改為 "Select Cards"
-   - 保持 Apple iOS 設計標準的簡潔美觀
-
-Date: 2025-01-27 14:00:00
-User Query: 點擊Hero select hole card沒有反應
-Summary of fix:
-問題發現：RecordHandScreen.tsx 中缺少 PokerKeyboard Modal 元件
-- 雖然有 handleHoleCardsSelect() 函數和 setShowPokerKeyboard(true) 
-- 但缺少實際的 Modal 元件來顯示撲克牌選擇界面
-- 與 EditHandScreen 相比，RecordHandScreen 遺漏了這個重要元件
-
-修復內容：
-1. 在 RecordHandScreen.tsx 中添加完整的 PokerKeyboard Modal 元件
-2. 包含標題欄、取消/完成按鈕和 PokerKeyboardView 
-3. 支援 Hero 和 Villain 選牌的智能初始化
-4. 修復後與 EditHandScreen 行為保持一致
-
-技術細節：
-- Modal visible={showPokerKeyboard} 控制顯示
-- PokerKeyboardView 接收 onCardSelect={handleCardSelect}
-- 根據 selectedVillainIndex 決定初始化的牌組
-- 使用相同的 handlePokerKeyboardClose 處理關閉
-
-Date: 2025-06-13 22:50:00
-User Query: 我想將所有的DB從railway migrate到SQLite，幫我migrate
-Summary of migration:
-1. 資料庫遷移完成：
-   - 從 Railway PostgreSQL 遷移到本地 SQLite
-   - 更新 be_poker/db/db.go：移除 PostgreSQL 依賴，改用 SQLite
-   - 更新 be_poker/go.mod：移除 github.com/lib/pq，添加 github.com/mattn/go-sqlite3
-   - 修正 SQLite 語法差異（TIMESTAMP -> DATETIME, BOOLEAN -> INTEGER）
-
-2. 資料庫結構調整：
-   - 更新現有 SQLite 資料庫欄位名稱：result -> result_amount, favorite -> is_favorite
-   - 添加缺失欄位：created_at, updated_at
-   - 保持所有現有資料完整性
-
-3. 測試結果：
-   - ✅ 後端 API 正常運行 (http://localhost:8080)
-   - ✅ Sessions API 測試通過
-   - ✅ Hands API 測試通過
-   - ✅ 前端應用啟動測試
-
-4. 優勢：
-   - 本地資料庫，無需網路連接
-   - 更快的查詢速度
-   - 簡化部署流程
-   - 降低運營成本（無需 Railway 訂閱）
-
-5. 清理工作：
-   - Railway PostgreSQL 配置已移除
-   - 保留備份文件：railway_sessions_backup.json, railway_hands_backup.json
-   - 資料庫文件：poker_tracker.db (本地 SQLite)
-
-遷移成功完成！所有功能正常運行。
-
-=== 2024-06-14 SQLite Database Migration Implementation ===
-- Successfully implemented complete SQLite database migration system
-- Created comprehensive database services:
-  * DatabaseService.ts - Local SQLite operations with CRUD functionality
-  * DataMigrationService.ts - API-based migration from backend
-  * DataLoaderService.ts - JSON data loading and validation
-- Developed Node.js migration script (migrate_data.js):
-  * Extracts data directly from backend SQLite database
-  * Converts to JSON format for React Native consumption
-  * Successfully migrated 93 sessions and 22 hands
-- Generated migration data files:
-  * fe_poker/src/data/sessions.json (93 records)
-  * fe_poker/src/data/hands.json (22 records)
-  * fe_poker/src/data/migration_stats.json (metadata)
-- Created DataMigrationScreen.tsx for testing and validation:
-  * Data consistency checking
-  * Migration status monitoring
-  * Test query functionality
-  * Clear data operations
-- Database schema matches backend structure:
-  * Sessions table with all fields (location, date, blinds, etc.)
-  * Hands table with complete hand data (cards, position, analysis, etc.)
-- Migration statistics:
-  * 10 unique locations (Club, Live Casino, Online, etc.)
-  * 4 currencies (USD, GBP, EUR)
-  * Date range: earliest to 2025/06/10 19:20
-- All changes committed to migrate_sql branch
-- Ready for React Native SQLite integration and testing
-- Next steps: Test migration in React Native app and integrate with existing UI
-
-## 2025-06-18 - DateTimePicker 值更新問題調試與重構
-
-### 問題描述：
-用戶反應 DateTimePicker 組件的值無法成功更新，選擇日期時間後值保持不變。
-
-### 調試過程：
-1. **初步懷疑 DateTimePicker 組件邏輯**：
-   - 重寫了 `onConfirm` 函數的日期時間合併邏輯
-   - 加入了大量 console.log 調試信息
-   - 發現按鈕點擊正常，Modal 顯示正常
-
-2. **發現問題不在 DateTimePicker**：
-   - 加入了 Alert 來測試 `onValueChange` 回調
-   - 確認回調被正確調用並傳遞正確的格式化日期
-
-3. **轉向 SessionForm 狀態管理問題**：
-   - 在 SessionForm 中加入測試按鈕直接調用 `setDate`
-   - **關鍵發現**：即使直接調用 `setDate` 也無法更新值
-   - 說明問題在 SessionForm 的狀態管理，不在 DateTimePicker
-
-4. **深入調試回調鏈**：
-   - ✅ DateTimePicker 正確調用 `onValueChange`
-   - ✅ SessionForm 正確接收到回調
-   - ✅ `updateFormData` 函數被正確調用
-   - ✅ `setFormData` 被正確調用
-   - ❌ 但是狀態沒有真正更新（useEffect 監控沒有觸發）
-
-5. **嘗試的修復方案**：
-   - 重構為單一 formData 狀態對象
-   - 使用 useCallback 穩定回調函數
-   - 嘗試 setTimeout 延遲狀態更新
-   - 加入 useEffect 監控狀態變化
-
-### 當前狀態：
-- **已完成**：完全重構了 SessionForm，使用更清晰的狀態管理
-- **問題仍存在**：DateTimePicker 的值更新仍然無效
-- **根本原因**：可能是 React Native 在異步回調中的狀態更新機制問題
-
-### 技術改進：
-- ✅ 清理了所有調試代碼
-- ✅ 重構 SessionForm 使用單一狀態對象
-- ✅ 實現了穩定的 updateFormData 函數
-- ✅ 恢復了正常的 DateTimePicker 樣式
-
-### 下一步建議：
-1. **考慮替代方案**：使用第三方日期選擇庫
-2. **深入調查**：React Native 狀態更新時序問題
-3. **臨時解決方案**：手動輸入日期時間的備用方案
-4. **長期方案**：重新設計日期時間選擇機制
-
-### 結論：
-雖然問題沒有完全解決，但通過調試過程大幅提升了代碼質量和狀態管理架構。DateTimePicker 本身邏輯正確，問題出在 React Native 的狀態更新機制中。
+### 初始背景
+用戶在處理撲克追蹤應用程序，該應用包含React Native前端和Go後端，部署在Railway平台。
+
+### 主要任務1：修改撲克鍵盤輸入邏輯
+**用戶需求**：當前一個字符是數字，且要輸入的字符不是數字時，自動在前面添加空格。
+例如：`hero bet 25UTG` → `hero bet 25 UTG`
+
+**解決方案**：
+- 修改了3個文件的`handleQuickInsert`函數：
+  - `fe_poker/src/screens/RecordHandScreen.tsx`
+  - `fe_poker/src/screens/EditHandScreen.tsx`
+  - `fe_poker/src/components/PokerQuickKeyboardInline.tsx`
+- 實現邏輯：檢查前一個字符是否為數字(`/\d/.test(previousChar)`)且要插入的字符不是數字、空格或標點符號(`!/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)`)時自動添加空格
+- 用戶確認功能正常工作
+
+### 主要任務2：AI分析結果存儲問題
+**問題發現**：
+1. Railway服務返回502錯誤，服務不可用
+2. 用戶詢問AI分析結果存儲位置，希望存儲在React Native SQLite而非Railway PostgreSQL
+
+**現狀分析**：
+- 後端`AnalyzeHand`函數會將分析結果保存到Railway PostgreSQL資料庫
+- 前端已配置會將API返回的分析結果保存到本地SQLite
+- 但Railway服務目前502錯誤無法正常工作
+
+**解決方案**：
+1. **修改後端邏輯**：
+   - 修改`be_poker/handlers/hand.go`中的`AnalyzeHand`函數
+   - 移除資料庫保存邏輯：刪除`UPDATE hands SET analysis = $1, analysis_date = $2 WHERE id = $3`
+   - 只進行OpenAI分析並返回結果給前端
+
+2. **修改前端邏輯**：
+   - 修改`fe_poker/src/viewmodels/sessionStore.ts`中的`analyzeHand`函數
+   - 確保始終將分析結果保存到本地SQLite，移除對`isLocalMode`的條件檢查
+   - 添加日志確認保存成功
+
+### 主要任務3：Railway PostgreSQL連接問題 (2025-06-19)
+**問題發現**：
+1. Railway DATABASE_URL設定正確，但後端仍使用SQLite
+2. AI分析點擊後有console error，原因是後端尋找不存在的手牌ID
+
+**解決方案**：
+1. **後端資料庫切換**：
+   - 修改`be_poker/db/db.go`從SQLite改為PostgreSQL
+   - 使用Railway的`DATABASE_URL`環境變數
+   - 更新go.mod添加PostgreSQL driver `github.com/lib/pq`
+   - 移除SQLite driver `github.com/mattn/go-sqlite3`
+   - 調整SQL語法為PostgreSQL格式
+
+2. **前端API配置**：
+   - 修改`fe_poker/src/config/api.ts`指向Railway生產環境
+   - 確保AI分析使用Railway API而非本地API
+
+3. **AI分析數據傳輸**：
+   - 修改前端`AIAnalysisScreen.tsx`發送完整手牌數據而非只發送ID
+   - 修改後端`handlers/hand.go`接受手牌數據而非查找資料庫ID
+   - 解決本地SQLite存在手牌但Railway PostgreSQL不存在的問題
+
+### 技術細節
+- **後端**：Go語言，使用OpenAI API進行分析，部署在Railway
+- **前端**：React Native，使用SQLite本地存儲
+- **AI分析流程**：前端 → Railway API (PostgreSQL臨時) → OpenAI分析 → 結果返回前端 → 保存到本地SQLite
+- **存儲位置**：React Native SQLite的`hands`表，`analysis`和`analysisDate`欄位
+
+### 提交記錄
+1. "Ensure AI analysis results stored only in React Native SQLite, not Railway PostgreSQL"
+2. "Update backend to use Railway PostgreSQL instead of SQLite"
+3. "Fix AI analysis to send hand data instead of ID"
+
+### 當前狀態 (2025-06-19)
+- ✅ 撲克鍵盤自動空格功能已完成並確認工作正常
+- ✅ AI分析結果存儲邏輯已修改為只存儲在本地SQLite
+- ✅ Railway服務使用PostgreSQL正常運行
+- ✅ AI分析邏輯修改為發送完整手牌數據，避免ID查找錯誤
+- ⏳ Railway正在重新部署最新修改
+- 📍 AI分析結果現在只會存儲在React Native本地SQLite資料庫中，不會存儲在Railway PostgreSQL

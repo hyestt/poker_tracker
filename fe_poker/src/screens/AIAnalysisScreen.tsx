@@ -63,30 +63,38 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   // 真正的AI分析功能
   const performRealAIAnalysis = async (handData: Hand): Promise<string> => {
     try {
+      // 確保必要欄位不為空
+      const handPayload = {
+        id: handData.id || 'unknown',
+        position: handData.position || '',
+        holeCards: handData.holeCards || '',
+        board: handData.board || '',
+        details: handData.details || '',
+        result: handData.result || 0,
+        villains: handData.villains || []
+      };
+
+      console.log('Sending AI analysis request:', handPayload);
+
       const API_URL = 'https://poker-production-12db.up.railway.app';
       const response = await fetch(`${API_URL}/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          hand: {
-            id: handData.id,
-            position: handData.position,
-            holeCards: handData.holeCards,
-            board: handData.board,
-            details: handData.details,
-            result: handData.result,
-            villains: handData.villains || []
-          }
-        })
+        body: JSON.stringify({ hand: handPayload })
       });
 
+      console.log('API response status:', response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.log('API error response:', errorText);
         throw new Error(`API error: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('API analysis result received');
       return result.analysis || 'No analysis available';
     } catch (error) {
       console.error('Real AI analysis error:', error);
