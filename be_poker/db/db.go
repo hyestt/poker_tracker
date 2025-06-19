@@ -4,19 +4,23 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	_ "github.com/mattn/go-sqlite3"
+	"os"
+	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 var DB *sql.DB
 
 func InitDB() error {
-	// 使用本地 SQLite 資料庫
-	dbPath := "poker_tracker.db"
+	// 使用 Railway PostgreSQL 資料庫
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		return fmt.Errorf("DATABASE_URL environment variable is not set")
+	}
 	
-	log.Printf("🗄️  Using SQLite database: %s", dbPath)
+	log.Printf("🗄️  Using PostgreSQL database from Railway")
 
 	var err error
-	DB, err = sql.Open("sqlite3", dbPath)
+	DB, err = sql.Open("postgres", databaseURL)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %v", err)
 	}
@@ -39,16 +43,16 @@ func InitDB() error {
 func ensureTablesExist() error {
 	log.Println("🔍 Checking database schema...")
 	
-	// 檢查sessions表是否存在
+	// 檢查sessions表是否存在 (PostgreSQL語法)
 	var sessionsExists int
-	err := DB.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sessions'`).Scan(&sessionsExists)
+	err := DB.QueryRow(`SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'sessions'`).Scan(&sessionsExists)
 	if err != nil {
 		return fmt.Errorf("failed to check sessions table: %v", err)
 	}
 	
-	// 檢查hands表是否存在
+	// 檢查hands表是否存在 (PostgreSQL語法)
 	var handsExists int
-	err = DB.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='hands'`).Scan(&handsExists)
+	err = DB.QueryRow(`SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'hands'`).Scan(&handsExists)
 	if err != nil {
 		return fmt.Errorf("failed to check hands table: %v", err)
 	}
@@ -58,17 +62,17 @@ func ensureTablesExist() error {
 		log.Println("⚠️ Database schema incomplete, creating tables...")
 		
 		// 先刪除現有表格（如果存在）以確保乾淨的狀態
-		_, err = DB.Exec(`DROP TABLE IF EXISTS hands`)
+		_, err = DB.Exec(`DROP TABLE IF EXISTS hands CASCADE`)
 		if err != nil {
 			return fmt.Errorf("failed to drop hands table: %v", err)
 		}
 		
-		_, err = DB.Exec(`DROP TABLE IF EXISTS sessions`)
+		_, err = DB.Exec(`DROP TABLE IF EXISTS sessions CASCADE`)
 		if err != nil {
 			return fmt.Errorf("failed to drop sessions table: %v", err)
 		}
 		
-		// 創建sessions表（包含所有必需欄位）
+		// 創建sessions表（PostgreSQL語法）
 		_, err = DB.Exec(`
 			CREATE TABLE sessions (
 				id TEXT PRIMARY KEY,
@@ -80,8 +84,8 @@ func ensureTablesExist() error {
 				effective_stack INTEGER DEFAULT 0,
 				table_size INTEGER DEFAULT 6,
 				tag TEXT DEFAULT '',
-				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)
 		`)
 		
@@ -89,7 +93,7 @@ func ensureTablesExist() error {
 			return fmt.Errorf("failed to create sessions table: %v", err)
 		}
 		
-		// 創建hands表（包含所有必需欄位）
+		// 創建hands表（PostgreSQL語法）
 		_, err = DB.Exec(`
 			CREATE TABLE hands (
 				id TEXT PRIMARY KEY,
@@ -104,10 +108,10 @@ func ensureTablesExist() error {
 				villains TEXT DEFAULT '[]',
 				analysis TEXT DEFAULT '',
 				analysis_date TEXT DEFAULT '',
-				is_favorite INTEGER DEFAULT 0,
+				is_favorite BOOLEAN DEFAULT FALSE,
 				tag TEXT DEFAULT '',
-				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 				FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 			)
 		`)
