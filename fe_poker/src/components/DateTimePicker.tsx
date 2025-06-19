@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import DatePicker from 'react-native-date-picker';
 import { theme } from '../theme';
 
 interface CustomDateTimePickerProps {
@@ -14,9 +14,7 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
   onValueChange,
   title,
 }) => {
-  const [show, setShow] = useState(false);
-  const [mode, setMode] = useState<'date' | 'time'>('date');
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [open, setOpen] = useState(false);
 
   const parseValue = (dateString: string): Date => {
     if (!dateString) return new Date();
@@ -37,37 +35,12 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
     return `${year}/${month}/${day} ${hours}:${minutes}`;
   };
 
-  const openPicker = () => {
-    const initialDate = parseValue(value);
-    setCurrentDate(initialDate);
-    setMode('date');
-    setShow(true);
-  };
-
-  const onPickerChange = (event: any, selectedDate?: Date) => {
-    if (selectedDate) {
-      setCurrentDate(selectedDate);
-    }
-  };
-  
-  const onConfirm = () => {
-    if (mode === 'date') {
-      setMode('time');
-    } else {
-      const formattedResult = formatDate(currentDate);
-      onValueChange(formattedResult);
-      setShow(false);
-    }
-  };
-  
-  const onCancel = () => {
-    setShow(false);
-  };
+  const currentDate = parseValue(value);
 
   const PickerComponent = () => (
     <TouchableOpacity 
       style={styles.picker} 
-      onPress={openPicker}
+      onPress={() => setOpen(true)}
       activeOpacity={0.7}
     >
       <Text style={[styles.pickerText, !value && styles.placeholderText]}>
@@ -75,38 +48,6 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
       </Text>
       <Text style={styles.arrow}>▼</Text>
     </TouchableOpacity>
-  );
-
-  const IOSPicker = () => (
-    <Modal
-        transparent
-        animationType="slide"
-        visible={show}
-        onRequestClose={onCancel}
-    >
-        <View style={styles.overlay}>
-            <View style={styles.modal}>
-                <View style={styles.modalHeader}>
-                  <TouchableOpacity onPress={onCancel}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.modalTitle}>Select {mode === 'date' ? 'Date' : 'Time'}</Text>
-                  <TouchableOpacity onPress={onConfirm}>
-                    <Text style={styles.confirmButtonText}>{mode === 'date' ? 'Next' : 'Done'}</Text>
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                    testID="dateTimePicker"
-                    value={currentDate}
-                    mode={mode}
-                    is24Hour={true}
-                    display="spinner"
-                    onChange={onPickerChange}
-                    style={styles.iosPicker}
-                />
-            </View>
-        </View>
-    </Modal>
   );
 
   if (title) {
@@ -118,15 +59,20 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
             <PickerComponent />
           </View>
         </View>
-        {Platform.OS === 'ios' ? <IOSPicker /> : (
-            show && <DateTimePicker
-                testID="dateTimePicker"
-                value={currentDate}
-                mode={mode}
-                display="default"
-                onChange={onPickerChange}
-            />
-        )}
+        <DatePicker
+          modal
+          open={open}
+          date={currentDate}
+          mode="datetime"
+          onConfirm={(selectedDate) => {
+            setOpen(false);
+            const formattedResult = formatDate(selectedDate);
+            onValueChange(formattedResult);
+          }}
+          onCancel={() => {
+            setOpen(false);
+          }}
+        />
       </View>
     );
   }
@@ -134,15 +80,20 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
   return (
     <View>
       <PickerComponent />
-       {Platform.OS === 'ios' ? <IOSPicker /> : (
-            show && <DateTimePicker
-                testID="dateTimePicker"
-                value={currentDate}
-                mode={mode}
-                display="default"
-                onChange={onPickerChange}
-            />
-        )}
+      <DatePicker
+        modal
+        open={open}
+        date={currentDate}
+        mode="datetime"
+        onConfirm={(selectedDate) => {
+          setOpen(false);
+          const formattedResult = formatDate(selectedDate);
+          onValueChange(formattedResult);
+        }}
+        onCancel={() => {
+          setOpen(false);
+        }}
+      />
     </View>
   );
 };
@@ -188,41 +139,4 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     marginLeft: theme.spacing.xs,
   },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 30,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  modalTitle: {
-    fontSize: theme.font.size.subtitle,
-    fontWeight: '600',
-    color: theme.colors.text,
-  },
-  cancelButtonText: {
-    fontSize: theme.font.size.body,
-    color: theme.colors.gray,
-  },
-  confirmButtonText: {
-    fontSize: theme.font.size.body,
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
-  iosPicker: {
-    height: 200,
-  }
 }); 

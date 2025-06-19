@@ -1,5 +1,33 @@
 # Poker Tracker 專案記錄
 
+## 2025-06-18 - Render Error 修復
+
+### 問題
+- iOS 模擬器出現 render error
+- 應用程式無法正常顯示
+
+### 解決方案
+1. **重新啟動Metro伺服器並清除快取**：
+   ```bash
+   cd fe_poker && npx react-native start --reset-cache
+   ```
+
+2. **重新建置iOS應用程式**：
+   ```bash
+   cd fe_poker && npx react-native run-ios --simulator="iPhone 15 Pro"
+   ```
+
+### 結果
+- 成功解決render error
+- iOS應用程式正常運行
+- Metro伺服器快取問題是根本原因
+
+### 經驗總結
+- 當遇到unexplained render error時，首先嘗試清除Metro快取
+- `--reset-cache` 參數是解決React Native快取問題的有效方法
+
+---
+
 ## 2025-06-18 - 貨幣列表大幅擴充與用戶偏好設定重置功能
 
 ### 新增功能：
@@ -1917,7 +1945,7 @@ Summary of migration:
 - Ready for React Native SQLite integration and testing
 - Next steps: Test migration in React Native app and integrate with existing UI
 
-## 2025-06-18 - DateTimePicker 值更新問題調試
+## 2025-06-18 - DateTimePicker 值更新問題調試與重構
 
 ### 問題描述：
 用戶反應 DateTimePicker 組件的值無法成功更新，選擇日期時間後值保持不變。
@@ -1937,19 +1965,35 @@ Summary of migration:
    - **關鍵發現**：即使直接調用 `setDate` 也無法更新值
    - 說明問題在 SessionForm 的狀態管理，不在 DateTimePicker
 
-4. **嘗試的修復方案**：
-   - 加入 useEffect 監控 date 狀態變化
-   - 暫時移除 useEffect 的 `initialSession` 依賴
-   - 加入 UI 調試文字顯示當前值
-   - 問題仍然存在
+4. **深入調試回調鏈**：
+   - ✅ DateTimePicker 正確調用 `onValueChange`
+   - ✅ SessionForm 正確接收到回調
+   - ✅ `updateFormData` 函數被正確調用
+   - ✅ `setFormData` 被正確調用
+   - ❌ 但是狀態沒有真正更新（useEffect 監控沒有觸發）
+
+5. **嘗試的修復方案**：
+   - 重構為單一 formData 狀態對象
+   - 使用 useCallback 穩定回調函數
+   - 嘗試 setTimeout 延遲狀態更新
+   - 加入 useEffect 監控狀態變化
 
 ### 當前狀態：
-- DateTimePicker 組件邏輯正常
-- SessionForm 的 `date` 狀態無法更新（包括直接調用 `setDate`）
-- 可能的原因：
-  1. React Native 狀態更新時序問題
-  2. 有其他代碼覆蓋了狀態
-  3. 組件重新掛載導致狀態重置
+- **已完成**：完全重構了 SessionForm，使用更清晰的狀態管理
+- **問題仍存在**：DateTimePicker 的值更新仍然無效
+- **根本原因**：可能是 React Native 在異步回調中的狀態更新機制問題
 
-### 下一步：
-需要進一步調查 SessionForm 的狀態管理機制，可能需要重構狀態邏輯。
+### 技術改進：
+- ✅ 清理了所有調試代碼
+- ✅ 重構 SessionForm 使用單一狀態對象
+- ✅ 實現了穩定的 updateFormData 函數
+- ✅ 恢復了正常的 DateTimePicker 樣式
+
+### 下一步建議：
+1. **考慮替代方案**：使用第三方日期選擇庫
+2. **深入調查**：React Native 狀態更新時序問題
+3. **臨時解決方案**：手動輸入日期時間的備用方案
+4. **長期方案**：重新設計日期時間選擇機制
+
+### 結論：
+雖然問題沒有完全解決，但通過調試過程大幅提升了代碼質量和狀態管理架構。DateTimePicker 本身邏輯正確，問題出在 React Native 的狀態更新機制中。

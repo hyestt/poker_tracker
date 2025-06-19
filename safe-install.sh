@@ -18,23 +18,29 @@ fi
 cd fe_poker
 
 # --- Step 1: Clean JavaScript Dependencies ---
-echo "🧹 Step 1/3: Cleaning JavaScript dependencies (node_modules, package-lock.json)..."
+echo "🧹 Step 1/4: Cleaning JavaScript dependencies (node_modules, package-lock.json)..."
 rm -rf node_modules
 rm -f package-lock.json
 
-echo "📦 Step 2/3: Installing fresh JavaScript dependencies..."
+echo "📦 Step 2/4: Installing fresh JavaScript dependencies..."
 npm install
 
 # --- Step 3: Clean iOS Native Dependencies ---
-echo "🧹 Step 3/3: Cleaning and installing iOS (CocoaPods) dependencies..."
+echo "🧹 Step 3/4: Cleaning and installing iOS (CocoaPods) dependencies..."
 cd ios
 rm -rf Pods
 rm -f Podfile.lock
 pod install
 cd ..
 
+# --- Step 4: Clear Metro Cache ---
+echo "🧹 Step 4/4: Clearing Metro bundler cache..."
+npx react-native start --reset-cache --background &
+METRO_PID=$!
+sleep 3
+kill $METRO_PID 2>/dev/null || true
+
 echo ""
 echo "✅ Safe installation process completed successfully!"
 echo "🚀 You can now try to build and run your app."
-echo "   In one terminal, run: cd fe_poker && npx react-native start --reset-cache"
-echo "   In another terminal, run: cd fe_poker && npx react-native run-ios" 
+echo "   Run: cd fe_poker && npx react-native run-ios --simulator=\"iPhone 15 Pro\"" 
