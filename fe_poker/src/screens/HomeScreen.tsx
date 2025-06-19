@@ -27,7 +27,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const [sessionFilter, setSessionFilter] = useState<{
     location?: string;
-    blinds?: string;
     dateTime?: string;
     timeRange?: string;
     position?: string;
@@ -39,7 +38,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [tempSessionFilter, setTempSessionFilter] = useState<{
     location?: string;
-    blinds?: string;
     dateTime?: string;
     timeRange?: string;
     position?: string;
@@ -65,7 +63,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     let filtered = [...hands];
     
     // Session filter
-    if (sessionFilter.location || sessionFilter.blinds || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate) {
+    if (sessionFilter.location || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate) {
       filtered = filtered.filter(hand => {
         const session = sessions.find(s => s.id === hand.sessionId);
         if (!session) return false;
@@ -73,14 +71,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         // Location filter
         if (sessionFilter.location && session.location !== sessionFilter.location) {
           return false;
-        }
-
-        // Blinds filter
-        if (sessionFilter.blinds) {
-          const sessionBlinds = `${session.smallBlind}/${session.bigBlind}`;
-          if (sessionBlinds !== sessionFilter.blinds) {
-            return false;
-          }
         }
 
         // Date & Time filter (session date)
@@ -452,7 +442,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           }}
         >
           <Text style={styles.sessionFilterText}>
-            {sessionFilter.location || sessionFilter.blinds || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate ? '☰ Active' : '☰ Filter'}
+            {sessionFilter.location || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate ? '☰ Active' : '☰ Filter'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -632,7 +622,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   <TouchableOpacity
                     style={styles.dropdown}
                     onPress={() => {
-                      const positions = ['All Positions', 'UTG', 'UTG+1', 'MP', 'MP+1', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+                      const positions = ['All Positions', 'UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
                       
                       Alert.alert(
                         "Select Position",
@@ -667,8 +657,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       const tags = [
                         { key: '', name: 'All Tags', color: 'transparent' },
                         { key: 'red', name: 'Red', color: '#FF6B6B' },
-                        { key: 'blue', name: 'Blue', color: '#4ECDC4' },
-                        { key: 'green', name: 'Green', color: '#45B7D1' },
+                        { key: 'blue', name: 'Blue', color: '#007AFF' },
+                        { key: 'green', name: 'Green', color: '#34C759' },
                         { key: 'yellow', name: 'Yellow', color: '#FFA726' },
                         { key: 'purple', name: 'Purple', color: '#AB47BC' },
                         { key: 'orange', name: 'Orange', color: '#FF7043' },
@@ -697,8 +687,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                           styles.tagColorDot,
                           { backgroundColor: {
                             'red': '#FF6B6B',
-                            'blue': '#4ECDC4',
-                            'green': '#45B7D1',
+                            'blue': '#007AFF',
+                            'green': '#34C759',
                             'yellow': '#FFA726',
                             'purple': '#AB47BC',
                             'orange': '#FF7043',
@@ -755,41 +745,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 </View>
               </View>
 
-              {/* Blinds Filter */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Blinds</Text>
-                <View style={styles.dropdownContainer}>
-                  <TouchableOpacity
-                    style={styles.dropdown}
-                    onPress={() => {
-                      const blindsOptions = ['All Blinds', '0.5/1', '1/2', '1/3', '2/5', '5/10', '10/20', '25/50', '50/100'].concat(
-                        [...new Set(sessions.map(s => `${s.smallBlind}/${s.bigBlind}`).filter(blinds => 
-                          !['0.5/1', '1/2', '1/3', '2/5', '5/10', '10/20', '25/50', '50/100'].includes(blinds)
-                        ))]
-                      );
-                      
-                      Alert.alert(
-                        "Select Blinds",
-                        "",
-                        blindsOptions.map(blinds => ({
-                          text: blinds,
-                          onPress: () => {
-                            setTempSessionFilter(prev => ({
-                              ...prev, 
-                              blinds: blinds === 'All Blinds' ? undefined : blinds
-                            }));
-                          }
-                        })).concat([{ text: "Cancel", style: "cancel" }])
-                      );
-                    }}
-                  >
-                    <Text style={styles.dropdownText}>
-                      {tempSessionFilter.blinds || 'All Blinds'}
-                    </Text>
-                    <Text style={styles.dropdownArrow}>▼</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+
 
 
 

@@ -7,6 +7,8 @@ interface PokerQuickKeyboardInlineProps {
   onQuickDelete: () => void;
   onDeletePressIn: () => void;
   onDeletePressOut: () => void;
+  currentText?: string;
+  cursorPosition?: number;
 }
 
 export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> = ({
@@ -14,7 +16,26 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
   onQuickDelete,
   onDeletePressIn,
   onDeletePressOut,
+  currentText = '',
+  cursorPosition = 0,
 }) => {
+  
+  const handleInsert = (text: string) => {
+    // 檢查是否需要在數字後自動添加空格
+    let textToInsert = text;
+    if (cursorPosition > 0) {
+      const previousChar = currentText.charAt(cursorPosition - 1);
+      const firstCharOfText = text.charAt(0);
+      
+      // 如果前一個字符是數字，且要插入的第一個字符不是數字、空格、標點符號，則自動添加空格
+      if (/\d/.test(previousChar) && 
+          !/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)) {
+        textToInsert = ' ' + text;
+      }
+    }
+    
+    onQuickInsert(textToInsert);
+  };
   return (
     <View style={styles.quickButtonsSection}>
       {/* Round Buttons */}
@@ -22,49 +43,49 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => onQuickInsert('Preflop: \n')}
+            onPress={() => handleInsert('Preflop: \n')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => onQuickInsert('Flop: \n')}
+            onPress={() => handleInsert('Flop: \n')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => onQuickInsert('Turn: \n')}
+            onPress={() => handleInsert('Turn: \n')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => onQuickInsert('River: \n')}
+            onPress={() => handleInsert('River: \n')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.compactButton]}
-            onPress={() => onQuickInsert('UTG1 ')}
+            onPress={() => handleInsert('UTG1 ')}
           >
             <Text style={styles.quickButtonText}>UTG1</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.compactButton]}
-            onPress={() => onQuickInsert('UTG2 ')}
+            onPress={() => handleInsert('UTG2 ')}
           >
             <Text style={styles.quickButtonText}>UTG2</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('Hero ')}
+            onPress={() => handleInsert('Hero ')}
           >
             <Text style={styles.quickButtonText}>H</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('Villain ')}
+            onPress={() => handleInsert('Villain ')}
           >
             <Text style={styles.quickButtonText}>V</Text>
           </TouchableOpacity>
@@ -78,7 +99,7 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
             <TouchableOpacity
               key={position}
               style={styles.quickButton}
-              onPress={() => onQuickInsert(position + ' ')}
+              onPress={() => handleInsert(position + ' ')}
             >
               <Text style={styles.quickButtonText}>{position}</Text>
             </TouchableOpacity>
@@ -91,37 +112,37 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.quickButton, styles.actionButton]}
-            onPress={() => onQuickInsert('Raise ')}
+            onPress={() => handleInsert('Raise ')}
           >
             <Text style={[styles.quickButtonText, styles.actionButtonText]}>Raise</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.actionButton]}
-            onPress={() => onQuickInsert('All-In ')}
+            onPress={() => handleInsert('All-In ')}
           >
             <Text style={[styles.quickButtonText, styles.actionButtonText]}>All-In</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.actionButton]}
-            onPress={() => onQuickInsert('Fold ')}
+            onPress={() => handleInsert('Fold ')}
           >
             <Text style={[styles.quickButtonText, styles.actionButtonText]}>Fold</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.actionButton]}
-            onPress={() => onQuickInsert('Bet ')}
+            onPress={() => handleInsert('Bet ')}
           >
             <Text style={[styles.quickButtonText, styles.actionButtonText]}>Bet</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.actionButton]}
-            onPress={() => onQuickInsert('Call ')}
+            onPress={() => handleInsert('Call ')}
           >
             <Text style={[styles.quickButtonText, styles.actionButtonText]}>Call</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.actionButton]}
-            onPress={() => onQuickInsert('Check ')}
+            onPress={() => handleInsert('Check ')}
           >
             <Text style={[styles.quickButtonText, styles.actionButtonText]}>Check</Text>
           </TouchableOpacity>
@@ -133,19 +154,19 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('straddle ')}
+            onPress={() => handleInsert('straddle ')}
           >
             <Text style={styles.quickButtonText}>str</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('Limp ')}
+            onPress={() => handleInsert('Limp ')}
           >
             <Text style={styles.quickButtonText}>Limp</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('$')}
+            onPress={() => handleInsert('$')}
           >
             <Text style={styles.quickButtonText}>$</Text>
           </TouchableOpacity>
@@ -153,14 +174,14 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
             <TouchableOpacity
               key={number}
               style={[styles.quickButton, styles.numberButton]}
-              onPress={() => onQuickInsert(number)}
+              onPress={() => handleInsert(number)}
             >
               <Text style={styles.quickButtonText}>{number}</Text>
             </TouchableOpacity>
           ))}
           <TouchableOpacity
             style={[styles.quickButton, styles.numberButton]}
-            onPress={() => onQuickInsert('0')}
+            onPress={() => handleInsert('0')}
           >
             <Text style={styles.quickButtonText}>0</Text>
           </TouchableOpacity>
@@ -172,19 +193,19 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('Pot: ')}
+            onPress={() => handleInsert('Pot: ')}
           >
             <Text style={styles.quickButtonText}>Pot</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('/')}
+            onPress={() => handleInsert('/')}
           >
             <Text style={styles.quickButtonText}>/</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('x')}
+            onPress={() => handleInsert('x')}
           >
             <Text style={styles.quickButtonText}>x</Text>
           </TouchableOpacity>
@@ -192,7 +213,7 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
             <TouchableOpacity
               key={number}
               style={[styles.quickButton, styles.numberButton]}
-              onPress={() => onQuickInsert(number)}
+              onPress={() => handleInsert(number)}
             >
               <Text style={styles.quickButtonText}>{number}</Text>
             </TouchableOpacity>
@@ -211,7 +232,7 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
             <TouchableOpacity
               key={symbol}
               style={styles.quickButton}
-              onPress={() => onQuickInsert(symbol)}
+              onPress={() => handleInsert(symbol)}
             >
               <Text style={styles.quickButtonText}>
                 {symbol === ' ' ? '␣' : symbol}
@@ -220,7 +241,7 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
           ))}
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => onQuickInsert('.')}
+            onPress={() => handleInsert('.')}
           >
             <Text style={styles.quickButtonText}>.</Text>
           </TouchableOpacity>
@@ -228,14 +249,14 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
             <TouchableOpacity
               key={number}
               style={[styles.quickButton, styles.numberButton]}
-              onPress={() => onQuickInsert(number)}
+              onPress={() => handleInsert(number)}
             >
               <Text style={styles.quickButtonText}>{number}</Text>
             </TouchableOpacity>
           ))}
           <TouchableOpacity
             style={[styles.quickButton, styles.wideButton, styles.enterButton]}
-            onPress={() => onQuickInsert('\n')}
+            onPress={() => handleInsert('\n')}
           >
             <Text style={[styles.quickButtonText, styles.enterButtonText]}>↵</Text>
           </TouchableOpacity>

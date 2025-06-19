@@ -9,8 +9,8 @@ interface ColorTagDisplayProps {
 const colorMap: Record<string, string> = {
   '': 'transparent',
   'red': '#FF6B6B',
-  'blue': '#4ECDC4',
-  'green': '#45B7D1',
+  'blue': '#007AFF',
+  'green': '#34C759',
   'yellow': '#FFA726',
   'purple': '#AB47BC',
   'orange': '#FF7043',

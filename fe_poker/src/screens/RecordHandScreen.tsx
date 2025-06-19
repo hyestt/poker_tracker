@@ -28,7 +28,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const detailsInputRef = useRef<TextInput>(null);
   const { addHand, fetchHands, fetchStats } = useSessionStore();
 
-  const positions = ['UTG', 'UTG1', 'UTG2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
+  const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
   const handleHoleCardsSelect = () => {
     setSelectedVillainIndex(null);
@@ -148,15 +148,28 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     const cursorPosition = selection.start;
     const currentDetails = details || '';
     
+    // 檢查是否需要在數字後自動添加空格
+    let textToInsert = text;
+    if (cursorPosition > 0) {
+      const previousChar = currentDetails.charAt(cursorPosition - 1);
+      const firstCharOfText = text.charAt(0);
+      
+      // 如果前一個字符是數字，且要插入的第一個字符不是數字、空格、標點符號，則自動添加空格
+      if (/\d/.test(previousChar) && 
+          !/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)) {
+        textToInsert = ' ' + text;
+      }
+    }
+    
     // 在游標位置插入文字
-    const newDetails = currentDetails.slice(0, cursorPosition) + text + currentDetails.slice(cursorPosition);
+    const newDetails = currentDetails.slice(0, cursorPosition) + textToInsert + currentDetails.slice(cursorPosition);
     setDetails(newDetails);
     
     // 更新游標位置到插入文字的右邊
-    const newPosition = cursorPosition + text.length;
+    const newPosition = cursorPosition + textToInsert.length;
     setSelection({ start: newPosition, end: newPosition });
     
-    setLastInsertedText(text);
+    setLastInsertedText(textToInsert);
     
     // 保持TextInput的焦點
     if (detailsInputRef.current) {

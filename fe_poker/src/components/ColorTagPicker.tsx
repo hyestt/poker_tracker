@@ -17,8 +17,8 @@ interface ColorTagPickerProps {
 const defaultColorTags: ColorTag[] = [
   { id: '', name: 'None', color: 'transparent' },
   { id: 'red', name: 'Red', color: '#FF6B6B' },
-  { id: 'blue', name: 'Blue', color: '#4ECDC4' },
-  { id: 'green', name: 'Green', color: '#45B7D1' },
+  { id: 'blue', name: 'Blue', color: '#007AFF' },
+  { id: 'green', name: 'Green', color: '#34C759' },
   { id: 'yellow', name: 'Yellow', color: '#FFA726' },
   { id: 'purple', name: 'Purple', color: '#AB47BC' },
   { id: 'orange', name: 'Orange', color: '#FF7043' },
