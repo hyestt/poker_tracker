@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { theme } from '../theme';
 
@@ -38,32 +38,23 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
   };
 
   const openPicker = () => {
-    console.log('🔍 Opening picker with value:', value);
-    console.log('🔍 Value type:', typeof value);
-    console.log('🔍 Value length:', value?.length);
     const initialDate = parseValue(value);
-    console.log('📅 Parsed initial date:', initialDate);
     setCurrentDate(initialDate);
     setMode('date');
     setShow(true);
   };
 
   const onPickerChange = (event: any, selectedDate?: Date) => {
-    console.log('🎡 onPickerChange called:', selectedDate);
     if (selectedDate) {
       setCurrentDate(selectedDate);
     }
   };
   
   const onConfirm = () => {
-    console.log('✅ onConfirm called, mode:', mode, 'currentDate:', currentDate);
     if (mode === 'date') {
-      console.log('📅 Date confirmed, switching to time mode');
       setMode('time');
     } else {
       const formattedResult = formatDate(currentDate);
-      console.log('⏰ Time confirmed, final result:', formattedResult);
-      Alert.alert('Final Value', `Setting: ${formattedResult}`);
       onValueChange(formattedResult);
       setShow(false);
     }
@@ -127,10 +118,6 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
             <PickerComponent />
           </View>
         </View>
-        {/* 調試用 - 顯示當前值 */}
-        <Text style={{fontSize: 12, color: 'red', marginTop: 4}}>
-          Debug: Current value = "{value}" (length: {value?.length || 0})
-        </Text>
         {Platform.OS === 'ios' ? <IOSPicker /> : (
             show && <DateTimePicker
                 testID="dateTimePicker"
@@ -180,14 +167,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'red', // 暫時改為紅色來測試可見性
-    borderWidth: 2,
-    borderColor: 'blue', // 暫時改為藍色邊框
+    backgroundColor: theme.colors.inputBg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.input,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
     minHeight: 48,
-    zIndex: 999, // 確保在最上層
   },
   pickerText: {
     fontSize: theme.font.size.body,
@@ -208,11 +194,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: 'yellow', // 暫時改為黃色來測試
+    backgroundColor: theme.colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 30, // Safe area for bottom
-    minHeight: 300, // 確保足夠高度
+    paddingBottom: 30,
   },
   modalHeader: {
     flexDirection: 'row',

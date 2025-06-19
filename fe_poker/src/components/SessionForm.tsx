@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Input } from './Input';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -23,81 +23,89 @@ export const SessionForm: React.FC<SessionFormProps> = ({
   submitButtonTitle,
   isLoading = false
 }) => {
-  const [location, setLocation] = useState('');
-  const [date, setDate] = useState('');
-  const [blinds, setBlinds] = useState('');
-  const [currency, setCurrency] = useState('');
-  const [effectiveStack, setEffectiveStack] = useState('');
-  const [tableSize, setTableSize] = useState('');
-  const [tag, setTag] = useState('');
+  // 使用單一狀態對象管理表單數據
+  const [formData, setFormData] = useState({
+    location: '',
+    date: '',
+    blinds: '',
+    currency: '',
+    effectiveStack: '',
+    tableSize: '',
+    tag: ''
+  });
+  
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
 
-  useEffect(() => {
-    console.log('🔄 SessionForm useEffect triggered, initialSession:', initialSession);
-    loadPreferencesAndInitialize();
-  }, []); // 暫時移除 initialSession 依賴來測試
+  // 更新表單數據的函數
+  const updateFormData = useCallback((field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
 
-  // 監控 date state 的變化
   useEffect(() => {
-    console.log('📅 Date state changed to:', date);
-  }, [date]);
+    loadPreferencesAndInitialize();
+  }, []);
 
   const loadPreferencesAndInitialize = async () => {
     const prefs = await UserPreferencesService.getPreferences();
     setPreferences(prefs);
     
     if (initialSession) {
-      // Edit mode - populate with existing session data
-      setLocation(initialSession.location || '');
-      setDate(initialSession.date || '');
-      setCurrency(initialSession.currency || '');
-      setEffectiveStack(initialSession.effectiveStack?.toString() || '');
-      setTableSize(initialSession.tableSize?.toString() || '');
-      setTag(initialSession.tag || '');
-      
-      // Format blinds as "smallBlind/bigBlind"
-      setBlinds(`${initialSession.smallBlind || 0}/${initialSession.bigBlind || 0}`);
+      // 編輯模式 - 載入現有 session 資料
+      setFormData({
+        location: initialSession.location || '',
+        date: initialSession.date || '',
+        blinds: `${initialSession.smallBlind || 0}/${initialSession.bigBlind || 0}`,
+        currency: initialSession.currency || '',
+        effectiveStack: initialSession.effectiveStack?.toString() || '',
+        tableSize: initialSession.tableSize?.toString() || '',
+        tag: initialSession.tag || ''
+      });
     } else {
-      // New session mode - set default values from preferences
-      setLocation(prefs.lastLocation || '');
-      setCurrency(prefs.lastCurrency || '🇺🇸 USD ($)');
-      setTableSize(prefs.lastTableSize || '6');
-      setBlinds(prefs.lastBlinds || '1/2');
-      setEffectiveStack('100');
-      
-      // Set current date and time as default
+      // 新建模式 - 設定預設值
       const now = new Date();
       const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      console.log('📅 SessionForm: Setting initial date to:', formattedDate);
-      setDate(formattedDate);
+      
+      setFormData({
+        location: prefs.lastLocation || '',
+        date: formattedDate,
+        blinds: prefs.lastBlinds || '1/2',
+        currency: prefs.lastCurrency || '🇺🇸 USD ($)',
+        effectiveStack: '100',
+        tableSize: prefs.lastTableSize || '6',
+        tag: ''
+      });
     }
   };
 
   const handleSubmit = async () => {
-    // Parse blinds (format: "1/2" -> smallBlind: 1, bigBlind: 2)
-    const [smallBlindStr, bigBlindStr] = blinds.split('/');
+    const [smallBlindStr, bigBlindStr] = formData.blinds.split('/');
     const smallBlindValue = parseFloat(smallBlindStr) || 0;
     const bigBlindValue = parseFloat(bigBlindStr) || 0;
 
     const session: Session = {
       id: initialSession?.id || Date.now().toString(),
-      location,
-      date,
+      location: formData.location,
+      date: formData.date,
       smallBlind: smallBlindValue,
       bigBlind: bigBlindValue,
-      currency,
-      effectiveStack: parseInt(effectiveStack) || 0,
-      tableSize: parseInt(tableSize) || 6,
-      tag,
+      currency: formData.currency,
+      effectiveStack: parseInt(formData.effectiveStack) || 0,
+      tableSize: parseInt(formData.tableSize) || 6,
+      tag: formData.tag,
     };
 
-    // Save current choices as user preferences
-    await UserPreferencesService.updateLastChoices({
-      location,
-      currency,
-      tableSize,
-      blinds,
-    });
+    // 儲存使用者偏好
+    if (preferences) {
+      await UserPreferencesService.updateLastChoices({
+        location: formData.location,
+        currency: formData.currency,
+        tableSize: formData.tableSize,
+        blinds: formData.blinds,
+      });
+    }
 
     onSubmit(session);
   };
@@ -148,8 +156,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         <CustomPicker
           title="Location"
           options={preferences.customLocations}
-          value={location}
-          onValueChange={setLocation}
+          value={formData.location}
+          onValueChange={(value) => updateFormData('location', value)}
           onOptionsChange={updateLocationOptions}
           placeholder="Select location"
         />
@@ -158,32 +166,17 @@ export const SessionForm: React.FC<SessionFormProps> = ({
       <Card style={styles.section}>
         <CustomDateTimePicker
           title="Date & Time"
-          value={date}
-          onValueChange={(newDate) => {
-            console.log('🔄 SessionForm: Date value changed from', date, 'to', newDate);
-            setDate(newDate);
-          }}
+          value={formData.date}
+          onValueChange={(value) => updateFormData('date', value)}
         />
-        {/* 測試按鈕 */}
-        <TouchableOpacity 
-          style={{backgroundColor: 'green', padding: 10, marginTop: 10, borderRadius: 5}}
-          onPress={() => {
-            const testDate = '2025/01/01 12:30';
-            console.log('🧪 Test: Setting date to', testDate);
-            Alert.alert('Test', `Setting date to: ${testDate}\nCurrent date: ${date}`);
-            setDate(testDate);
-          }}
-        >
-          <Text style={{color: 'white', textAlign: 'center'}}>Test Set Date</Text>
-        </TouchableOpacity>
       </Card>
 
       <Card style={styles.section}>
         <CustomPicker
           title="Blinds"
           options={preferences.customBlinds}
-          value={blinds}
-          onValueChange={setBlinds}
+          value={formData.blinds}
+          onValueChange={(value) => updateFormData('blinds', value)}
           onOptionsChange={updateBlindsOptions}
           placeholder="Select blinds (e.g. 1/2)"
         />
@@ -193,8 +186,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         <CustomPicker
           title="Currency"
           options={preferences.customCurrencies}
-          value={currency}
-          onValueChange={setCurrency}
+          value={formData.currency}
+          onValueChange={(value) => updateFormData('currency', value)}
           onOptionsChange={updateCurrencyOptions}
           placeholder="Select currency"
           allowCustom={false}
@@ -206,10 +199,10 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         <CustomPicker
           title="Table Size"
           options={preferences.customTableSizes.map(size => `${size} Players`)}
-          value={tableSize ? `${tableSize} Players` : ''}
+          value={formData.tableSize ? `${formData.tableSize} Players` : ''}
           onValueChange={(value) => {
             const sizeOnly = value.replace(' Players', '');
-            setTableSize(sizeOnly);
+            updateFormData('tableSize', sizeOnly);
           }}
           onOptionsChange={(newOptions) => {
             const sizesOnly = newOptions.map(option => option.replace(' Players', ''));
@@ -224,8 +217,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({
           <Text style={styles.fieldTitle}>Effective Stack</Text>
           <View style={styles.inputContainer}>
             <Input 
-              value={effectiveStack} 
-              onChangeText={setEffectiveStack} 
+              value={formData.effectiveStack} 
+              onChangeText={(value) => updateFormData('effectiveStack', value)}
               placeholder="Starting stack amount" 
               keyboardType="numeric" 
             />
@@ -236,8 +229,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({
       <Card style={styles.section}>
         <ColorTagPicker
           title="Session Tag"
-          value={tag}
-          onValueChange={setTag}
+          value={formData.tag}
+          onValueChange={(value) => updateFormData('tag', value)}
         />
       </Card>
 
