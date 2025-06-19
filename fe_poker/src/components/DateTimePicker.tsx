@@ -1,80 +1,121 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { theme } from '../theme';
 
-interface DateTimePickerProps {
+interface CustomDateTimePickerProps {
   value: string;
   onValueChange: (value: string) => void;
   title?: string;
 }
 
-export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
+export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
   value,
   onValueChange,
   title,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [tempDate, setTempDate] = useState(new Date());
+  const [show, setShow] = useState(false);
   const [mode, setMode] = useState<'date' | 'time'>('date');
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const parseValue = (dateString: string): Date => {
     if (!dateString) return new Date();
-    
-    // Parse format: "2024/01/15 19:30"
     const [datePart, timePart] = dateString.split(' ');
+    if (!datePart || !timePart) return new Date();
     const [year, month, day] = datePart.split('/').map(Number);
-    const [hour, minute] = (timePart || '00:00').split(':').map(Number);
-    
-    return new Date(year, month - 1, day, hour, minute);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    if ([year, month, day, hours, minutes].some(isNaN)) return new Date();
+    return new Date(year, month - 1, day, hours, minutes);
   };
-
-  const formatDate = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hour = String(date.getHours()).padStart(2, '0');
-    const minute = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}/${month}/${day} ${hour}:${minute}`;
-  };
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setIsVisible(false);
-    }
-    
-    if (selectedDate) {
-      setTempDate(selectedDate);
-      if (Platform.OS === 'android' || mode === 'time') {
-        onValueChange(formatDate(selectedDate));
-      }
-    }
-  };
-
-  const handleConfirm = () => {
-    onValueChange(formatDate(tempDate));
-    setIsVisible(false);
-  };
-
-  const handleCancel = () => {
-    setTempDate(parseValue(value));
-    setIsVisible(false);
+  
+  const formatDate = (dateToFormat: Date): string => {
+    const year = dateToFormat.getFullYear();
+    const month = String(dateToFormat.getMonth() + 1).padStart(2, '0');
+    const day = String(dateToFormat.getDate()).padStart(2, '0');
+    const hours = String(dateToFormat.getHours()).padStart(2, '0');
+    const minutes = String(dateToFormat.getMinutes()).padStart(2, '0');
+    return `${year}/${month}/${day} ${hours}:${minutes}`;
   };
 
   const openPicker = () => {
-    setTempDate(parseValue(value));
+    console.log('🔍 Opening picker with value:', value);
+    console.log('🔍 Value type:', typeof value);
+    console.log('🔍 Value length:', value?.length);
+    const initialDate = parseValue(value);
+    console.log('📅 Parsed initial date:', initialDate);
+    setCurrentDate(initialDate);
     setMode('date');
-    setIsVisible(true);
+    setShow(true);
+  };
+
+  const onPickerChange = (event: any, selectedDate?: Date) => {
+    console.log('🎡 onPickerChange called:', selectedDate);
+    if (selectedDate) {
+      setCurrentDate(selectedDate);
+    }
+  };
+  
+  const onConfirm = () => {
+    console.log('✅ onConfirm called, mode:', mode, 'currentDate:', currentDate);
+    if (mode === 'date') {
+      console.log('📅 Date confirmed, switching to time mode');
+      setMode('time');
+    } else {
+      const formattedResult = formatDate(currentDate);
+      console.log('⏰ Time confirmed, final result:', formattedResult);
+      Alert.alert('Final Value', `Setting: ${formattedResult}`);
+      onValueChange(formattedResult);
+      setShow(false);
+    }
+  };
+  
+  const onCancel = () => {
+    setShow(false);
   };
 
   const PickerComponent = () => (
-    <TouchableOpacity style={styles.picker} onPress={openPicker}>
+    <TouchableOpacity 
+      style={styles.picker} 
+      onPress={openPicker}
+      activeOpacity={0.7}
+    >
       <Text style={[styles.pickerText, !value && styles.placeholderText]}>
-        {value || 'Select date and time'}
+        {value || `Select ${title}`}
       </Text>
       <Text style={styles.arrow}>▼</Text>
     </TouchableOpacity>
+  );
+
+  const IOSPicker = () => (
+    <Modal
+        transparent
+        animationType="slide"
+        visible={show}
+        onRequestClose={onCancel}
+    >
+        <View style={styles.overlay}>
+            <View style={styles.modal}>
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity onPress={onCancel}>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitle}>Select {mode === 'date' ? 'Date' : 'Time'}</Text>
+                  <TouchableOpacity onPress={onConfirm}>
+                    <Text style={styles.confirmButtonText}>{mode === 'date' ? 'Next' : 'Done'}</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                    testID="dateTimePicker"
+                    value={currentDate}
+                    mode={mode}
+                    is24Hour={true}
+                    display="spinner"
+                    onChange={onPickerChange}
+                    style={styles.iosPicker}
+                />
+            </View>
+        </View>
+    </Modal>
   );
 
   if (title) {
@@ -82,60 +123,22 @@ export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
       <View>
         <View style={styles.horizontalContainer}>
           <Text style={styles.titleText}>{title}</Text>
-          <View style={styles.pickerContainer}>
+          <View style={styles.pickerInputContainer}>
             <PickerComponent />
           </View>
         </View>
-
-        {isVisible && (
-          <Modal
-            transparent
-            animationType="fade"
-            visible={isVisible}
-            onRequestClose={handleCancel}
-          >
-            <View style={styles.overlay}>
-              <View style={styles.modal}>
-                              <Text style={styles.modalTitle}>Select {title}</Text>
-              
-              <View style={styles.modeButtons}>
-                <TouchableOpacity
-                  style={[styles.modeButton, mode === 'date' && styles.activeModeButton]}
-                  onPress={() => setMode('date')}
-                >
-                  <Text style={[styles.modeButtonText, mode === 'date' && styles.activeModeButtonText]}>
-                    Date
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modeButton, mode === 'time' && styles.activeModeButton]}
-                  onPress={() => setMode('time')}
-                >
-                  <Text style={[styles.modeButtonText, mode === 'time' && styles.activeModeButtonText]}>
-                    Time
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-                <DateTimePicker
-                  value={tempDate}
-                  mode={mode}
-                  display="spinner"
-                  onChange={handleDateChange}
-                  style={styles.dateTimePicker}
-                />
-
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity style={styles.button} onPress={handleCancel}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleConfirm}>
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
+        {/* 調試用 - 顯示當前值 */}
+        <Text style={{fontSize: 12, color: 'red', marginTop: 4}}>
+          Debug: Current value = "{value}" (length: {value?.length || 0})
+        </Text>
+        {Platform.OS === 'ios' ? <IOSPicker /> : (
+            show && <DateTimePicker
+                testID="dateTimePicker"
+                value={currentDate}
+                mode={mode}
+                display="default"
+                onChange={onPickerChange}
+            />
         )}
       </View>
     );
@@ -144,57 +147,15 @@ export const CustomDateTimePicker: React.FC<DateTimePickerProps> = ({
   return (
     <View>
       <PickerComponent />
-
-      {isVisible && (
-        <Modal
-          transparent
-          animationType="fade"
-          visible={isVisible}
-          onRequestClose={handleCancel}
-        >
-          <View style={styles.overlay}>
-            <View style={styles.modal}>
-                          <Text style={styles.modalTitle}>Select Date and Time</Text>
-            
-            <View style={styles.modeButtons}>
-              <TouchableOpacity
-                style={[styles.modeButton, mode === 'date' && styles.activeModeButton]}
-                onPress={() => setMode('date')}
-              >
-                <Text style={[styles.modeButtonText, mode === 'date' && styles.activeModeButtonText]}>
-                  Date
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modeButton, mode === 'time' && styles.activeModeButton]}
-                onPress={() => setMode('time')}
-              >
-                <Text style={[styles.modeButtonText, mode === 'time' && styles.activeModeButtonText]}>
-                  Time
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-              <DateTimePicker
-                value={tempDate}
+       {Platform.OS === 'ios' ? <IOSPicker /> : (
+            show && <DateTimePicker
+                testID="dateTimePicker"
+                value={currentDate}
                 mode={mode}
-                display="spinner"
-                onChange={handleDateChange}
-                style={styles.dateTimePicker}
-              />
-
-              <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.button} onPress={handleCancel}>
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={handleConfirm}>
-                  <Text style={styles.confirmButtonText}>Confirm</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
+                display="default"
+                onChange={onPickerChange}
+            />
+        )}
     </View>
   );
 };
@@ -212,20 +173,21 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     flex: 0.3,
   },
-  pickerContainer: {
+  pickerInputContainer: {
     flex: 0.65,
   },
   picker: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: theme.colors.inputBg,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    backgroundColor: 'red', // 暫時改為紅色來測試可見性
+    borderWidth: 2,
+    borderColor: 'blue', // 暫時改為藍色邊框
     borderRadius: theme.radius.input,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
     minHeight: 48,
+    zIndex: 999, // 確保在最上層
   },
   pickerText: {
     fontSize: theme.font.size.body,
@@ -237,83 +199,45 @@ const styles = StyleSheet.create({
   },
   arrow: {
     fontSize: 16,
-    color: theme.colors.gray,
-    marginLeft: theme.spacing.sm,
+    color: theme.colors.text,
+    marginLeft: theme.spacing.xs,
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: 'white',
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
-    margin: theme.spacing.lg,
-    minWidth: '80%',
+    backgroundColor: 'yellow', // 暫時改為黃色來測試
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 30, // Safe area for bottom
+    minHeight: 300, // 確保足夠高度
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
   },
   modalTitle: {
     fontSize: theme.font.size.subtitle,
     fontWeight: '600',
-    marginBottom: theme.spacing.md,
-    textAlign: 'center',
     color: theme.colors.text,
-  },
-  modeButtons: {
-    flexDirection: 'row',
-    marginBottom: theme.spacing.md,
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.button,
-    padding: 4,
-  },
-  modeButton: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    alignItems: 'center',
-    borderRadius: theme.radius.button - 2,
-  },
-  activeModeButton: {
-    backgroundColor: theme.colors.primary,
-  },
-  modeButtonText: {
-    fontSize: theme.font.size.body,
-    color: theme.colors.text,
-    fontWeight: '500',
-  },
-  activeModeButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  dateTimePicker: {
-    width: '100%',
-    height: 200,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.md,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.radius.button,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.colors.gray,
-  },
-  confirmButton: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
   },
   cancelButtonText: {
-    color: theme.colors.gray,
     fontSize: theme.font.size.body,
+    color: theme.colors.gray,
   },
   confirmButtonText: {
-    color: 'white',
     fontSize: theme.font.size.body,
+    color: theme.colors.primary,
     fontWeight: '600',
   },
+  iosPicker: {
+    height: 200,
+  }
 }); 

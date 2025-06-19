@@ -1,5 +1,35 @@
 # Poker Tracker 專案記錄
 
+## 2025-06-18 - 貨幣列表大幅擴充與用戶偏好設定重置功能
+
+### 新增功能：
+1. **擴充貨幣列表**：
+   - 從原本的 5 種貨幣擴充為 35 種世界主要貨幣
+   - 每個貨幣包含：國旗 emoji、貨幣代碼、貨幣符號
+   - 格式：🇺🇸 USD ($)、🇪🇺 EUR (€)、🇯🇵 JPY (¥) 等
+
+2. **用戶偏好設定重置功能**：
+   - 在 SettingsScreen 新增"Reset User Preferences"選項
+   - 可一鍵重置所有偏好設定到預設值
+   - 解決舊用戶看不到新貨幣選項的問題
+
+### 技術改進：
+- 修改 UserPreferences.ts 中的 `getPreferences()` 方法
+- 強制使用最新的貨幣列表（customCurrencies）
+- 新增 `clearPreferences()` 和 `resetToDefaults()` 方法
+- 自動保存更新後的偏好設定
+
+### 新增的35種貨幣：
+美洲：USD, CAD, MXN, BRL, ARS
+歐洲：EUR, GBP, CHF, SEK, NOK, DKK, PLN, CZK, HUF, BGN, RON
+亞太：JPY, CNY, HKD, SGD, AUD, NZD, INR, KRW, THB, MYR, IDR, PHP, VND
+中東/非洲：AED, SAR, ILS, ZAR
+其他：TRY, RUB
+
+### 使用方式：
+- 新用戶：自動看到完整的35種貨幣列表
+- 舊用戶：前往 Settings > Reset User Preferences 重置偏好設定
+
 ## 2025-06-18 - iOS 專案重建與 Metro 依賴修復
 
 ### 背景
@@ -29,6 +59,39 @@
 
 ### 結論
 這次修復的核心是**徹底重建損壞的 `ios` 目錄**，並確保 JavaScript 依賴 (`@babel/runtime`) 被正確地放置在 `dependencies` 中。
+
+---
+
+## 2025-01-27 - Filter 功能大幅改進
+
+### 新增功能：
+1. **時間範圍過濾**：
+   - 全部時間（預設）
+   - 最近 3 天
+   - 最近 7 天
+   - 自訂範圍（搭配特定日期選擇）
+
+2. **位置過濾**：
+   - 支援按牌桌位置過濾（UTG、BB、BTN 等）
+   - 動態從已有手牌中抓取位置選項
+
+3. **Session 標籤過濾**：
+   - 支援按顏色標籤過濾（紅色、藍色、綠色等）
+   - 每個標籤顯示對應的顏色圓點
+   - 與 ColorTagPicker 組件整合
+
+### 技術改進：
+- 更新 sessionFilter state 結構，支援更多過濾維度
+- 改進 getFilteredHands 函數，加入複雜的時間範圍計算
+- 修復 TypeScript 錯誤（date 可能為 undefined 的問題）
+- 優化 UI 佈局，將 modal 標題改為 "Advanced Filter"
+- 新增 tagOptionContainer 和 tagColorCircle 樣式
+
+### 使用方式：
+- 點擊 🎯 Filter 按鈕開啟進階過濾器
+- 可同時使用多個過濾條件
+- 有 Active 狀態顯示當前是否啟用過濾器
+- Clear All 按鈕可快速清除所有過濾條件
 
 ---
 

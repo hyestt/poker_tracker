@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Input } from './Input';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -33,8 +33,14 @@ export const SessionForm: React.FC<SessionFormProps> = ({
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
 
   useEffect(() => {
+    console.log('🔄 SessionForm useEffect triggered, initialSession:', initialSession);
     loadPreferencesAndInitialize();
-  }, [initialSession]);
+  }, []); // 暫時移除 initialSession 依賴來測試
+
+  // 監控 date state 的變化
+  useEffect(() => {
+    console.log('📅 Date state changed to:', date);
+  }, [date]);
 
   const loadPreferencesAndInitialize = async () => {
     const prefs = await UserPreferencesService.getPreferences();
@@ -54,7 +60,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
     } else {
       // New session mode - set default values from preferences
       setLocation(prefs.lastLocation || '');
-      setCurrency(prefs.lastCurrency || '🇺🇸 USD');
+      setCurrency(prefs.lastCurrency || '🇺🇸 USD ($)');
       setTableSize(prefs.lastTableSize || '6');
       setBlinds(prefs.lastBlinds || '1/2');
       setEffectiveStack('100');
@@ -62,6 +68,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
       // Set current date and time as default
       const now = new Date();
       const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      console.log('📅 SessionForm: Setting initial date to:', formattedDate);
       setDate(formattedDate);
     }
   };
@@ -152,8 +159,23 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         <CustomDateTimePicker
           title="Date & Time"
           value={date}
-          onValueChange={setDate}
+          onValueChange={(newDate) => {
+            console.log('🔄 SessionForm: Date value changed from', date, 'to', newDate);
+            setDate(newDate);
+          }}
         />
+        {/* 測試按鈕 */}
+        <TouchableOpacity 
+          style={{backgroundColor: 'green', padding: 10, marginTop: 10, borderRadius: 5}}
+          onPress={() => {
+            const testDate = '2025/01/01 12:30';
+            console.log('🧪 Test: Setting date to', testDate);
+            Alert.alert('Test', `Setting date to: ${testDate}\nCurrent date: ${date}`);
+            setDate(testDate);
+          }}
+        >
+          <Text style={{color: 'white', textAlign: 'center'}}>Test Set Date</Text>
+        </TouchableOpacity>
       </Card>
 
       <Card style={styles.section}>
@@ -175,6 +197,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({
           onValueChange={setCurrency}
           onOptionsChange={updateCurrencyOptions}
           placeholder="Select currency"
+          allowCustom={false}
+          allowDelete={false}
         />
       </Card>
 

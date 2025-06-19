@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
@@ -24,13 +24,31 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  const [sessionFilter, setSessionFilter] = useState<{location?: string, blinds?: string, dateTime?: string}>({});
+  const [sessionFilter, setSessionFilter] = useState<{
+    location?: string;
+    blinds?: string;
+    dateTime?: string;
+    timeRange?: string;
+    position?: string;
+    tag?: string;
+    customStartDate?: string;
+    customEndDate?: string;
+  }>({});
 
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [tempSessionFilter, setTempSessionFilter] = useState<{location?: string, blinds?: string, dateTime?: string}>({});
+  const [tempSessionFilter, setTempSessionFilter] = useState<{
+    location?: string;
+    blinds?: string;
+    dateTime?: string;
+    timeRange?: string;
+    position?: string;
+    tag?: string;
+    customStartDate?: string;
+    customEndDate?: string;
+  }>({});
   
 
-  
+
   // 計算有實際手牌記錄的 sessions 數量
   const activeSessions = sessions.filter(session => 
     hands.some(hand => hand.sessionId === session.id)
@@ -46,10 +64,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const getFilteredHands = () => {
     let filtered = [...hands];
     
-
-
     // Session filter
-    if (sessionFilter.location || sessionFilter.blinds || sessionFilter.dateTime) {
+    if (sessionFilter.location || sessionFilter.blinds || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate) {
       filtered = filtered.filter(hand => {
         const session = sessions.find(s => s.id === hand.sessionId);
         if (!session) return false;
@@ -69,6 +85,57 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
         // Date & Time filter (session date)
         if (sessionFilter.dateTime && session.date !== sessionFilter.dateTime) {
+          return false;
+        }
+
+        // Time Range filter
+        if (sessionFilter.timeRange) {
+          const now = new Date();
+          const sessionDate = new Date(session.date || '');
+          
+          switch (sessionFilter.timeRange) {
+            case '1day':
+              const diffHours = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60));
+              if (diffHours > 24) return false;
+              break;
+            case '3days':
+              const diff3Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (diff3Days > 3) return false;
+              break;
+            case '7days':
+              const diff7Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (diff7Days > 7) return false;
+              break;
+            case '30days':
+              const diff30Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (diff30Days > 30) return false;
+              break;
+            case 'custom':
+              // Custom range filter
+              if (sessionFilter.customStartDate || sessionFilter.customEndDate) {
+                const sessionTime = sessionDate.getTime();
+                
+                if (sessionFilter.customStartDate) {
+                  const startTime = new Date(sessionFilter.customStartDate).getTime();
+                  if (sessionTime < startTime) return false;
+                }
+                
+                if (sessionFilter.customEndDate) {
+                  const endTime = new Date(sessionFilter.customEndDate).getTime();
+                  if (sessionTime > endTime) return false;
+                }
+              }
+              break;
+          }
+        }
+
+        // Position filter
+        if (sessionFilter.position && hand.position !== sessionFilter.position) {
+          return false;
+        }
+
+        // Session Tag filter
+        if (sessionFilter.tag && session.tag !== sessionFilter.tag) {
           return false;
         }
 
@@ -99,7 +166,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       let comparison = 0;
       switch (selectedSort) {
         case 'date':
-          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          comparison = new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
           break;
         case 'amount':
           comparison = a.result - b.result;
@@ -229,8 +296,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       sortButtons
     );
   };
-
-
 
   // Format time ago
   const getTimeAgo = (dateStr: string) => {
@@ -379,9 +444,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           )}
         </View>
         
-
-
-                <TouchableOpacity 
+        <TouchableOpacity 
           style={styles.sessionFilterButton} 
           onPress={() => {
             setTempSessionFilter(sessionFilter);
@@ -389,7 +452,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           }}
         >
           <Text style={styles.sessionFilterText}>
-            {sessionFilter.location || sessionFilter.blinds || sessionFilter.dateTime ? '🎯 Active' : '🎯 Filter'}
+            {sessionFilter.location || sessionFilter.blinds || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate ? '☰ Active' : '☰ Filter'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -415,8 +478,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         ))}
       </View>
 
-
-
       {/* Usage Hint */}
       {filteredHands.length > 0 && (
         <Text style={styles.usageHint}>Tap to view • Long press for more actions</Text>
@@ -431,7 +492,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         )}
         {filteredHands.map((hand) => {
           const session = sessions.find(s => s.id === hand.sessionId);
-          const timeAgo = getTimeAgo(hand.date);
+          const timeAgo = getTimeAgo(hand.date || '');
           const bbAmount = getBBAmount(hand.result, hand.sessionId);
           
           // Debug favorite status
@@ -509,101 +570,223 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.filterModal}>
-            <Text style={styles.modalTitle}>Session Filter</Text>
+            <Text style={styles.modalTitle}>Advanced Filter</Text>
             
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-              {/* Session Date Filter - First */}
+              
+              {/* Time Range Filter */}
               <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Session Date</Text>
-                {[...new Set(sessions.map(s => s.date).filter(Boolean))].map(date => (
+                <Text style={styles.filterSectionTitle}>Time Range</Text>
+                <View style={styles.dropdownContainer}>
                   <TouchableOpacity
-                    key={date}
-                    style={[
-                      styles.filterOption,
-                      tempSessionFilter.dateTime === date && styles.selectedFilterOption
-                    ]}
+                    style={styles.dropdown}
                     onPress={() => {
-                      if (tempSessionFilter.dateTime === date) {
-                        setTempSessionFilter(prev => ({...prev, dateTime: undefined}));
-                      } else {
-                        setTempSessionFilter(prev => ({...prev, dateTime: date}));
-                      }
+                                             const options = [
+                         { key: '', label: 'All Time' },
+                         { key: '1day', label: 'Last 24 Hours' },
+                         { key: '3days', label: 'Last 3 Days' },
+                         { key: '7days', label: 'Last 7 Days' },
+                         { key: '30days', label: 'Last 30 Days' }
+                       ];
+                      
+                      Alert.alert(
+                        "Select Time Range",
+                        "",
+                        options.map(option => ({
+                          text: option.label,
+                          onPress: () => {
+                            setTempSessionFilter(prev => ({
+                              ...prev, 
+                              timeRange: option.key || undefined,
+                              customStartDate: undefined,
+                              customEndDate: undefined
+                            }));
+                          }
+                        })).concat([{ text: "Cancel", style: "cancel" }])
+                      );
                     }}
                   >
-                    <Text style={[
-                      styles.filterOptionText,
-                      tempSessionFilter.dateTime === date && styles.selectedFilterOptionText
-                    ]}>
-                      {date}
-                    </Text>
-                    {tempSessionFilter.dateTime === date && (
-                      <Text style={styles.checkmark}>✓</Text>
-                    )}
+                                         <Text style={styles.dropdownText}>
+                       {tempSessionFilter.timeRange 
+                         ? (['', '1day', '3days', '7days', '30days'].includes(tempSessionFilter.timeRange)
+                           ? ['All Time', 'Last 24 Hours', 'Last 3 Days', 'Last 7 Days', 'Last 30 Days'][['', '1day', '3days', '7days', '30days'].indexOf(tempSessionFilter.timeRange)]
+                           : tempSessionFilter.timeRange)
+                         : 'All Time'
+                       }
+                     </Text>
+                    <Text style={styles.dropdownArrow}>▼</Text>
                   </TouchableOpacity>
-                ))}
+                </View>
+              </View>
+
+              {/* Position Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Position</Text>
+                <View style={styles.dropdownContainer}>
+                  <TouchableOpacity
+                    style={styles.dropdown}
+                    onPress={() => {
+                      const positions = ['All Positions', 'UTG', 'UTG+1', 'MP', 'MP+1', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+                      
+                      Alert.alert(
+                        "Select Position",
+                        "",
+                        positions.map(position => ({
+                          text: position,
+                          onPress: () => {
+                            setTempSessionFilter(prev => ({
+                              ...prev, 
+                              position: position === 'All Positions' ? undefined : position
+                            }));
+                          }
+                        })).concat([{ text: "Cancel", style: "cancel" }])
+                      );
+                    }}
+                  >
+                    <Text style={styles.dropdownText}>
+                      {tempSessionFilter.position || 'All Positions'}
+                    </Text>
+                    <Text style={styles.dropdownArrow}>▼</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Session Tag Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Session Tag</Text>
+                <View style={styles.dropdownContainer}>
+                  <TouchableOpacity
+                    style={styles.dropdown}
+                    onPress={() => {
+                      const tags = [
+                        { key: '', name: 'All Tags', color: 'transparent' },
+                        { key: 'red', name: 'Red', color: '#FF6B6B' },
+                        { key: 'blue', name: 'Blue', color: '#4ECDC4' },
+                        { key: 'green', name: 'Green', color: '#45B7D1' },
+                        { key: 'yellow', name: 'Yellow', color: '#FFA726' },
+                        { key: 'purple', name: 'Purple', color: '#AB47BC' },
+                        { key: 'orange', name: 'Orange', color: '#FF7043' },
+                        { key: 'pink', name: 'Pink', color: '#EC407A' },
+                        { key: 'teal', name: 'Teal', color: '#26A69A' },
+                      ];
+                      
+                      Alert.alert(
+                        "Select Session Tag",
+                        "",
+                        tags.map(tag => ({
+                          text: tag.name,
+                          onPress: () => {
+                            setTempSessionFilter(prev => ({
+                              ...prev, 
+                              tag: tag.key || undefined
+                            }));
+                          }
+                        })).concat([{ text: "Cancel", style: "cancel" }])
+                      );
+                    }}
+                  >
+                    <View style={styles.dropdownContent}>
+                      {tempSessionFilter.tag && (
+                        <View style={[
+                          styles.tagColorDot,
+                          { backgroundColor: {
+                            'red': '#FF6B6B',
+                            'blue': '#4ECDC4',
+                            'green': '#45B7D1',
+                            'yellow': '#FFA726',
+                            'purple': '#AB47BC',
+                            'orange': '#FF7043',
+                            'pink': '#EC407A',
+                            'teal': '#26A69A',
+                          }[tempSessionFilter.tag] || '#ccc' }
+                        ]} />
+                      )}
+                      <Text style={styles.dropdownText}>
+                        {tempSessionFilter.tag 
+                          ? tempSessionFilter.tag.charAt(0).toUpperCase() + tempSessionFilter.tag.slice(1)
+                          : 'All Tags'
+                        }
+                      </Text>
+                    </View>
+                    <Text style={styles.dropdownArrow}>▼</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Location Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Location</Text>
-                {[...new Set(sessions.map(s => s.location).filter(Boolean))].map(location => (
+                <View style={styles.dropdownContainer}>
                   <TouchableOpacity
-                    key={location}
-                    style={[
-                      styles.filterOption,
-                      tempSessionFilter.location === location && styles.selectedFilterOption
-                    ]}
+                    style={styles.dropdown}
                     onPress={() => {
-                      if (tempSessionFilter.location === location) {
-                        setTempSessionFilter(prev => ({...prev, location: undefined}));
-                      } else {
-                        setTempSessionFilter(prev => ({...prev, location}));
-                      }
+                      const locations = ['All Locations', 'Home Game', 'Casino', 'Online', 'Club', 'Tournament', 'Cash Game'].concat(
+                        [...new Set(sessions.map(s => s.location).filter(loc => 
+                          loc && !['Home Game', 'Casino', 'Online', 'Club', 'Tournament', 'Cash Game'].includes(loc)
+                        ))]
+                      );
+                      
+                      Alert.alert(
+                        "Select Location",
+                        "",
+                        locations.map(location => ({
+                          text: location,
+                          onPress: () => {
+                            setTempSessionFilter(prev => ({
+                              ...prev, 
+                              location: location === 'All Locations' ? undefined : location
+                            }));
+                          }
+                        })).concat([{ text: "Cancel", style: "cancel" }])
+                      );
                     }}
                   >
-                    <Text style={[
-                      styles.filterOptionText,
-                      tempSessionFilter.location === location && styles.selectedFilterOptionText
-                    ]}>
-                      {location}
+                    <Text style={styles.dropdownText}>
+                      {tempSessionFilter.location || 'All Locations'}
                     </Text>
-                    {tempSessionFilter.location === location && (
-                      <Text style={styles.checkmark}>✓</Text>
-                    )}
+                    <Text style={styles.dropdownArrow}>▼</Text>
                   </TouchableOpacity>
-                ))}
+                </View>
               </View>
 
               {/* Blinds Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Blinds</Text>
-                {[...new Set(sessions.map(s => `${s.smallBlind}/${s.bigBlind}`))].map(blinds => (
+                <View style={styles.dropdownContainer}>
                   <TouchableOpacity
-                    key={blinds}
-                    style={[
-                      styles.filterOption,
-                      tempSessionFilter.blinds === blinds && styles.selectedFilterOption
-                    ]}
+                    style={styles.dropdown}
                     onPress={() => {
-                      if (tempSessionFilter.blinds === blinds) {
-                        setTempSessionFilter(prev => ({...prev, blinds: undefined}));
-                      } else {
-                        setTempSessionFilter(prev => ({...prev, blinds}));
-                      }
+                      const blindsOptions = ['All Blinds', '0.5/1', '1/2', '1/3', '2/5', '5/10', '10/20', '25/50', '50/100'].concat(
+                        [...new Set(sessions.map(s => `${s.smallBlind}/${s.bigBlind}`).filter(blinds => 
+                          !['0.5/1', '1/2', '1/3', '2/5', '5/10', '10/20', '25/50', '50/100'].includes(blinds)
+                        ))]
+                      );
+                      
+                      Alert.alert(
+                        "Select Blinds",
+                        "",
+                        blindsOptions.map(blinds => ({
+                          text: blinds,
+                          onPress: () => {
+                            setTempSessionFilter(prev => ({
+                              ...prev, 
+                              blinds: blinds === 'All Blinds' ? undefined : blinds
+                            }));
+                          }
+                        })).concat([{ text: "Cancel", style: "cancel" }])
+                      );
                     }}
                   >
-                    <Text style={[
-                      styles.filterOptionText,
-                      tempSessionFilter.blinds === blinds && styles.selectedFilterOptionText
-                    ]}>
-                      {blinds}
+                    <Text style={styles.dropdownText}>
+                      {tempSessionFilter.blinds || 'All Blinds'}
                     </Text>
-                    {tempSessionFilter.blinds === blinds && (
-                      <Text style={styles.checkmark}>✓</Text>
-                    )}
+                    <Text style={styles.dropdownArrow}>▼</Text>
                   </TouchableOpacity>
-                ))}
+                </View>
               </View>
+
+
+
             </ScrollView>
 
             {/* Action Buttons */}
@@ -627,6 +810,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+
       
     </View>
   );
@@ -694,7 +879,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.button,
     minWidth: 120,
   },
-
   dateRangeButton: {
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
@@ -977,35 +1161,35 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     marginBottom: theme.spacing.sm,
   },
-  filterOption: {
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.input,
+    padding: theme.spacing.sm,
+  },
+  dropdown: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
-    borderRadius: theme.radius.button,
-    backgroundColor: theme.colors.inputBg,
-    marginVertical: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    minHeight: 50,
+    padding: theme.spacing.sm,
   },
-  selectedFilterOption: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  filterOptionText: {
+  dropdownText: {
     fontSize: theme.font.size.body,
     color: theme.colors.text,
   },
-  selectedFilterOptionText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  checkmark: {
+  dropdownArrow: {
     fontSize: 16,
-    color: 'white',
-    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  dropdownContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tagColorDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: theme.spacing.sm,
   },
   modalActions: {
     flexDirection: 'row',
@@ -1060,5 +1244,50 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFD700',
     marginLeft: theme.spacing.xs,
+  },
+  tagOptionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  tagColorCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: theme.spacing.sm,
+  },
+  customDateContainer: {
+    marginTop: theme.spacing.sm,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  dateRangeRow: {
+    flexDirection: 'column',
+    gap: theme.spacing.sm,
+  },
+  dateButton: {
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.input,
+    padding: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  dateButtonLabel: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.gray,
+    marginBottom: 4,
+  },
+  dateButtonText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.text,
+    fontWeight: '500',
+  },
+  comingSoonText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.gray,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    padding: theme.spacing.md,
   },
 }); 

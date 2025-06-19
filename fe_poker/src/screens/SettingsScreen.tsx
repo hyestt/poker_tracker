@@ -5,6 +5,7 @@ import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import RevenueCatService from '../services/RevenueCatService';
 import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
+import { UserPreferencesService } from '../services/UserPreferences';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { 
@@ -179,6 +180,28 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
     }
   };
 
+  const handleResetPreferences = async () => {
+    Alert.alert(
+      'Reset User Preferences',
+      'This will reset all your saved preferences (locations, currencies, etc.) to default values. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await UserPreferencesService.resetToDefaults();
+              Alert.alert('Success', 'User preferences have been reset to defaults');
+            } catch (error) {
+              Alert.alert('Error', `Reset failed: ${error}`);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -258,6 +281,11 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Backup')}>
             <Text style={styles.menuText}>💾 Backup & Sync</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleResetPreferences}>
+            <Text style={styles.menuText}>🔄 Reset User Preferences</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
