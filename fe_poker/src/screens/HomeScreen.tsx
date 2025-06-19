@@ -19,7 +19,7 @@ const sortOptions = [
 ];
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { stats, sessions, hands, fetchSessions, fetchHands, fetchStats, deleteHand, analyzeHand, toggleFavorite } = useSessionStore();
+  const { sessions, hands, fetchSessions, fetchHands, deleteHand, analyzeHand, toggleFavorite } = useSessionStore();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -57,7 +57,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   useEffect(() => {
     fetchSessions();
     fetchHands();
-    fetchStats();
   }, []);
 
   // Filter and sort hands
@@ -840,10 +839,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0, // 設定為0，貼近底部
     left: '50%', // 水平居中的起始點
-    marginLeft: -28, // 負的半徑值來實現完美居中 (56/2 = 28)
-    width: 56, // iOS標準FAB尺寸
-    height: 56,
-    borderRadius: 28, // 完美的圓形
+    marginLeft: -35, // 負的半徑值來實現完美居中 (70/2 = 35)
+    width: 70, // 放大的FAB尺寸
+    height: 70,
+    borderRadius: 35, // 完美的圓形
     backgroundColor: '#007AFF', // iOS藍色
     alignItems: 'center',
     justifyContent: 'center',
@@ -855,9 +854,9 @@ const styles = StyleSheet.create({
   },
   fabButtonText: {
     color: '#fff',
-    fontSize: 24, // 較大的+號
+    fontSize: 30, // 更大的+號
     fontWeight: '300', // iOS系統字體風格
-    lineHeight: 28,
+    lineHeight: 35,
   },
   filterRow: {
     flexDirection: 'row',

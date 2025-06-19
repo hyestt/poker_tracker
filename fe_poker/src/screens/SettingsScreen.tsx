@@ -238,52 +238,10 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
           )}
         </View>
 
-        {/* Data Management Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 Data Management</Text>
-          
-          <TouchableOpacity style={styles.menuItem} onPress={handleDatabaseTest}>
-            <Text style={styles.menuText}>🔍 SQLite Database Test</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={handleMigrateToLocal}>
-            <Text style={styles.menuText}>🚀 Migrate Data to Local</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={handleSwitchMode}>
-            <Text style={styles.menuText}>
-              🔄 Switch Storage Mode ({isLocalMode ? 'Local' : 'API'})
-            </Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={handleRefreshData}>
-            <Text style={styles.menuText}>🔄 Refresh Data</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* App Settings Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>⚙️ App Settings</Text>
           
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Notifications')}>
-            <Text style={styles.menuText}>🔔 Notification Settings</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Privacy')}>
-            <Text style={styles.menuText}>🔒 Privacy Settings</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Backup')}>
-            <Text style={styles.menuText}>💾 Backup & Sync</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.menuItem} onPress={handleResetPreferences}>
             <Text style={styles.menuText}>🔄 Reset User Preferences</Text>
             <Text style={styles.menuArrow}>›</Text>
@@ -303,19 +261,9 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             <Text style={styles.menuText}>📧 Contact Us</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('About')}>
-            <Text style={styles.menuText}>ℹ️ About App</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Status Information */}
-        <View style={styles.statusSection}>
-          <Text style={styles.statusTitle}>📱 System Status</Text>
-          <Text style={styles.statusText}>Storage Mode: {isLocalMode ? 'Local SQLite' : 'API Mode'}</Text>
-          <Text style={styles.statusText}>Version: 1.0.0</Text>
-        </View>
+
 
       </ScrollView>
     </View>

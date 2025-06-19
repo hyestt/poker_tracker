@@ -16,7 +16,6 @@ import { RecordHandScreen } from './src/screens/RecordHandScreen';
 import { EditHandScreen } from './src/screens/EditHandScreen';
 import { HandDetailScreen } from './src/screens/HandDetailScreen';
 import { EditSessionScreen } from './src/screens/EditSessionScreen';
-import { StatsScreen } from './src/screens/StatsScreen';
 import { PokerKeyboardScreen } from './src/screens/PokerKeyboardScreen';
 import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
@@ -99,7 +98,6 @@ const App = () => {
             },
           })}
         />
-        <Tab.Screen name="Stats" component={StatsScreen} />
         <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
     </NavigationContainer>
