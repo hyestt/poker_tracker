@@ -70,7 +70,15 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          handId: handData.id
+          hand: {
+            id: handData.id,
+            position: handData.position,
+            holeCards: handData.holeCards,
+            board: handData.board,
+            details: handData.details,
+            result: handData.result,
+            villains: handData.villains || []
+          }
         })
       });
 

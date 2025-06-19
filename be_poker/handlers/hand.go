@@ -292,7 +292,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		HandID string `json:"handId"`
+		Hand models.Hand `json:"hand"`
 	}
 	
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -300,12 +300,11 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 獲取手牌詳情
-	row := db.DB.QueryRow(`SELECT details, result_amount FROM hands WHERE id = $1`, request.HandID)
-	var details string
-	var result int
-	if err := row.Scan(&details, &result); err != nil {
-		http.Error(w, "Hand not found", http.StatusNotFound)
+	hand := request.Hand
+	
+	// 確保手牌資料完整
+	if hand.Details == "" {
+		http.Error(w, "Hand details are required for analysis", http.StatusBadRequest)
 		return
 	}
 
@@ -317,7 +316,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 調用 OpenAI API 進行分析
-	analysis, err := openaiService.AnalyzeHand(details, result)
+	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return
