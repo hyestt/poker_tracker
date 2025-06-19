@@ -22,6 +22,8 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
 import RevenueCatService from './src/services/RevenueCatService';
 import { useSessionStore } from './src/viewmodels/sessionStore';
+import mobileAds from 'react-native-google-mobile-ads';
+import { AdService } from './src/services/AdService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -56,6 +58,13 @@ const App = () => {
     // 初始化應用服務
     const initializeServices = async () => {
       try {
+        // 初始化 Google Mobile Ads
+        await mobileAds().initialize();
+        console.log('Google Mobile Ads initialized successfully');
+
+        // 初始化廣告服務
+        AdService.initialize();
+
         // 同時初始化所有必要的服務
         await Promise.all([
           initializeSessionStore(),

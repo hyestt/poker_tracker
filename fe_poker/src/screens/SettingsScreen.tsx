@@ -6,6 +6,7 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import RevenueCatService from '../services/RevenueCatService';
 import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import { UserPreferencesService } from '../services/UserPreferences';
+import { AdService } from '../services/AdService';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { 
@@ -244,6 +245,21 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
           
           <TouchableOpacity style={styles.menuItem} onPress={handleResetPreferences}>
             <Text style={styles.menuText}>🔄 Reset User Preferences</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Test Ads Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📱 測試廣告</Text>
+          
+          <TouchableOpacity style={styles.menuItem} onPress={() => AdService.showInterstitialAd()}>
+            <Text style={styles.menuText}>📺 顯示插頁式廣告</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => AdService.showRewardedAd()}>
+            <Text style={styles.menuText}>🎁 顯示獎勵廣告</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>

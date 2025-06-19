@@ -4,6 +4,7 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { AdBanner } from '../components/AdBanner';
 
 const filterOptions = [
   { key: 'all', label: 'All Hands' },
@@ -489,6 +490,12 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {filteredHands.length === 0 && (
           <Text style={styles.empty}>No hands found</Text>
         )}
+        
+        {/* 如果有手牌，先顯示廣告 */}
+        {filteredHands.length > 0 && (
+          <AdBanner style={styles.inlineAd} />
+        )}
+        
         {filteredHands.map((hand) => {
           const session = sessions.find(s => s.id === hand.sessionId);
           const timeAgo = getTimeAgo(hand.date || '');
@@ -1288,5 +1295,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     padding: theme.spacing.md,
+  },
+  bannerAd: {
+    marginBottom: 0, // 廣告位於底部
+  },
+  inlineAd: {
+    marginVertical: theme.spacing.sm, // 與手牌項目間距一致
+    marginHorizontal: theme.spacing.md,
   },
 }); 
