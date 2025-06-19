@@ -323,16 +323,13 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 更新手牌的分析結果
-	analysisDate := time.Now().Format(time.RFC3339)
-	_, err = db.DB.Exec(`UPDATE hands SET analysis = $1, analysis_date = $2 WHERE id = $3`, analysis, analysisDate, request.HandID)
-	if err != nil {
-		http.Error(w, "Failed to save analysis: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+	// ⚠️ 注意：分析結果不保存到後端資料庫，只返回給前端
+	// 前端會將結果保存到本地 SQLite
+	
 	// 返回分析結果
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	analysisDate := time.Now().Format(time.RFC3339)
 	response := map[string]string{
 		"analysis": analysis,
 		"date":     analysisDate,

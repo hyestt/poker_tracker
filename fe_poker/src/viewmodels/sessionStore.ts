@@ -467,22 +467,20 @@ export const useSessionStore = create<State>((set, get) => ({
 
   analyzeHand: async (id: string): Promise<string> => {
     try {
-      // AI Analysis 始終使用後端 API
+      // AI Analysis 始終使用後端 API 進行分析
       const response = await apiCall(`${API_BASE_URL}/analyze`, {
         method: 'POST',
         body: JSON.stringify({ handId: id }),
       });
       
-      // 更新本地資料庫中的分析結果
-      const { isLocalMode } = get();
-      if (isLocalMode) {
-        await DatabaseService.initialize();
-        const hand = await DatabaseService.getHand(id);
-        if (hand) {
-          hand.analysis = response?.analysis || '';
-          hand.analysisDate = response?.date || new Date().toISOString();
-          await DatabaseService.updateHand(hand);
-        }
+      // ⚠️ 重要：分析結果始終保存到本地 SQLite，不論任何模式
+      await DatabaseService.initialize();
+      const hand = await DatabaseService.getHand(id);
+      if (hand) {
+        hand.analysis = response?.analysis || '';
+        hand.analysisDate = response?.date || new Date().toISOString();
+        await DatabaseService.updateHand(hand);
+        console.log(`✅ AI分析結果已保存到本地SQLite: ${id}`);
       }
       
       await get().fetchHands();
