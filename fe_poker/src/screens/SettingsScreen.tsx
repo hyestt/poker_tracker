@@ -205,11 +205,6 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
-      </View>
-
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         
         {/* Subscription Section */}
@@ -251,15 +246,15 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
         {/* Test Ads Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📱 測試廣告</Text>
+          <Text style={styles.sectionTitle}>📱 Test Ads</Text>
           
           <TouchableOpacity style={styles.menuItem} onPress={() => AdService.showInterstitialAd()}>
-            <Text style={styles.menuText}>📺 顯示插頁式廣告</Text>
+            <Text style={styles.menuText}>📺 Show Interstitial Ad</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => AdService.showRewardedAd()}>
-            <Text style={styles.menuText}>🎁 顯示獎勵廣告</Text>
+            <Text style={styles.menuText}>🎁 Show Rewarded Ad</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
@@ -291,23 +286,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: theme.spacing.lg,
-    backgroundColor: theme.colors.background,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: theme.colors.text,
-  },
+
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: theme.spacing.md,
+    paddingTop: 60, // 添加頂部間距替代header
     paddingBottom: 100,
   },
   section: {

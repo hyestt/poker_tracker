@@ -44,6 +44,20 @@ export const SessionForm: React.FC<SessionFormProps> = ({
     }));
   }, []);
 
+  // 專門處理數字輸入的函數
+  const updateNumericField = useCallback((field: string, value: string) => {
+    // 只允許數字和小數點
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    // 確保只有一個小數點
+    const parts = numericValue.split('.');
+    const validValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue;
+    
+    setFormData(prev => ({
+      ...prev,
+      [field]: validValue
+    }));
+  }, []);
+
   useEffect(() => {
     loadPreferencesAndInitialize();
   }, []);
@@ -218,7 +232,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
           <View style={styles.inputContainer}>
             <Input 
               value={formData.effectiveStack} 
-              onChangeText={(value) => updateFormData('effectiveStack', value)}
+              onChangeText={(value) => updateNumericField('effectiveStack', value)}
               placeholder="Starting stack amount" 
               keyboardType="numeric" 
             />
