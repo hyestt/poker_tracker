@@ -37,7 +37,11 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   };
 
   const sortedHands = [...hands].sort((a, b) => {
-    if (sortKey === 'date') return b.date.localeCompare(a.date);
+    if (sortKey === 'date') {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      return dateB.localeCompare(dateA);
+    }
     if (sortKey === 'amount') return b.result - a.result;
     if (sortKey === 'location') {
       const locA = getSession(a.sessionId)?.location || '';
@@ -66,7 +70,7 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 <Text style={{color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss, fontWeight: 'bold', fontSize: theme.font.size.body}}>
                   {hand.result >= 0 ? '+' : ''}{hand.result}
                 </Text>
-                <Text style={styles.date}>{session?.location} / {hand.date.slice(0, 16)}</Text>
+                <Text style={styles.date}>{session?.location} / {hand.date?.slice(0, 16) || 'No date'}</Text>
               </View>
               
               {/* Hero Section */}

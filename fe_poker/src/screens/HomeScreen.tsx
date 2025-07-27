@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
-import { AdBanner } from '../components/AdBanner';
+import RevenueCatService from '../services/RevenueCatService';
 
 const filterOptions = [
   { key: 'all', label: 'All Hands' },
@@ -24,6 +25,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [isPremium, setIsPremium] = useState(false);
 
   const [sessionFilter, setSessionFilter] = useState<{
     location?: string;
@@ -57,6 +59,17 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     fetchSessions();
     fetchHands();
   }, []);
+
+  // 每次進入頁面時檢查訂閱狀態
+  useFocusEffect(
+    useCallback(() => {
+      const checkSubscription = async () => {
+        const premium = await RevenueCatService.isPremiumUser();
+        setIsPremium(premium);
+      };
+      checkSubscription();
+    }, [])
+  );
 
   // Filter and sort hands
   const getFilteredHands = () => {
@@ -209,19 +222,40 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   };
 
+  const handleAddButtonPress = async () => {
+    try {
+      // 檢查手牌數量限制（免費用戶最多10手牌）
+      const premium = await RevenueCatService.isPremiumUser();
+      if (!premium && hands.length >= 10) {
+        Alert.alert(
+          'Upgrade Required',
+          'You have reached the free limit of 10 hands. Please upgrade to Premium to add more hands.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Upgrade', 
+              style: 'default',
+              onPress: () => navigation.navigate('Subscription')
+            }
+          ]
+        );
+        return;
+      }
+      
+      // 如果沒有達到限制，正常導航到新增頁面
+      navigation.navigate('NewSession');
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      // 如果檢查失敗，還是允許進入（避免阻止正常用戶）
+      navigation.navigate('NewSession');
+    }
+  };
+
   const showHandActions = (handId: string) => {
     const hand = hands.find(h => h.id === handId);
     if (!hand) return;
 
     const actionButtons = [
-      {
-        text: "View Details",
-        onPress: () => navigation.navigate('HandDetail', { handId })
-      },
-      {
-        text: "Edit Hand",
-        onPress: () => navigation.navigate('EditHand', { handId })
-      },
       {
         text: "Edit Session",
         onPress: () => navigation.navigate('EditSession', { sessionId: hand.sessionId })
@@ -381,6 +415,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <TouchableOpacity style={styles.settingsButton}>
           <Text style={styles.settingsIcon}>⚙️</Text>
         </TouchableOpacity>
+        
       </View>
 
       {/* Filter Section */}
@@ -481,10 +516,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <Text style={styles.empty}>No hands found</Text>
         )}
         
-        {/* 如果有手牌，先顯示廣告 */}
-        {filteredHands.length > 0 && (
-          <AdBanner style={styles.inlineAd} />
-        )}
         
         {filteredHands.map((hand) => {
           const session = sessions.find(s => s.id === hand.sessionId);
@@ -552,7 +583,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {/* Floating Action Button - Fixed at bottom right */}
       <TouchableOpacity 
         style={styles.fabButton}
-        onPress={() => navigation.navigate('NewSession')}
+        onPress={handleAddButtonPress}
       >
         <Text style={styles.fabButtonText}>+</Text>
       </TouchableOpacity>
@@ -598,7 +629,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                               customEndDate: undefined
                             }));
                           }
-                        })).concat([{ text: "Cancel", style: "cancel" }])
+                        })).concat([{ text: "Cancel", onPress: () => {} }])
                       );
                     }}
                   >
@@ -635,7 +666,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                               position: position === 'All Positions' ? undefined : position
                             }));
                           }
-                        })).concat([{ text: "Cancel", style: "cancel" }])
+                        })).concat([{ text: "Cancel", onPress: () => {} }])
                       );
                     }}
                   >
@@ -677,7 +708,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                               tag: tag.key || undefined
                             }));
                           }
-                        })).concat([{ text: "Cancel", style: "cancel" }])
+                        })).concat([{ text: "Cancel", onPress: () => {} }])
                       );
                     }}
                   >
@@ -733,7 +764,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                               location: location === 'All Locations' ? undefined : location
                             }));
                           }
-                        })).concat([{ text: "Cancel", style: "cancel" }])
+                        })).concat([{ text: "Cancel", onPress: () => {} }])
                       );
                     }}
                   >
@@ -1251,12 +1282,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     padding: theme.spacing.md,
-  },
-  bannerAd: {
-    marginBottom: 0, // 廣告位於底部
-  },
-  inlineAd: {
-    marginVertical: theme.spacing.sm, // 與手牌項目間距一致
-    marginHorizontal: theme.spacing.md,
   },
 }); 

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Hand, Session, Villain } from '../models';
@@ -11,23 +12,26 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const handData = await getHand(handId);
-        const sessionData = await getSession(handData.sessionId);
-        setHand(handData);
-        setSession(sessionData);
-      } catch (error) {
-        console.error('Failed to load hand/session:', error);
-        Alert.alert('Error', 'Failed to load hand details');
-      } finally {
-        setLoading(false);
-      }
-    };
+  useFocusEffect(
+    useCallback(() => {
+      const loadData = async () => {
+        try {
+          setLoading(true);
+          const handData = await getHand(handId);
+          const sessionData = await getSession(handData.sessionId);
+          setHand(handData);
+          setSession(sessionData);
+        } catch (error) {
+          console.error('Failed to load hand/session:', error);
+          Alert.alert('Error', 'Failed to load hand details');
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    loadData();
-  }, [handId, getHand, getSession]);
+      loadData();
+    }, [handId, getHand, getSession])
+  );
 
 
 

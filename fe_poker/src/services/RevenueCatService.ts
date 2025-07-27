@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases, { 
   CustomerInfo, 
   PurchasesOffering, 
@@ -14,6 +15,9 @@ const REVENUECAT_API_KEY = {
 
 // 開發環境標誌
 const IS_DEVELOPMENT = __DEV__;
+
+// 測試模式儲存 key
+const TEST_PREMIUM_KEY = 'test_premium_status';
 
 export interface SubscriptionPlan {
   id: string;
@@ -181,9 +185,10 @@ class RevenueCatService {
 
   async isPremiumUser(): Promise<boolean> {
     try {
-      // 在開發環境中返回 false（免費用戶）
+      // 在開發環境中，優先檢查測試模式設定
       if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
-        return false;
+        const testPremiumStatus = await AsyncStorage.getItem(TEST_PREMIUM_KEY);
+        return testPremiumStatus === 'true';
       }
 
       // 確保服務已初始化
@@ -306,6 +311,24 @@ class RevenueCatService {
       entitlements,
       // ...其他模擬的 CustomerInfo 屬性
     };
+  }
+
+  // 測試用方法：設定測試的付費狀態
+  async setTestPremiumStatus(isPremium: boolean): Promise<void> {
+    await AsyncStorage.setItem(TEST_PREMIUM_KEY, isPremium.toString());
+    console.log(`🧪 Test mode: Premium status set to ${isPremium}`);
+  }
+
+  // 測試用方法：取得目前測試的付費狀態
+  async getTestPremiumStatus(): Promise<boolean> {
+    const testStatus = await AsyncStorage.getItem(TEST_PREMIUM_KEY);
+    return testStatus === 'true';
+  }
+
+  // 測試用方法：清除測試狀態
+  async clearTestPremiumStatus(): Promise<void> {
+    await AsyncStorage.removeItem(TEST_PREMIUM_KEY);
+    console.log('🧪 Test mode: Premium status cleared');
   }
 }
 

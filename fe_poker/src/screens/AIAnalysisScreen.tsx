@@ -161,25 +161,98 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     navigation.goBack();
   };
 
-  const handleReanalyze = () => {
-    // 強制重新分析
-    const handWithoutAnalysis = { ...hand, analysis: undefined };
-    performAIAnalysis();
+  const handleReanalyze = async () => {
+    console.log('Re-analyzing hand, clearing old analysis...');
+    // 清除現有分析並強制重新分析
+    hand.analysis = undefined;
+    hand.analysisDate = undefined;
+    setAnalysis('');
+    await performAIAnalysis();
   };
 
-  // 美化分析結果顯示
-  const formatAnalysisText = (text: string): string => {
-    if (!text) return text;
+  // 渲染 markdown 格式的分析結果
+  const renderFormattedAnalysis = (text: string) => {
+    if (!text) return null;
     
-    return text
-      // 移除多餘的 markdown 符號
-      .replace(/\*\*([^*]+)\*\*/g, '$1')  // 移除 **bold**
-      .replace(/\*([^*]+)\*/g, '$1')      // 移除 *italic*
-      .replace(/^- /gm, '• ')             // 將 - 改為 •
-      .replace(/^## /gm, '\n')            // 移除 ## 標題符號
-      .replace(/^# /gm, '\n')             // 移除 # 標題符號
-      .replace(/\n{3,}/g, '\n\n')         // 限制最多兩個換行
-      .trim();
+    const lines = text.split('\n');
+    const elements: React.ReactNode[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      if (trimmedLine.startsWith('### ')) {
+        // 處理 ### 標題
+        const title = trimmedLine.replace('### ', '');
+        elements.push(
+          <Text key={index} style={styles.analysisSubTitle}>
+            {title}
+          </Text>
+        );
+      } else if (trimmedLine.startsWith('## ')) {
+        // 處理 ## 標題
+        const title = trimmedLine.replace('## ', '');
+        elements.push(
+          <Text key={index} style={styles.analysisTitle}>
+            {title}
+          </Text>
+        );
+      } else if (trimmedLine.startsWith('# ')) {
+        // 處理 # 標題
+        const title = trimmedLine.replace('# ', '');
+        elements.push(
+          <Text key={index} style={styles.analysisMainTitle}>
+            {title}
+          </Text>
+        );
+      } else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) {
+        // 處理列表項目
+        const listItem = trimmedLine.replace(/^[•\-] /, '');
+        elements.push(
+          <Text key={index} style={styles.analysisListItem}>
+            • {listItem}
+          </Text>
+        );
+      } else if (trimmedLine) {
+        // 處理一般文字
+        let formattedText = trimmedLine;
+        // 處理粗體文字 **text**
+        const boldRegex = /\*\*([^*]+)\*\*/g;
+        const hasBold = boldRegex.test(formattedText);
+        
+        if (hasBold) {
+          const parts = formattedText.split(boldRegex);
+          const textElements: React.ReactNode[] = [];
+          parts.forEach((part, partIndex) => {
+            if (partIndex % 2 === 1) {
+              // 奇數索引是粗體文字
+              textElements.push(
+                <Text key={partIndex} style={styles.analysisBoldText}>
+                  {part}
+                </Text>
+              );
+            } else if (part) {
+              textElements.push(part);
+            }
+          });
+          elements.push(
+            <Text key={index} style={styles.analysisText}>
+              {textElements}
+            </Text>
+          );
+        } else {
+          elements.push(
+            <Text key={index} style={styles.analysisText}>
+              {formattedText}
+            </Text>
+          );
+        }
+      } else {
+        // 空行作為間距
+        elements.push(<View key={index} style={{ height: 8 }} />);
+      }
+    });
+    
+    return elements;
   };
 
   if (loading) {
@@ -231,10 +304,12 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
         {/* AI Analysis Result */}
         <View style={styles.analysisCard}>
-          <Text style={styles.analysisTitle}>🤖 AI Analysis Result</Text>
-          <Text style={styles.analysisText}>
-            {analysis ? formatAnalysisText(analysis) : 'Analysis is being generated...'}
-          </Text>
+          <Text style={styles.analysisCardTitle}>🤖 AI Analysis Result</Text>
+          <View style={styles.analysisContent}>
+            {analysis ? renderFormattedAnalysis(analysis) : (
+              <Text style={styles.analysisText}>Analysis is being generated...</Text>
+            )}
+          </View>
           {hand.analysisDate && (
             <Text style={styles.analysisDate}>
               Analysis completed: {new Date().toLocaleString()}
@@ -354,18 +429,52 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  analysisTitle: {
+  analysisCardTitle: {
     fontSize: theme.font.size.body,
     fontWeight: '700',
     color: theme.colors.text,
     marginBottom: theme.spacing.md,
   },
+  analysisContent: {
+    flex: 1,
+  },
+  analysisMainTitle: {
+    fontSize: theme.font.size.large,
+    fontWeight: '700',
+    color: theme.colors.text,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+  },
+  analysisTitle: {
+    fontSize: theme.font.size.body + 2,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
+  },
+  analysisSubTitle: {
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
+  },
   analysisText: {
     fontSize: theme.font.size.body,
     color: theme.colors.text,
-    lineHeight: 26,
-    textAlign: 'left',
-    letterSpacing: 0.3,
+    lineHeight: 24,
+    marginBottom: theme.spacing.xs,
+  },
+  analysisBoldText: {
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  analysisListItem: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.text,
+    lineHeight: 22,
+    marginBottom: theme.spacing.xs,
+    marginLeft: theme.spacing.sm,
   },
   analysisDate: {
     fontSize: theme.font.size.small,

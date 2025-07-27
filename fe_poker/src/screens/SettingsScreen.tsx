@@ -6,7 +6,7 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import RevenueCatService from '../services/RevenueCatService';
 import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import { UserPreferencesService } from '../services/UserPreferences';
-import { AdService } from '../services/AdService';
+import { createTestHands } from '../utils/createTestHands';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { 
@@ -22,6 +22,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [isPremium, setIsPremium] = useState(false);
   const [offerings, setOfferings] = useState<PurchasesOffering[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
     const checkSubscription = async () => {
@@ -29,6 +30,10 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         setIsLoading(true);
         const premiumStatus = await RevenueCatService.isPremiumUser();
         setIsPremium(premiumStatus);
+        
+        // 檢查測試模式狀態
+        const testStatus = await RevenueCatService.getTestPremiumStatus();
+        setIsTestMode(testStatus);
         
         if (!premiumStatus) {
           const availableOfferings = await RevenueCatService.getOfferings();
@@ -181,6 +186,54 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
     }
   };
 
+  const handleToggleTestPremium = async () => {
+    try {
+      const newStatus = !isTestMode;
+      await RevenueCatService.setTestPremiumStatus(newStatus);
+      setIsTestMode(newStatus);
+      setIsPremium(newStatus);
+      
+      Alert.alert(
+        'Test Mode Updated',
+        `Test premium status: ${newStatus ? 'Premium' : 'Free'}`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to toggle test status');
+      console.error('Failed to toggle test status:', error);
+    }
+  };
+
+  const handleCreateTestHands = async () => {
+    Alert.alert(
+      'Create Test Data',
+      'This will create 9 test hands to test the 10-hand limit. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Create',
+          onPress: async () => {
+            try {
+              await createTestHands();
+              await Promise.all([
+                fetchSessions(),
+                fetchHands(),
+                fetchStats()
+              ]);
+              Alert.alert(
+                'Success',
+                '9 test hands created successfully! Try adding one more hand to test the limit.'
+              );
+            } catch (error) {
+              Alert.alert('Error', 'Failed to create test hands: ' + error);
+              console.error('Failed to create test hands:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleResetPreferences = async () => {
     Alert.alert(
       'Reset User Preferences',
@@ -244,20 +297,35 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
           </TouchableOpacity>
         </View>
 
-        {/* Test Ads Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📱 Test Ads</Text>
-          
-          <TouchableOpacity style={styles.menuItem} onPress={() => AdService.showInterstitialAd()}>
-            <Text style={styles.menuText}>📺 Show Interstitial Ad</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => AdService.showRewardedAd()}>
-            <Text style={styles.menuText}>🎁 Show Rewarded Ad</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Debug Section (Development Only) */}
+        {__DEV__ && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🧪 Debug & Testing</Text>
+            
+            <TouchableOpacity style={styles.menuItem} onPress={handleToggleTestPremium}>
+              <Text style={styles.menuText}>
+                🔄 Toggle Premium Status (Test Mode)
+              </Text>
+              <Text style={[styles.menuArrow, { color: isTestMode ? '#27C46A' : '#FF3B30' }]}>
+                {isTestMode ? 'Premium' : 'Free'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleCreateTestHands}>
+              <Text style={styles.menuText}>
+                🎯 Create 9 Test Hands
+              </Text>
+              <Text style={styles.menuArrow}>›</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.debugInfo}>
+              <Text style={styles.debugText}>
+                Current Status: {isPremium ? '✅ Premium' : '❌ Free'}
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Support Section */}
         <View style={styles.section}>
@@ -341,5 +409,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.gray,
     marginBottom: 4,
+  },
+  debugInfo: {
+    backgroundColor: theme.colors.inputBg,
+    padding: theme.spacing.sm,
+    borderRadius: theme.radius.input,
+    marginTop: theme.spacing.sm,
+    marginHorizontal: theme.spacing.md,
+  },
+  debugText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.text,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 }); 

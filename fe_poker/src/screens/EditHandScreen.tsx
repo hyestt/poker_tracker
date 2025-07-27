@@ -433,48 +433,48 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Preflop: \n')}
+                  onPress={() => handleQuickInsert('Preflop: ')}
                 >
                   <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Flop: \n')}
+                  onPress={() => handleQuickInsert('Flop: ')}
                 >
                   <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Turn: \n')}
+                  onPress={() => handleQuickInsert('Turn: ')}
                 >
                   <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('River: \n')}
+                  onPress={() => handleQuickInsert('River: ')}
                 >
                   <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.quickButton, styles.compactButton]}
+                  style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG1 ')}
                 >
                   <Text style={styles.quickButtonText}>UTG1</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.quickButton, styles.compactButton]}
+                  style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG2 ')}
                 >
                   <Text style={styles.quickButtonText}>UTG2</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.quickButton}
+                  style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('Hero ')}
                 >
                   <Text style={styles.quickButtonText}>H</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.quickButton}
+                  style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('Villain ')}
                 >
                   <Text style={styles.quickButtonText}>V</Text>
@@ -488,7 +488,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
                   <TouchableOpacity
                     key={position}
-                    style={styles.quickButton}
+                    style={[styles.quickButton, styles.positionButton]}
                     onPress={() => handleQuickInsert(position + ' ')}
                   >
                     <Text style={styles.quickButtonText}>{position}</Text>
@@ -1351,5 +1351,8 @@ const styles = StyleSheet.create({
   numberButton: {
     backgroundColor: '#A7F3D0', // 淡綠色
     borderColor: '#6EE7B7',
+  },
+  positionButton: {
+    backgroundColor: theme.colors.positionButton,
   },
 }); 

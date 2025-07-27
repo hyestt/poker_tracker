@@ -38,7 +38,7 @@ export const PokerQuickKeyboard: React.FC<Props> = ({ onTextInsert, onClose }) =
             {positions.map((position) => (
               <TouchableOpacity
                 key={position}
-                style={styles.keyButton}
+                style={[styles.keyButton, styles.positionButton]}
                 onPress={() => handleKeyPress(position)}
               >
                 <Text style={styles.keyButtonText}>{position}</Text>
@@ -200,5 +200,8 @@ const styles = StyleSheet.create({
   },
   specialButtonText: {
     color: '#FFFFFF',
+  },
+  positionButton: {
+    backgroundColor: theme.colors.positionButton,
   },
 }); 

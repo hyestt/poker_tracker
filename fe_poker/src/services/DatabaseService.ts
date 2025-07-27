@@ -457,7 +457,7 @@ export class DatabaseService {
   static async batchInsertSessions(sessions: Session[]): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
-    await this.db.transaction(async (tx) => {
+    await this.db.transaction(async (tx: any) => {
       for (const session of sessions) {
         const sql = `
           INSERT OR REPLACE INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size, tag)
@@ -482,7 +482,7 @@ export class DatabaseService {
   static async batchInsertHands(hands: Hand[]): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
-    await this.db.transaction(async (tx) => {
+    await this.db.transaction(async (tx: any) => {
       for (const hand of hands) {
         const sql = `
           INSERT OR REPLACE INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, 

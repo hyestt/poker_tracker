@@ -188,14 +188,14 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
             title="測試查詢數據"
             onPress={handleTestQuery}
             disabled={loading}
-            style={[styles.actionButton, styles.secondaryButton]}
+            style={styles.actionButton}
           />
           
           <Button
             title="清空本地數據"
             onPress={handleClearData}
             disabled={loading}
-            style={[styles.actionButton, styles.dangerButton]}
+            style={styles.actionButton}
           />
         </Card>
 

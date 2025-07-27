@@ -3,6 +3,7 @@ import { Session, Hand, Stats } from '../models';
 import { API_BASE_URL } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DatabaseService } from '../services/DatabaseService';
+import RevenueCatService from '../services/RevenueCatService';
 
 // 簡單的 UUID 生成函數
 const generateUUID = (): string => {
@@ -467,15 +468,27 @@ export const useSessionStore = create<State>((set, get) => ({
 
   analyzeHand: async (id: string): Promise<string> => {
     try {
+      // 首先從本地數據庫獲取手牌數據
+      await DatabaseService.initialize();
+      const hand = await DatabaseService.getHand(id);
+      if (!hand) {
+        throw new Error('Hand not found');
+      }
+
+      // 確保手牌有必要的分析數據
+      const handForAnalysis = {
+        ...hand,
+        details: hand.details || `${hand.holeCards} in ${hand.position} position`,
+        result: hand.result || 0
+      };
+
       // AI Analysis 始終使用後端 API 進行分析
       const response = await apiCall(`${API_BASE_URL}/analyze`, {
         method: 'POST',
-        body: JSON.stringify({ handId: id }),
+        body: JSON.stringify({ hand: handForAnalysis }),
       });
       
       // ⚠️ 重要：分析結果始終保存到本地 SQLite，不論任何模式
-      await DatabaseService.initialize();
-      const hand = await DatabaseService.getHand(id);
       if (hand) {
         hand.analysis = response?.analysis || '';
         hand.analysisDate = response?.date || new Date().toISOString();

@@ -43,36 +43,36 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => handleInsert('Preflop: \n')}
+            onPress={() => handleInsert('Preflop: ')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => handleInsert('Flop: \n')}
+            onPress={() => handleInsert('Flop: ')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => handleInsert('Turn: \n')}
+            onPress={() => handleInsert('Turn: ')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.roundButton]}
-            onPress={() => handleInsert('River: \n')}
+            onPress={() => handleInsert('River: ')}
           >
             <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.quickButton, styles.compactButton]}
+            style={[styles.quickButton, styles.positionButton]}
             onPress={() => handleInsert('UTG1 ')}
           >
             <Text style={styles.quickButtonText}>UTG1</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.quickButton, styles.compactButton]}
+            style={[styles.quickButton, styles.positionButton]}
             onPress={() => handleInsert('UTG2 ')}
           >
             <Text style={styles.quickButtonText}>UTG2</Text>
@@ -356,5 +356,9 @@ const styles = StyleSheet.create({
   wideButton: {
     minWidth: Math.max(Dimensions.get('window').width * 0.09, 36), // 與一般按鈕相同大小
     paddingHorizontal: 0,
+  },
+  positionButton: {
+    backgroundColor: theme.colors.positionButton,
+    borderColor: theme.colors.positionButton,
   },
 }); 
