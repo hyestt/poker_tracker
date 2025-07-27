@@ -22,14 +22,18 @@ func NewOpenAIService() *OpenAIService {
 	return &OpenAIService{client: client}
 }
 
-func (s *OpenAIService) AnalyzeHand(handDetails string, result int) (string, error) {
+func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position string, holeCards string, board string) (string, error) {
 	if s.client == nil {
 		return "", fmt.Errorf("OpenAI service not available: API key not set")
 	}
 
+	// 組合完整的手牌信息
+	fullHandDetails := fmt.Sprintf("Hero Position: %s\nHero Hole Cards: %s\nBoard: %s\nHand Action Details: %s", 
+		position, holeCards, board, handDetails)
+	
 	// 使用prompt管理器獲取prompt
 	promptManager := NewPromptManager()
-	prompt, err := promptManager.GetHandAnalysisPrompt(handDetails, result)
+	prompt, err := promptManager.GetHandAnalysisPrompt(fullHandDetails, result)
 	if err != nil {
 		// 錯誤處理：記錄錯誤並使用fallback prompt
 		fmt.Printf("Error reading prompt file: %v\n", err)

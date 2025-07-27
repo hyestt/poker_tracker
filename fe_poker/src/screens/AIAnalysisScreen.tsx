@@ -3,53 +3,80 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIn
 import { theme } from '../theme';
 import { Hand } from '../models';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSessionStore } from '../viewmodels/sessionStore';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const { hand } = route.params;
+  const [currentHand, setCurrentHand] = useState<Hand>(route.params.hand);
+  const { getHand, updateHand } = useSessionStore();
 
-  console.log('AIAnalysisScreen mounted with hand:', hand);
+  console.log('AIAnalysisScreen mounted with hand:', currentHand);
+  console.log('Hand has existing analysis:', !!currentHand.analysis);
 
   useEffect(() => {
-    performAIAnalysis();
+    loadLatestHandData();
   }, []);
 
-  const performAIAnalysis = async () => {
-    console.log('performAIAnalysis started');
+  const loadLatestHandData = async () => {
+    try {
+      // 從 sessionStore 加載最新的手牌數據
+      const latestHand = await getHand(currentHand.id);
+      console.log('Loaded latest hand data from sessionStore:', latestHand);
+      console.log('Has existing analysis:', !!latestHand.analysis);
+      
+      setCurrentHand(latestHand);
+      
+      // 如果有分析結果，直接顯示
+      if (latestHand.analysis) {
+        console.log('✅ Found cached analysis, displaying it');
+        setAnalysis(latestHand.analysis);
+        setLoading(false);
+        return;
+      }
+      
+      // 沒有緩存的分析，執行新分析
+      console.log('❌ No cached analysis found, performing new analysis');
+      await performAIAnalysis();
+    } catch (error) {
+      console.error('Error loading hand data:', error);
+      await performAIAnalysis();
+    }
+  };
+
+  const performAIAnalysis = async (forceReanalyze = false) => {
+    console.log('performAIAnalysis started, forceReanalyze:', forceReanalyze);
+    console.log('Current hand analysis exists:', !!currentHand.analysis);
+    console.log('Current hand analysis content:', currentHand.analysis ? 'YES' : 'NO');
     setLoading(true);
     try {
-      // 檢查是否已有分析結果
-      if (hand.analysis) {
-        console.log('Found existing analysis:', hand.analysis);
-        setAnalysis(hand.analysis);
+      // 檢查是否已有分析結果（除非強制重新分析）
+      if (!forceReanalyze && currentHand.analysis) {
+        console.log('✅ Using cached analysis, skipping API call');
+        setAnalysis(currentHand.analysis);
         setLoading(false);
         return;
       }
 
       console.log('Performing new AI analysis...');
       // 執行真正的AI分析
-      const analysisResult = await performRealAIAnalysis(hand);
+      const analysisResult = await performRealAIAnalysis(currentHand);
       console.log('AI analysis completed:', analysisResult);
       
       // 更新hand數據
       const updatedHand = {
-        ...hand,
+        ...currentHand,
         analysis: analysisResult,
         analysisDate: new Date().toLocaleDateString()
       };
       
-      // 保存到localStorage
-      const existingHands = await AsyncStorage.getItem('poker_hands');
-      if (existingHands) {
-        const hands = JSON.parse(existingHands);
-        const handIndex = hands.findIndex((h: any) => h.id === hand.id);
-        if (handIndex !== -1) {
-          hands[handIndex] = updatedHand;
-          await AsyncStorage.setItem('poker_hands', JSON.stringify(hands));
-          console.log('Analysis saved to localStorage');
-        }
-      }
+      // 保存到 sessionStore（這會同時更新 localStorage）
+      await updateHand(updatedHand);
+      console.log('💾 Analysis saved to sessionStore and localStorage');
+      
+      // 更新組件中的 hand 對象
+      setCurrentHand(updatedHand);
+      console.log('✅ Hand analysis updated and cached');
       
       setAnalysis(analysisResult);
     } catch (error) {
@@ -162,12 +189,10 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   const handleReanalyze = async () => {
-    console.log('Re-analyzing hand, clearing old analysis...');
-    // 清除現有分析並強制重新分析
-    hand.analysis = undefined;
-    hand.analysisDate = undefined;
+    console.log('Re-analyzing hand, forcing new analysis...');
+    // 清除顯示的分析結果，然後強制重新分析
     setAnalysis('');
-    await performAIAnalysis();
+    await performAIAnalysis(true); // 傳入 true 強制重新分析
   };
 
   // 渲染 markdown 格式的分析結果
@@ -285,36 +310,31 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <Text style={styles.summaryTitle}>Hand Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Position:</Text>
-            <Text style={styles.summaryValue}>{hand.position || 'Unknown'}</Text>
+            <Text style={styles.summaryValue}>{currentHand.position || 'Unknown'}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Hole Cards:</Text>
-            <Text style={styles.summaryValue}>{hand.holeCards || 'Unknown'}</Text>
+            <Text style={styles.summaryValue}>{currentHand.holeCards || 'Unknown'}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Result:</Text>
             <Text style={[
               styles.summaryValue,
-              { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+              { color: currentHand.result >= 0 ? theme.colors.profit : theme.colors.loss }
             ]}>
-              {hand.result >= 0 ? '+' : ''}${hand.result}
+              {currentHand.result >= 0 ? '+' : ''}${currentHand.result}
             </Text>
           </View>
         </View>
 
         {/* AI Analysis Result */}
         <View style={styles.analysisCard}>
-          <Text style={styles.analysisCardTitle}>🤖 AI Analysis Result</Text>
+          <Text style={styles.analysisCardTitle}>AI Analysis Result</Text>
           <View style={styles.analysisContent}>
             {analysis ? renderFormattedAnalysis(analysis) : (
               <Text style={styles.analysisText}>Analysis is being generated...</Text>
             )}
           </View>
-          {hand.analysisDate && (
-            <Text style={styles.analysisDate}>
-              Analysis completed: {new Date().toLocaleString()}
-            </Text>
-          )}
         </View>
       </ScrollView>
     </View>

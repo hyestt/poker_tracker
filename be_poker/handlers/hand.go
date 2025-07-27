@@ -316,7 +316,21 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 調用 OpenAI API 進行分析
-	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result)
+	position := ""
+	holeCards := ""
+	board := ""
+	
+	if hand.Position != nil {
+		position = *hand.Position
+	}
+	if hand.HoleCards != nil {
+		holeCards = *hand.HoleCards
+	}
+	if hand.Board != nil {
+		board = *hand.Board
+	}
+	
+	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return
