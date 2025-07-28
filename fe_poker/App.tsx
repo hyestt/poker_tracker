@@ -20,6 +20,8 @@ import { PokerKeyboardScreen } from './src/screens/PokerKeyboardScreen';
 import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
+import { SessionsScreen } from './src/screens/SessionsScreen';
+import { SessionDetailScreen } from './src/screens/SessionDetailScreen';
 import RevenueCatService from './src/services/RevenueCatService';
 import { useSessionStore } from './src/viewmodels/sessionStore';
 
@@ -40,6 +42,19 @@ function HomeStack() {
     </Stack.Navigator>
   );
 }
+
+const SessionsStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Session Details', headerBackTitle: 'Back' }} />
+    <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
+    <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand' }} />
+    <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
+    <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
+    <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Analysis' }} />
+    <Stack.Screen name="PokerKeyboard" component={PokerKeyboardScreen} options={{ title: 'Choose Cards' }} />
+  </Stack.Navigator>
+);
 
 const SettingsStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -86,18 +101,10 @@ const App = () => {
     <NavigationContainer>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
         <Tab.Screen 
-          name="Home" 
+          name="Hands" 
           component={HomeStack}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              e.preventDefault();
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Home' }],
-              });
-            },
-          })}
         />
+        <Tab.Screen name="Sessions" component={SessionsStack} />
         <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
     </NavigationContainer>

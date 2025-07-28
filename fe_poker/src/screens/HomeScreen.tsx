@@ -545,9 +545,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   {hand.position && (
                     <Text style={styles.positionText}>{hand.position}</Text>
                   )}
-                  {hand.analysis && (
-                    <Text style={styles.analysisIndicator}>✨</Text>
-                  )}
                   {hand.favorite && (
                     <Text style={styles.favoriteIndicator}>⭐</Text>
                   )}
@@ -1086,10 +1083,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.text,
     flex: 1,
-  },
-  analysisIndicator: {
-    fontSize: 16,
-    marginLeft: theme.spacing.xs,
   },
   timeAgo: {
     fontSize: theme.font.size.small,
