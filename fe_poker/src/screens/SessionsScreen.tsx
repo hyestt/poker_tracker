@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
   },
   applyButtonText: {
     fontSize: theme.font.size.body,
-    color: '#FFFFFF',
+    color: theme.colors.text,
     fontWeight: '600',
   },
 });

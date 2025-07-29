@@ -133,7 +133,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
         onPress: () => navigation.navigate('AIAnalysis', { hand })
       },
       {
-        text: hand.favorite ? "Remove from Favorites ⭐" : "Add to Favorites ⭐",
+        text: hand.favorite ? "Remove from Starred ⭐" : "Add to Starred ⭐",
         onPress: () => handleToggleFavorite(handId)
       },
       {
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#ddd',
   },
@@ -553,10 +553,10 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

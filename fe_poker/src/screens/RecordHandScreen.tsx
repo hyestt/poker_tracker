@@ -521,14 +521,14 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                     style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
-                    <Text style={styles.quickButtonText}>{number}</Text>
+                    <Text style={styles.numberButtonText}>{number}</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
                   style={[styles.quickButton, styles.numberButton]}
                   onPress={() => handleQuickInsert('0')}
                 >
-                  <Text style={styles.quickButtonText}>0</Text>
+                  <Text style={styles.numberButtonText}>0</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -560,7 +560,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                     style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
-                    <Text style={styles.quickButtonText}>{number}</Text>
+                    <Text style={styles.numberButtonText}>{number}</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
@@ -596,7 +596,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                     style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
-                    <Text style={styles.quickButtonText}>{number}</Text>
+                    <Text style={styles.numberButtonText}>{number}</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
@@ -1126,7 +1126,7 @@ const styles = StyleSheet.create({
   },
   quickButtonText: {
     fontSize: Math.min(theme.font.size.small, 10), // 響應式字體大小：調整到10px
-    color: '#000000',
+    color: '#FFFFFF',
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -1154,7 +1154,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xs,
   },
   roundButtonText: {
-    color: '#000000',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: Math.min(theme.font.size.small, 11), // 稍微減少字體大小以匹配較小按鈕
   },
@@ -1278,5 +1278,11 @@ const styles = StyleSheet.create({
   numberButton: {
     backgroundColor: '#A7F3D0', // 淡綠色
     borderColor: '#6EE7B7',
+  },
+  numberButtonText: {
+    fontSize: Math.min(theme.font.size.small, 10),
+    color: '#000000', // Black text for better contrast on light green
+    fontWeight: '700',
+    textAlign: 'center',
   },
 }); 

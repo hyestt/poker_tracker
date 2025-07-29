@@ -30,11 +30,21 @@ const Stack = createStackNavigator();
 
 function HomeStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#2D3748',
+        },
+        headerTintColor: '#F7FAFC',
+        headerTitleStyle: {
+          color: '#F7FAFC',
+        },
+      }}
+    >
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
       <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session' }} />
-      <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand' }} />
+      <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
       <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
       <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
       <Stack.Screen name="PokerKeyboard" component={PokerKeyboardScreen} options={{ title: 'Choose Cards' }} />
@@ -44,11 +54,22 @@ function HomeStack() {
 }
 
 const SessionsStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: true }}>
+  <Stack.Navigator 
+    screenOptions={{ 
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: '#2D3748',
+      },
+      headerTintColor: '#F7FAFC',
+      headerTitleStyle: {
+        color: '#F7FAFC',
+      },
+    }}
+  >
     <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Session Details', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
-    <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand' }} />
+    <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
     <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
     <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Analysis' }} />
@@ -99,7 +120,17 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: '#2D3748',
+            borderTopColor: '#4A5568',
+          },
+          tabBarActiveTintColor: '#5B8DEE',
+          tabBarInactiveTintColor: '#718096',
+        }}
+      >
         <Tab.Screen 
           name="Hands" 
           component={HomeStack}
@@ -116,7 +147,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#1F2937',
   }
 });
 

@@ -170,7 +170,7 @@ Shared from Poker Tracker`;
           onPress={() => navigation.navigate('AIAnalysis', { hand })} 
           style={styles.aiAnalysisButton}
         >
-          <Text style={styles.aiAnalysisButtonText}>AI Analysis</Text>
+          <Text style={styles.aiAnalysisButtonText}>GTO Analysis</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
           <Text style={styles.shareButtonText}>Share</Text>

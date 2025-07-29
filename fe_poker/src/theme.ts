@@ -1,21 +1,21 @@
 export const theme = {
   colors: {
-    primary: '#007AFF',
-    background: '#F5F6FA',
-    card: '#FFFFFF',
-    text: '#222222',
-    textSecondary: '#8E8E93',
-    border: '#E5E5EA',
-    profit: '#27C46A',
-    loss: '#FF3B30',
-    success: '#27C46A',
-    error: '#FF3B30',
-    secondary: '#5856D6',
-    gray: '#8E8E93',
-    lightGray: '#E5E5EA',
-    inputBg: '#F2F2F7',
-    inputFocus: '#007AFF',
-    positionButton: '#FEF3C7',
+    primary: '#5B8DEE',  // Lighter blue for primary actions
+    background: '#1F2937',  // Main dark background
+    card: '#2D3748',  // Slightly lighter dark for cards
+    text: '#F7FAFC',  // Light text for dark background
+    textSecondary: '#A0AEC0',  // Lighter gray for secondary text
+    border: '#4A5568',  // Dark border color
+    profit: '#48BB78',  // Green for profits
+    loss: '#F56565',  // Red for losses
+    success: '#48BB78',
+    error: '#F56565',
+    secondary: '#667EEA',  // Purple accent
+    gray: '#718096',  // Medium gray
+    lightGray: '#4A5568',  // Darker "light gray" for dark theme
+    inputBg: '#374151',  // Dark input background
+    inputFocus: '#5B8DEE',
+    positionButton: '#4A5568',  // Darker yellow for dark theme
   },
   font: {
     regular: 'System',

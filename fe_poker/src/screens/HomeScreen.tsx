@@ -9,7 +9,7 @@ import RevenueCatService from '../services/RevenueCatService';
 
 const filterOptions = [
   { key: 'all', label: 'All Hands' },
-  { key: 'favorites', label: 'Favorites ⭐' },
+  { key: 'favorites', label: 'Starred ⭐' },
   { key: 'recent', label: 'Recent' },
   { key: 'profitable', label: 'Profitable' },
   { key: 'losses', label: 'Losses' },
@@ -265,7 +265,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         onPress: () => handleAnalyze(handId)
       },
       {
-        text: hand.favorite ? "Remove from Favorites ⭐" : "Add to Favorites ⭐",
+        text: hand.favorite ? "Remove from Starred ⭐" : "Add to Starred ⭐",
         onPress: () => handleToggleFavorite(handId)
       },
       {
@@ -449,7 +449,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       styles.filterDropdownText,
                       selectedFilter === option.key && styles.selectedFilterDropdownText
                     ]}>
-                      {option.key === 'favorites' ? 'Favorites' : option.label}
+                      {option.key === 'favorites' ? 'Starred' : option.label}
                     </Text>
                     {option.key === 'favorites' && (
                       <Text style={[
@@ -834,10 +834,10 @@ const styles = StyleSheet.create({
     width: 70, // 放大的FAB尺寸
     height: 70,
     borderRadius: 35, // 完美的圓形
-    backgroundColor: '#007AFF', // iOS藍色
+    backgroundColor: theme.colors.primary, // Primary color
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -915,9 +915,9 @@ const styles = StyleSheet.create({
     top: '100%',
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#ddd',
   },
@@ -1115,12 +1115,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   filterModal: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderTopLeftRadius: theme.radius.card,
     borderTopRightRadius: theme.radius.card,
     padding: theme.spacing.lg,
     height: '85%',
-    shadowColor: '#000',
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
