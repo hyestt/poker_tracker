@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { SessionForm } from '../components/SessionForm';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -9,10 +9,15 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   const { addSession, fetchHands, fetchStats } = useSessionStore();
 
   const handleSubmit = async (session: Session) => {
-    await addSession(session);
-    await fetchHands();
-    await fetchStats();
-    navigation.navigate('RecordHand', { sessionId: session.id });
+    try {
+      await addSession(session);
+      await fetchHands();
+      await fetchStats();
+      navigation.navigate('RecordHand', { sessionId: session.id });
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      Alert.alert('Error', 'Failed to create session');
+    }
   };
 
   return (

@@ -296,25 +296,30 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       favorite: false,
     };
     
-    await addHand(hand);
-    await fetchHands();
-    await fetchStats();
-    
-    // Reset form for recording another hand under the same session
-    setHoleCards('');
-    setBoard('');
-    setPosition('');
-    setDetails('');
-    setNote('');
-    setResult('');
-    setVillains([]);
-    
-    // Show success message
-    Alert.alert(
-      'Hand Saved',
-      'Hand recorded successfully. You can record another hand.',
-      [{ text: 'OK', style: 'default' }]
-    );
+    try {
+      await addHand(hand);
+      await fetchHands();
+      await fetchStats();
+      
+      // Reset form for recording another hand under the same session
+      setHoleCards('');
+      setBoard('');
+      setPosition('');
+      setDetails('');
+      setNote('');
+      setResult('');
+      setVillains([]);
+      
+      // Show success message
+      Alert.alert(
+        'Hand Saved',
+        'Hand recorded successfully. You can record another hand.',
+        [{ text: 'OK', style: 'default' }]
+      );
+    } catch (error) {
+      console.error('Failed to save hand:', error);
+      Alert.alert('Error', 'Failed to save hand');
+    }
   };
 
   useLayoutEffect(() => {

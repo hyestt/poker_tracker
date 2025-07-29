@@ -577,13 +577,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         })}
       </ScrollView>
 
-      {/* Floating Action Button - Fixed at bottom right */}
-      <TouchableOpacity 
-        style={styles.fabButton}
-        onPress={handleAddButtonPress}
-      >
-        <Text style={styles.fabButtonText}>+</Text>
-      </TouchableOpacity>
 
       {/* iOS Style Filter Modal */}
       <Modal
@@ -826,29 +819,6 @@ const styles = StyleSheet.create({
   settingsIcon: {
     fontSize: 24,
   },
-  fabButton: {
-    position: 'absolute',
-    bottom: 0, // 設定為0，貼近底部
-    left: '50%', // 水平居中的起始點
-    marginLeft: -35, // 負的半徑值來實現完美居中 (70/2 = 35)
-    width: 70, // 放大的FAB尺寸
-    height: 70,
-    borderRadius: 35, // 完美的圓形
-    backgroundColor: theme.colors.primary, // Primary color
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: theme.colors.text,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8, // Android陰影
-  },
-  fabButtonText: {
-    color: '#fff',
-    fontSize: 30, // 更大的+號
-    fontWeight: '300', // iOS系統字體風格
-    lineHeight: 35,
-  },
   filterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1003,7 +973,7 @@ const styles = StyleSheet.create({
   handsContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.md,
-    paddingBottom: 30, // 減少底部空間，因為FAB較小
+    paddingBottom: theme.spacing.md,
   },
   handItem: {
     flexDirection: 'row',

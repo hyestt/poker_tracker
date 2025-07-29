@@ -189,10 +189,15 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   const handleReanalyze = async () => {
-    console.log('Re-analyzing hand, forcing new analysis...');
-    // 清除顯示的分析結果，然後強制重新分析
-    setAnalysis('');
-    await performAIAnalysis(true); // 傳入 true 強制重新分析
+    try {
+      console.log('Re-analyzing hand, forcing new analysis...');
+      // 清除顯示的分析結果，然後強制重新分析
+      setAnalysis('');
+      await performAIAnalysis(true); // 傳入 true 強制重新分析
+    } catch (error) {
+      console.error('Failed to reanalyze hand:', error);
+      Alert.alert('Error', 'Failed to reanalyze hand');
+    }
   };
 
   // 渲染 markdown 格式的分析結果
@@ -297,7 +302,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>AI Analysis</Text>
+        <Text style={styles.headerTitle}>GTO Analysis</Text>
         <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeButton}>
           <Text style={styles.reanalyzeButtonText}>Re-analyze</Text>
         </TouchableOpacity>
@@ -327,9 +332,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           </View>
         </View>
 
-        {/* AI Analysis Result */}
+        {/* GTO Analysis Result */}
         <View style={styles.analysisCard}>
-          <Text style={styles.analysisCardTitle}>AI Analysis Result</Text>
+          <Text style={styles.analysisCardTitle}>GTO Analysis Result</Text>
           <View style={styles.analysisContent}>
             {analysis ? renderFormattedAnalysis(analysis) : (
               <Text style={styles.analysisText}>Analysis is being generated...</Text>

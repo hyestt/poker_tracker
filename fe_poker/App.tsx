@@ -42,7 +42,7 @@ function HomeStack() {
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
+      <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details', headerBackTitle: 'Back' }} />
       <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session' }} />
       <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
       <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
@@ -67,6 +67,7 @@ const SessionsStack = () => (
     }}
   >
     <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session' }} />
     <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Session Details', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
     <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />

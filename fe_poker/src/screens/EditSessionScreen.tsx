@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { SessionForm } from '../components/SessionForm';
 import { Button } from '../components/Button';
 import { theme } from '../theme';
@@ -44,10 +44,15 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
   };
 
   const handleSubmit = async (updatedSession: Session) => {
-    await updateSession(updatedSession);
-    await fetchSessions();
-    await fetchStats();
-    navigation.goBack();
+    try {
+      await updateSession(updatedSession);
+      await fetchSessions();
+      await fetchStats();
+      navigation.goBack();
+    } catch (error) {
+      console.error('Failed to update session:', error);
+      Alert.alert('Error', 'Failed to update session');
+    }
   };
 
   if (!sessionId) {

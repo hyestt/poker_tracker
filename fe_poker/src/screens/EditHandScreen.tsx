@@ -317,10 +317,16 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     };
     console.log('Saving hand with villains:', villains);
     console.log('Complete hand object:', hand);
-    await updateHand(hand);
-    await fetchHands();
-    await fetchStats();
-    navigation.goBack();
+    
+    try {
+      await updateHand(hand);
+      await fetchHands();
+      await fetchStats();
+      navigation.goBack();
+    } catch (error) {
+      console.error('Failed to update hand:', error);
+      Alert.alert('Error', 'Failed to update hand');
+    }
   }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, updateHand, fetchHands, fetchStats, navigation]);
 
   const handleSaveRef = useRef(handleSave);

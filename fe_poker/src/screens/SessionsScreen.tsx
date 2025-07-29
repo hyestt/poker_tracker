@@ -225,6 +225,14 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         )}
       </ScrollView>
 
+      {/* Floating Action Button for New Session */}
+      <TouchableOpacity 
+        style={styles.fabButton}
+        onPress={() => navigation.navigate('NewSession')}
+      >
+        <Text style={styles.fabButtonText}>+</Text>
+      </TouchableOpacity>
+
       {/* Filter Modal */}
       <Modal
         visible={showFilterModal}
@@ -579,5 +587,30 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     color: theme.colors.text,
     fontWeight: '600',
+  },
+  
+  // FAB Button styles
+  fabButton: {
+    position: 'absolute',
+    bottom: 0,
+    left: '50%',
+    marginLeft: -35,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  fabButtonText: {
+    color: '#fff',
+    fontSize: 30,
+    fontWeight: '300',
+    lineHeight: 35,
   },
 });
