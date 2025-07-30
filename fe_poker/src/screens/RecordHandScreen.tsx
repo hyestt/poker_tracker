@@ -324,13 +324,24 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity 
+          onPress={() => {
+            // 導航到 Session Details 頁面
+            navigation.navigate('SessionDetail', { sessionId });
+          }} 
+          style={styles.headerBackButton}
+        >
+          <Text style={styles.headerBackButtonText}>‹ Back</Text>
+        </TouchableOpacity>
+      ),
       headerRight: () => (
         <TouchableOpacity onPress={handleSave} style={styles.headerSaveButton}>
           <Text style={styles.headerSaveButtonText}>Save</Text>
         </TouchableOpacity>
       ),
     });
-  }, [navigation, handleSave]);
+  }, [navigation, handleSave, sessionId]);
 
   return (
     <View style={styles.container}>
@@ -632,7 +643,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                         const rank = card.slice(0, -1);
                         const suit = card.slice(-1);
                         const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
                         };
                         
                         return (
@@ -685,7 +696,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                         const rank = card.slice(0, -1);
                         const suit = card.slice(-1);
                         const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
                         };
                         return (
                           <View key={index} style={styles.miniCard}>
@@ -941,6 +952,16 @@ const styles = StyleSheet.create({
   },
   resultInput: {
     marginBottom: theme.spacing.md,
+  },
+  headerBackButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
+  },
+  headerBackButtonText: {
+    color: theme.colors.primary,
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
   },
   headerSaveButton: {
     backgroundColor: theme.colors.primary,

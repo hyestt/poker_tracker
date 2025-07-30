@@ -261,6 +261,10 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         onPress: () => handleToggleFavorite(handId)
       },
       {
+        text: "Edit Hand",
+        onPress: () => navigation.navigate('EditHand', { handId })
+      },
+      {
         text: "Delete",
         style: "destructive" as const,
         onPress: () => handleDelete(handId)

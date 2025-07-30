@@ -238,23 +238,23 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.md,
-    paddingTop: 0,
-    paddingBottom: theme.spacing.sm,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.xs,
     justifyContent: 'flex-end',
   },
   selectedCardsDisplay: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.sm,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-    minHeight: 120,
+    minHeight: 100,
     justifyContent: 'center',
   },
   selectedCardsTitle: {
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedCard: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'white',
     borderRadius: theme.radius.button,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.sm,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   selectedCardText: {
     fontSize: theme.font.size.body,
     fontWeight: '700',
-    color: theme.colors.text,
+    color: '#000000',
   },
   emptyStateText: {
     fontSize: theme.font.size.body,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   suitButton: {
     flex: 1,
     paddingVertical: theme.spacing.lg,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
     borderWidth: 2,
     alignItems: 'center',
@@ -420,18 +420,18 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   currentInputCard: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: theme.colors.primary + '20',
     borderRadius: theme.radius.button,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderWidth: 2,
-    borderColor: '#F59E0B',
+    borderColor: theme.colors.primary,
     borderStyle: 'dashed',
   },
   currentInputText: {
     fontSize: theme.font.size.body,
     fontWeight: '700',
-    color: '#92400E',
+    color: theme.colors.text,
   },
   lastRankRow: {
     marginBottom: theme.spacing.sm,

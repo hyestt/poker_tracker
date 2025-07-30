@@ -574,14 +574,14 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                     style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
-                    <Text style={styles.quickButtonText}>{number}</Text>
+                    <Text style={[styles.quickButtonText, styles.numberButtonText]}>{number}</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
                   style={[styles.quickButton, styles.numberButton]}
                   onPress={() => handleQuickInsert('0')}
                 >
-                  <Text style={styles.quickButtonText}>0</Text>
+                  <Text style={[styles.quickButtonText, styles.numberButtonText]}>0</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -613,7 +613,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                     style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
-                    <Text style={styles.quickButtonText}>{number}</Text>
+                    <Text style={[styles.quickButtonText, styles.numberButtonText]}>{number}</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
@@ -649,7 +649,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                     style={[styles.quickButton, styles.numberButton]}
                     onPress={() => handleQuickInsert(number)}
                   >
-                    <Text style={styles.quickButtonText}>{number}</Text>
+                    <Text style={[styles.quickButtonText, styles.numberButtonText]}>{number}</Text>
                   </TouchableOpacity>
                 ))}
                 <TouchableOpacity
@@ -680,7 +680,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                         const rank = card.slice(0, -1);
                         const suit = card.slice(-1);
                         const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
                         };
                         
                         return (
@@ -733,7 +733,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                         const rank = card.slice(0, -1);
                         const suit = card.slice(-1);
                         const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
                         };
                         return (
                           <View key={index} style={styles.miniCard}>
@@ -1225,7 +1225,7 @@ const styles = StyleSheet.create({
   },
   quickButtonText: {
     fontSize: Math.min(theme.font.size.small, 10), // 響應式字體大小：調整到10px
-    color: '#000000',
+    color: '#FFFFFF',
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -1357,6 +1357,12 @@ const styles = StyleSheet.create({
   numberButton: {
     backgroundColor: '#A7F3D0', // 淡綠色
     borderColor: '#6EE7B7',
+  },
+  numberButtonText: {
+    color: '#000000',
+    fontWeight: '700',
+    fontSize: Math.min(theme.font.size.small, 10),
+    textAlign: 'center',
   },
   positionButton: {
     backgroundColor: theme.colors.positionButton,

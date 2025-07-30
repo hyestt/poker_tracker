@@ -152,6 +152,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                         value={customValue}
                         onChangeText={setCustomValue}
                         placeholder="Enter custom option"
+                        placeholderTextColor={theme.colors.gray}
                         autoFocus
                       />
                       <View style={styles.customButtonsRow}>
@@ -223,6 +224,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                       value={customValue}
                       onChangeText={setCustomValue}
                       placeholder="Enter custom option"
+                      placeholderTextColor={theme.colors.gray}
                       autoFocus
                     />
                     <View style={styles.customButtonsRow}>
@@ -301,7 +303,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modal: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
     padding: theme.spacing.md,
     margin: theme.spacing.lg,
@@ -379,6 +381,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
     fontSize: theme.font.size.small,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.inputBg,
   },
   customButtonsRow: {
     flexDirection: 'row',

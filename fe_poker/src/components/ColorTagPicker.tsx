@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   noneDisplayCircle: {
     borderWidth: 2,
-    borderColor: '#666666',
+    borderColor: theme.colors.text,
     borderStyle: 'dashed',
     backgroundColor: 'transparent',
   },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modal: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
     padding: theme.spacing.md,
     margin: theme.spacing.lg,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   noneCircle: {
     borderWidth: 3,
-    borderColor: '#666666',
+    borderColor: theme.colors.text,
     borderStyle: 'dashed',
     backgroundColor: 'transparent',
   },

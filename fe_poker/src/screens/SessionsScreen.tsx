@@ -78,7 +78,9 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const weekDay = weekDays[date.getDay()];
+      return weekDay + ', ' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch {
       return 'Unknown date';
     }
@@ -454,12 +456,12 @@ const styles = StyleSheet.create({
   },
   sessionSubtitle: {
     fontSize: theme.font.size.small,
-    color: theme.colors.gray,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   sessionDate: {
     fontSize: theme.font.size.small,
-    color: theme.colors.gray,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   rightSection: {

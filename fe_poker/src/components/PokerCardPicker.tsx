@@ -34,7 +34,7 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
   const deck = generateDeck();
 
   const getSuitColor = (suit: string) => {
-    return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
+    return suit === '♥' || suit === '♦' ? '#F87171' : '#F7FAFC';
   };
 
   const handleCardSelect = (card: string) => {
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   miniCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modal: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: theme.radius.card,
     padding: theme.spacing.lg,
     margin: theme.spacing.lg,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   card: {
     width: 60,
     height: 80,
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.inputBg,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: theme.colors.gray,
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   },
   selectedCard: {
     borderColor: theme.colors.primary,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: theme.colors.primary + '20',
   },
   cardRank: {
     fontSize: 16,

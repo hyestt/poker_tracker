@@ -35,6 +35,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
   });
   
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 更新表單數據的函數
   const updateFormData = useCallback((field: string, value: string) => {
@@ -95,33 +96,44 @@ export const SessionForm: React.FC<SessionFormProps> = ({
   };
 
   const handleSubmit = async () => {
-    const [smallBlindStr, bigBlindStr] = formData.blinds.split('/');
-    const smallBlindValue = parseFloat(smallBlindStr) || 0;
-    const bigBlindValue = parseFloat(bigBlindStr) || 0;
-
-    const session: Session = {
-      id: initialSession?.id || Date.now().toString(),
-      location: formData.location,
-      date: formData.date,
-      smallBlind: smallBlindValue,
-      bigBlind: bigBlindValue,
-      currency: formData.currency,
-      effectiveStack: parseInt(formData.effectiveStack) || 0,
-      tableSize: parseInt(formData.tableSize) || 6,
-      tag: formData.tag,
-    };
-
-    // 儲存使用者偏好
-    if (preferences) {
-      await UserPreferencesService.updateLastChoices({
-        location: formData.location,
-        currency: formData.currency,
-        tableSize: formData.tableSize,
-        blinds: formData.blinds,
-      });
+    // 防止重複提交
+    if (isSubmitting || isLoading) {
+      return;
     }
 
-    onSubmit(session);
+    setIsSubmitting(true);
+    
+    try {
+      const [smallBlindStr, bigBlindStr] = formData.blinds.split('/');
+      const smallBlindValue = parseFloat(smallBlindStr) || 0;
+      const bigBlindValue = parseFloat(bigBlindStr) || 0;
+
+      const session: Session = {
+        id: initialSession?.id || Date.now().toString(),
+        location: formData.location,
+        date: formData.date,
+        smallBlind: smallBlindValue,
+        bigBlind: bigBlindValue,
+        currency: formData.currency,
+        effectiveStack: parseInt(formData.effectiveStack) || 0,
+        tableSize: parseInt(formData.tableSize) || 6,
+        tag: formData.tag,
+      };
+
+      // 儲存使用者偏好
+      if (preferences) {
+        await UserPreferencesService.updateLastChoices({
+          location: formData.location,
+          currency: formData.currency,
+          tableSize: formData.tableSize,
+          blinds: formData.blinds,
+        });
+      }
+
+      await onSubmit(session);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const updateLocationOptions = async (newOptions: string[]) => {
@@ -252,7 +264,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         <Button 
           title={submitButtonTitle} 
           onPress={handleSubmit}
-          disabled={isLoading}
+          disabled={isLoading || isSubmitting}
         />
       </View>
     </ScrollView>

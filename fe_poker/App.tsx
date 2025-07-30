@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { theme } from './src/theme';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -43,7 +44,7 @@ function HomeStack() {
     >
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session' }} />
+      <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session', headerBackTitle: 'Back' }} />
       <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
       <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
       <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
@@ -67,14 +68,24 @@ const SessionsStack = () => (
     }}
   >
     <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session' }} />
-    <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Session Details', headerBackTitle: 'Back' }} />
+    <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session', headerBackTitle: 'Back' }} />
+    <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Back', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
     <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
     <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
     <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Analysis' }} />
-    <Stack.Screen name="PokerKeyboard" component={PokerKeyboardScreen} options={{ title: 'Choose Cards' }} />
+    <Stack.Screen 
+      name="PokerKeyboard" 
+      component={PokerKeyboardScreen} 
+      options={{ 
+        title: 'Choose Cards',
+        presentation: 'modal',
+        headerStyle: { backgroundColor: theme.colors.background },
+        headerTitleStyle: { color: theme.colors.text },
+        headerTintColor: theme.colors.primary,
+      }} 
+    />
   </Stack.Navigator>
 );
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -38,6 +38,23 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       checkSubscription();
     }, [])
   );
+
+  // 設置自定義的 back button
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity 
+          onPress={() => {
+            // 導航到 Sessions 主頁面
+            navigation.navigate('SessionsList');
+          }} 
+          style={styles.headerBackButton}
+        >
+          <Text style={styles.headerBackButtonText}>‹ Back</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const session = sessions.find(s => s.id === sessionId);
   const sessionHands = hands.filter(hand => hand.sessionId === sessionId);
@@ -127,6 +144,10 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       {
         text: hand.favorite ? "Remove from Starred ⭐" : "Add to Starred ⭐",
         onPress: () => handleToggleFavorite(handId)
+      },
+      {
+        text: "Edit Hand",
+        onPress: () => navigation.navigate('EditHand', { handId })
       },
       {
         text: "Delete",
@@ -559,5 +580,26 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '300',
     lineHeight: 35,
+  },
+  headerBackButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
+  },
+  headerBackButtonText: {
+    color: theme.colors.primary,
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+  },
+  backButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.button,
+  },
+  backButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
   },
 });
