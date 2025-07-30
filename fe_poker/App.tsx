@@ -132,11 +132,11 @@ const App = () => {
           tabBarInactiveTintColor: '#718096',
         }}
       >
+        <Tab.Screen name="Sessions" component={SessionsStack} />
         <Tab.Screen 
           name="Hands" 
           component={HomeStack}
         />
-        <Tab.Screen name="Sessions" component={SessionsStack} />
         <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
     </NavigationContainer>

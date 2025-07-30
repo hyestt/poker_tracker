@@ -257,14 +257,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     const actionButtons = [
       {
-        text: "Edit Session",
-        onPress: () => navigation.navigate('EditSession', { sessionId: hand.sessionId })
-      },
-      {
-        text: hand.analysis ? "View Analysis" : "AI Analysis", 
-        onPress: () => handleAnalyze(handId)
-      },
-      {
         text: hand.favorite ? "Remove from Starred ⭐" : "Add to Starred ⭐",
         onPress: () => handleToggleFavorite(handId)
       },
@@ -410,14 +402,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Text style={styles.settingsIcon}>⚙️</Text>
-        </TouchableOpacity>
-        
-      </View>
-
       {/* Filter Section */}
       <View style={styles.filterRow}>
         <View style={styles.filterDropdownContainer}>
@@ -805,25 +789,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.sm,
-  },
-  settingsButton: {
-    padding: theme.spacing.xs,
-  },
-  settingsIcon: {
-    fontSize: 24,
-  },
   filterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.md,
+    paddingTop: 60,
     marginBottom: theme.spacing.sm,
   },
   filterDropdownContainer: {

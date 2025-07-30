@@ -125,14 +125,6 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
 
     const actionButtons = [
       {
-        text: "Edit Session",
-        onPress: () => navigation.navigate('EditSession', { sessionId: hand.sessionId })
-      },
-      {
-        text: hand.analysis ? "View Analysis" : "AI Analysis", 
-        onPress: () => navigation.navigate('AIAnalysis', { hand })
-      },
-      {
         text: hand.favorite ? "Remove from Starred ⭐" : "Add to Starred ⭐",
         onPress: () => handleToggleFavorite(handId)
       },

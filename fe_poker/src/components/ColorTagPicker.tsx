@@ -187,9 +187,10 @@ const styles = StyleSheet.create({
     marginRight: theme.spacing.xs,
   },
   noneDisplayCircle: {
-    borderWidth: 1,
-    borderColor: theme.colors.gray,
+    borderWidth: 2,
+    borderColor: '#666666',
     borderStyle: 'dashed',
+    backgroundColor: 'transparent',
   },
   displayText: {
     fontSize: theme.font.size.small,
@@ -245,9 +246,10 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   noneCircle: {
-    borderWidth: 2,
-    borderColor: theme.colors.gray,
+    borderWidth: 3,
+    borderColor: '#666666',
     borderStyle: 'dashed',
+    backgroundColor: 'transparent',
   },
   colorName: {
     fontSize: theme.font.size.small,
