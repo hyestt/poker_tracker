@@ -6,6 +6,7 @@ import { CustomPicker } from '../components/CustomPicker';
 import { PokerKeyboardView } from '../components/PokerKeyboardView';
 import { PokerQuickKeyboard } from '../components/PokerQuickKeyboard';
 import { VillainInput } from '../components/VillainInput';
+import { TagInput } from '../components/TagInput';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { Hand, Villain } from '../models';
@@ -26,7 +27,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
-  const { addHand, fetchHands, fetchStats } = useSessionStore();
+  const { addHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
 
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
@@ -125,6 +126,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [note, setNote] = useState<string>('');
+  const [tags, setTags] = useState<string[]>([]);
   const detailsRef = useRef(details);
   const selectionRef = useRef(selection);
 
@@ -294,6 +296,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       date: new Date().toISOString(),
       villains,
       favorite: false,
+      tags,
     };
     
     try {
@@ -309,6 +312,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       setNote('');
       setResult('');
       setVillains([]);
+      setTags([]);
       
       // Show success message
       Alert.alert(
@@ -747,6 +751,21 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 positions={positions}
               />
             ))}
+          </View>
+
+          {/* Tags Section */}
+          <View style={styles.fullWidthField}>
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Tags</Text>
+              <View style={styles.fieldInputContainer}>
+                <TagInput
+                  tags={tags}
+                  onTagsChange={setTags}
+                  placeholder="Add hand tags..."
+                  availableTags={getAllUsedTags()}
+                />
+              </View>
+            </View>
           </View>
 
           {/* Note Section */}

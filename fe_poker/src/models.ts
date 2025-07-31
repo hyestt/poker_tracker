@@ -31,6 +31,7 @@ export interface Hand {
   analysisDate?: string;
   favorite: boolean;
   tag?: string;
+  tags?: string[];
   villains?: Villain[];
   date?: string;
   createdAt?: string;

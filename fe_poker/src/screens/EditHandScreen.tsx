@@ -6,6 +6,7 @@ import { CustomPicker } from '../components/CustomPicker';
 import { PokerKeyboardView } from '../components/PokerKeyboardView';
 import { PokerQuickKeyboard } from '../components/PokerQuickKeyboard';
 import { VillainInput } from '../components/VillainInput';
+import { TagInput } from '../components/TagInput';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { Hand, Villain } from '../models';
@@ -29,7 +30,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
-  const { updateHand, getHand, fetchHands, fetchStats } = useSessionStore();
+  const { updateHand, getHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
 
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
@@ -117,6 +118,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [deleteTimer, setDeleteTimer] = useState<NodeJS.Timeout | null>(null);
   const [note, setNote] = useState<string>('');
   const [favorite, setFavorite] = useState<boolean>(false);
+  const [tags, setTags] = useState<string[]>([]);
   const detailsRef = useRef(details);
   const selectionRef = useRef(selection);
 
@@ -266,6 +268,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         setSessionId(hand.sessionId);
         setVillains(hand.villains || []);
         setFavorite(hand.favorite || false);
+        setTags(hand.tags || []);
         console.log('Set villains to:', hand.villains || []);
         setLoading(false);
       } catch (error) {
@@ -314,6 +317,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       date: new Date().toISOString(),
       villains: villains,
       favorite,
+      tags,
     };
     console.log('Saving hand with villains:', villains);
     console.log('Complete hand object:', hand);
@@ -327,7 +331,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       console.error('Failed to update hand:', error);
       Alert.alert('Error', 'Failed to update hand');
     }
-  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, updateHand, fetchHands, fetchStats, navigation]);
+  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, tags, updateHand, fetchHands, fetchStats, navigation]);
 
   const handleSaveRef = useRef(handleSave);
   
@@ -784,6 +788,21 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 positions={positions}
               />
             ))}
+          </View>
+
+          {/* Tags Section */}
+          <View style={styles.fullWidthField}>
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Tags</Text>
+              <View style={styles.fieldInputContainer}>
+                <TagInput
+                  tags={tags}
+                  onTagsChange={setTags}
+                  placeholder="Add hand tags..."
+                  availableTags={getAllUsedTags()}
+                />
+              </View>
+            </View>
           </View>
 
           {/* Note Section */}

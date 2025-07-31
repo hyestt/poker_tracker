@@ -9,7 +9,7 @@ SQLite.enablePromise(true);
 export class DatabaseService {
   private static db: SQLite.SQLiteDatabase | null = null;
   private static readonly DB_NAME = 'poker_tracker.db';
-  private static readonly DB_VERSION = '1.0';
+  private static readonly DB_VERSION = '1.1';
   private static readonly DB_DISPLAY_NAME = 'Poker Tracker Database';
   private static readonly DB_SIZE = 200000;
 
@@ -24,6 +24,7 @@ export class DatabaseService {
       });
 
       await this.createTables();
+      await this.migrateDatabase();
       console.log('Database initialized successfully');
     } catch (error) {
       console.error('Database initialization failed:', error);
@@ -67,6 +68,7 @@ export class DatabaseService {
         board TEXT,
         note TEXT,
         villains TEXT,
+        tags TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(session_id) REFERENCES sessions(id)
@@ -75,6 +77,33 @@ export class DatabaseService {
 
     await this.db.executeSql(createSessionsTable);
     await this.db.executeSql(createHandsTable);
+  }
+
+  // 數據庫遷移
+  private static async migrateDatabase(): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    try {
+      // 檢查是否需要添加tags列
+      const [result] = await this.db.executeSql("PRAGMA table_info(hands)");
+      let hasTagsColumn = false;
+      
+      for (let i = 0; i < result.rows.length; i++) {
+        const row = result.rows.item(i);
+        if (row.name === 'tags') {
+          hasTagsColumn = true;
+          break;
+        }
+      }
+
+      if (!hasTagsColumn) {
+        console.log('Adding tags column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN tags TEXT');
+      }
+    } catch (error) {
+      console.error('Database migration failed:', error);
+      // 不拋出錯誤，因為遷移失敗不應該阻止應用運行
+    }
   }
 
   // ==================== SESSIONS CRUD ====================
@@ -205,6 +234,16 @@ export class DatabaseService {
         console.warn('Failed to parse villains JSON:', row.villains);
       }
 
+      // 解析 tags JSON
+      let tags = [];
+      try {
+        if (row.tags && row.tags !== '[]') {
+          tags = JSON.parse(row.tags);
+        }
+      } catch (error) {
+        console.warn('Failed to parse tags JSON:', row.tags);
+      }
+
       hands.push({
         id: row.id,
         sessionId: row.session_id,
@@ -220,6 +259,7 @@ export class DatabaseService {
         board: row.board || '',
         note: row.note || '',
         villains: villains,
+        tags: tags,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       });
@@ -249,6 +289,16 @@ export class DatabaseService {
       console.warn('Failed to parse villains JSON:', row.villains);
     }
 
+    // 解析 tags JSON
+    let tags = [];
+    try {
+      if (row.tags && row.tags !== '[]') {
+        tags = JSON.parse(row.tags);
+      }
+    } catch (error) {
+      console.warn('Failed to parse tags JSON:', row.tags);
+    }
+
     return {
       id: row.id,
       sessionId: row.session_id,
@@ -264,6 +314,7 @@ export class DatabaseService {
       board: row.board || '',
       note: row.note || '',
       villains: villains,
+      tags: tags,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -274,12 +325,13 @@ export class DatabaseService {
 
     const sql = `
       INSERT INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, 
-                        hole_cards, position, is_favorite, tag, board, note, villains)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        hole_cards, position, is_favorite, tag, board, note, villains, tags)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    // 序列化 villains
+    // 序列化 villains 和 tags
     const villainsJson = JSON.stringify(hand.villains || []);
+    const tagsJson = JSON.stringify(hand.tags || []);
 
     await this.db.executeSql(sql, [
       hand.id,
@@ -296,6 +348,7 @@ export class DatabaseService {
       hand.board || '',
       hand.note || '',
       villainsJson,
+      tagsJson,
     ]);
   }
 
@@ -305,13 +358,14 @@ export class DatabaseService {
     const sql = `
       UPDATE hands 
       SET session_id = ?, details = ?, result_amount = ?, date = ?, analysis = ?, analysis_date = ?,
-          hole_cards = ?, position = ?, is_favorite = ?, tag = ?, board = ?, note = ?, villains = ?,
+          hole_cards = ?, position = ?, is_favorite = ?, tag = ?, board = ?, note = ?, villains = ?, tags = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
 
-    // 序列化 villains
+    // 序列化 villains 和 tags
     const villainsJson = JSON.stringify(hand.villains || []);
+    const tagsJson = JSON.stringify(hand.tags || []);
 
     await this.db.executeSql(sql, [
       hand.sessionId,
@@ -327,6 +381,7 @@ export class DatabaseService {
       hand.board || '',
       hand.note || '',
       villainsJson,
+      tagsJson,
       hand.id,
     ]);
   }

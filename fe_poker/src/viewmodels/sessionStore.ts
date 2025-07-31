@@ -39,6 +39,8 @@ interface State {
   migrateToLocal: () => Promise<void>;
   // 新增的初始化方法
   initialize: () => Promise<void>;
+  // Tags相關方法
+  getAllUsedTags: () => string[];
 }
 
 // API 調用輔助函數
@@ -657,5 +659,25 @@ export const useSessionStore = create<State>((set, get) => ({
       console.error('❌ 遷移失敗:', error);
       throw error;
     }
+  },
+
+  // ==================== TAGS 相關方法 ====================
+
+  getAllUsedTags: () => {
+    const { hands } = get();
+    const allTags = new Set<string>();
+    
+    hands.forEach(hand => {
+      if (hand.tags && Array.isArray(hand.tags)) {
+        hand.tags.forEach(tag => {
+          if (tag && tag.trim()) {
+            allTags.add(tag.trim());
+          }
+        });
+      }
+    });
+    
+    // 返回按字母順序排序的tags
+    return Array.from(allTags).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   },
 })); 

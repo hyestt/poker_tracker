@@ -217,6 +217,27 @@ Shared from Poker Tracker`;
           </View>
         )}
 
+        {/* Tags */}
+        {hand.tags && hand.tags.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Tags</Text>
+            <View style={styles.tagsContainer}>
+              {hand.tags.map((tag, index) => {
+                const getTagColor = (index: number) => {
+                  const colors = ['#FF69B4', '#4169E1', '#32CD32']; // 粉紅色、藍色、綠色
+                  return colors[index] || theme.colors.primary;
+                };
+                
+                return (
+                  <View key={index} style={[styles.tag, { backgroundColor: getTagColor(index) }]}>
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {/* Note */}
         {hand.note && (
           <View style={styles.section}>
@@ -634,5 +655,21 @@ const styles = StyleSheet.create({
   boardLabelPlaceholder: {
     fontSize: theme.font.size.body,
     color: theme.colors.gray,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.xs,
+  },
+  tag: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+  },
+  tagText: {
+    color: '#FFFFFF',
+    fontSize: theme.font.size.small,
+    fontWeight: '500',
   },
 }); 
