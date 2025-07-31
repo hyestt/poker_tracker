@@ -104,11 +104,13 @@ const App = () => {
     // 初始化應用服務
     const initializeServices = async () => {
       try {
-        // 同時初始化所有必要的服務
-        await Promise.all([
-          initializeSessionStore(),
-          RevenueCatService.initialize()
-        ]);
+        // 添加延遲確保原生模塊完全初始化
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 順序初始化而不是並行，避免時序問題
+        await initializeSessionStore();
+        await RevenueCatService.initialize();
+        
         console.log('Services initialized successfully from App.tsx');
       } catch (error) {
         console.error('Failed to initialize services from App.tsx:', error);

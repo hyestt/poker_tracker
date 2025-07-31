@@ -22,7 +22,9 @@ target 'PokerTrackerApp' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     :hermes_enabled => false,
-    :fabric_enabled => false
+    :fabric_enabled => false,
+    # 確保完全禁用新架構
+    :new_arch_enabled => false
   )
 
   post_install do |installer|
