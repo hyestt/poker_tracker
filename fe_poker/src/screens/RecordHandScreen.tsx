@@ -26,6 +26,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
   const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
+  const [showExample, setShowExample] = useState(false);
   const detailsInputRef = useRef<TextInput>(null);
   const { addHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
 
@@ -372,6 +373,31 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 />
               </View>
             </View>
+            
+            {/* Example for GTO Analysis */}
+            <TouchableOpacity 
+              style={styles.exampleToggle}
+              onPress={() => setShowExample(!showExample)}
+            >
+              <Text style={styles.exampleToggleText}>
+                💡 Add more details for better AI analysis {showExample ? '▼' : '▶'}
+              </Text>
+            </TouchableOpacity>
+            
+            {showExample && (
+              <View style={styles.exampleContainer}>
+                <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
+                <Text style={styles.exampleText}>
+                  • Position & stack sizes{'\n'}
+                  • Bet sizes in BB (big blinds){'\n'}  
+                  • Action sequence for each street{'\n'}
+                  • Opponent tendencies if known{'\n'}
+                  • Table dynamics & reads{'\n'}{'\n'}
+                  Example: "UTG (100BB) raises 3BB, I 3-bet 9BB from CO with 150BB, UTG calls. Flop A♠K♦5♣: I c-bet 12BB, UTG calls. Turn 2♥: I bet 30BB, UTG raises to 90BB..."
+                </Text>
+              </View>
+            )}
+            
             <TextInput
               ref={detailsInputRef}
               style={styles.detailsInput}
@@ -940,6 +966,40 @@ const styles = StyleSheet.create({
   },
   keyboardIconText: {
     fontSize: 16,
+  },
+  exampleToggle: {
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.button,
+    padding: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '50',
+    alignItems: 'center',
+  },
+  exampleToggleText: {
+    fontSize: theme.font.size.small,
+    fontWeight: '500',
+    color: theme.colors.primary,
+  },
+  exampleContainer: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.input,
+    padding: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '30',
+  },
+  exampleTitle: {
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  exampleText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.text,
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
   detailsInput: {
     backgroundColor: theme.colors.inputBg,

@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/sashabaranov/go-openai"
+	"poker_tracker_backend/models"
 )
 
 type OpenAIService struct {
@@ -22,18 +24,31 @@ func NewOpenAIService() *OpenAIService {
 	return &OpenAIService{client: client}
 }
 
-func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position string, holeCards string, board string) (string, error) {
+func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position string, holeCards string, board string, villains []models.Villain) (string, error) {
 	if s.client == nil {
 		return "", fmt.Errorf("OpenAI service not available: API key not set")
 	}
 
 	// 組合完整的手牌信息
-	fullHandDetails := fmt.Sprintf("Hero Position: %s\nHero Hole Cards: %s\nBoard: %s\nHand Action Details: %s", 
-		position, holeCards, board, handDetails)
+	var fullHandDetails strings.Builder
+	fullHandDetails.WriteString(fmt.Sprintf("Hero Position: %s\n", position))
+	fullHandDetails.WriteString(fmt.Sprintf("Hero Hole Cards: %s\n", holeCards))
+	fullHandDetails.WriteString(fmt.Sprintf("Board: %s\n", board))
+	
+	// 添加 Villain 資訊
+	if len(villains) > 0 {
+		fullHandDetails.WriteString("\nVillains:\n")
+		for i, villain := range villains {
+			fullHandDetails.WriteString(fmt.Sprintf("Villain %d - Position: %s, Hole Cards: %s\n", 
+				i+1, villain.Position, villain.HoleCards))
+		}
+	}
+	
+	fullHandDetails.WriteString(fmt.Sprintf("\nHand Action Details: %s", handDetails))
 	
 	// 使用prompt管理器獲取prompt
 	promptManager := NewPromptManager()
-	prompt, err := promptManager.GetHandAnalysisPrompt(fullHandDetails, result)
+	prompt, err := promptManager.GetHandAnalysisPrompt(fullHandDetails.String(), result)
 	if err != nil {
 		// 錯誤處理：記錄錯誤並使用fallback prompt
 		fmt.Printf("Error reading prompt file: %v\n", err)

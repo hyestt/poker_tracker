@@ -289,7 +289,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>AI is analyzing your hand...</Text>
+        <Text style={styles.loadingText}>GTO is analyzing your hand...</Text>
         <Text style={styles.loadingSubText}>This may take a few moments</Text>
       </View>
     );

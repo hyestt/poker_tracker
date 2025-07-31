@@ -52,19 +52,17 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
           
           let label = '';
           if (isBoard) {
-            if (index === 1) label = 'Flop';
-            else if (index === 3) label = 'Turn';
-            else if (index === 4) label = 'River';
+            if (index === 1) label = 'Flop'; // 在第2張牌上顯示Flop（3張牌的中間）
+            else if (index === 3) label = 'Turn'; // 在第4張牌上顯示Turn
+            else if (index === 4) label = 'River'; // 在第5張牌上顯示River
           }
           
           return (
             <View key={index} style={styles.cardWrapper}>
               {/* Add labels for board cards */}
-              {isBoard && (
-                <Text style={styles.boardLabel}>
-                  {label}
-                </Text>
-              )}
+              <Text style={styles.boardLabel}>
+                {isBoard ? label : ''}
+              </Text>
               
               <View style={styles.card}>
                 <Text style={[styles.cardText, { color: getSuitColor(suit) }]}>
@@ -650,7 +648,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: theme.colors.text,
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: 4,
+    textAlign: 'center',
+    minHeight: 16,
+    lineHeight: 16,
   },
   boardLabelPlaceholder: {
     fontSize: theme.font.size.body,

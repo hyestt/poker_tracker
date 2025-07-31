@@ -169,7 +169,14 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           }}
         >
           <Text style={styles.filterText}>
-            {sessionFilter.location || sessionFilter.tag ? '☰ Active' : '☰ Filter'}
+            {(() => {
+              const activeFilters = [
+                sessionFilter.location,
+                sessionFilter.tag
+              ].filter(Boolean).length;
+              
+              return activeFilters > 0 ? `☰ Filter (${activeFilters})` : '☰ Filter';
+            })()}
           </Text>
         </TouchableOpacity>
       </View>
@@ -282,9 +289,9 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 </View>
               </View>
 
-              {/* Tag Filter */}
+              {/* Color Filter */}
               <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Session Tag</Text>
+                <Text style={styles.filterSectionTitle}>Session Color</Text>
                 <View style={styles.dropdownContainer}>
                   <TouchableOpacity
                     style={styles.dropdown}
@@ -302,7 +309,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       ];
                       
                       Alert.alert(
-                        "Select Session Tag",
+                        "Select Session Color",
                         "",
                         tags.map(tag => ({
                           text: tag.name,

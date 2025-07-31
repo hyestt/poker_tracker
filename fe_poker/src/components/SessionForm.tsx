@@ -254,7 +254,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
 
       <Card style={styles.section}>
         <ColorTagPicker
-          title="Session Tag"
+          title="Session Color"
           value={formData.tag}
           onValueChange={(value) => updateFormData('tag', value)}
         />

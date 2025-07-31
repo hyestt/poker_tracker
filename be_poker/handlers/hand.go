@@ -330,7 +330,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		board = *hand.Board
 	}
 	
-	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board)
+	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return

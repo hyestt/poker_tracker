@@ -137,8 +137,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           return false;
         }
 
-        // Session Tag filter
-        if (sessionFilter.tag && session.tag !== sessionFilter.tag) {
+        // Hand Tag filter
+        if (sessionFilter.tag && (!hand.tags || !hand.tags.includes(sessionFilter.tag))) {
           return false;
         }
 
@@ -465,7 +465,19 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           }}
         >
           <Text style={styles.sessionFilterText}>
-            {sessionFilter.location || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate ? '☰ Active' : '☰ Filter'}
+            {(() => {
+              const activeFilters = [
+                sessionFilter.location,
+                sessionFilter.dateTime, 
+                sessionFilter.timeRange,
+                sessionFilter.position,
+                sessionFilter.tag,
+                sessionFilter.customStartDate,
+                sessionFilter.customEndDate
+              ].filter(Boolean).length;
+              
+              return activeFilters > 0 ? `☰ Filter (${activeFilters})` : '☰ Filter';
+            })()}
           </Text>
         </TouchableOpacity>
       </View>
@@ -656,27 +668,32 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 </View>
               </View>
 
-              {/* Session Tag Filter */}
+              {/* Hand Tag Filter */}
               <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Session Tag</Text>
+                <Text style={styles.filterSectionTitle}>Hand Tag</Text>
                 <View style={styles.dropdownContainer}>
                   <TouchableOpacity
                     style={styles.dropdown}
                     onPress={() => {
+                      // 從所有hands中收集唯一的tags
+                      const allUsedTags = hands.reduce((tags: Set<string>, hand) => {
+                        if (hand.tags && Array.isArray(hand.tags)) {
+                          hand.tags.forEach(tag => {
+                            if (tag && tag.trim()) {
+                              tags.add(tag.trim());
+                            }
+                          });
+                        }
+                        return tags;
+                      }, new Set<string>());
+                      
                       const tags = [
-                        { key: '', name: 'All Tags', color: 'transparent' },
-                        { key: 'red', name: 'Red', color: '#FF6B6B' },
-                        { key: 'blue', name: 'Blue', color: '#007AFF' },
-                        { key: 'green', name: 'Green', color: '#34C759' },
-                        { key: 'yellow', name: 'Yellow', color: '#FFA726' },
-                        { key: 'purple', name: 'Purple', color: '#AB47BC' },
-                        { key: 'orange', name: 'Orange', color: '#FF7043' },
-                        { key: 'pink', name: 'Pink', color: '#EC407A' },
-                        { key: 'teal', name: 'Teal', color: '#26A69A' },
+                        { key: '', name: 'All Tags' },
+                        ...Array.from(allUsedTags).sort().map(tag => ({ key: tag, name: tag }))
                       ];
                       
                       Alert.alert(
-                        "Select Session Tag",
+                        "Select Hand Tag",
                         "",
                         tags.map(tag => ({
                           text: tag.name,
@@ -691,26 +708,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     }}
                   >
                     <View style={styles.dropdownContent}>
-                      {tempSessionFilter.tag && (
-                        <View style={[
-                          styles.tagColorDot,
-                          { backgroundColor: {
-                            'red': '#FF6B6B',
-                            'blue': '#007AFF',
-                            'green': '#34C759',
-                            'yellow': '#FFA726',
-                            'purple': '#AB47BC',
-                            'orange': '#FF7043',
-                            'pink': '#EC407A',
-                            'teal': '#26A69A',
-                          }[tempSessionFilter.tag] || '#ccc' }
-                        ]} />
-                      )}
                       <Text style={styles.dropdownText}>
-                        {tempSessionFilter.tag 
-                          ? tempSessionFilter.tag.charAt(0).toUpperCase() + tempSessionFilter.tag.slice(1)
-                          : 'All Tags'
-                        }
+                        {tempSessionFilter.tag || 'All Tags'}
                       </Text>
                     </View>
                     <Text style={styles.dropdownArrow}>▼</Text>
@@ -800,10 +799,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingTop: 60,
     marginBottom: theme.spacing.sm,
+    zIndex: 9998,
   },
   filterDropdownContainer: {
     position: 'relative',
-    zIndex: 1000,
+    zIndex: 9999,
   },
   filterButton: {
     flexDirection: 'row',
@@ -866,9 +866,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 10,
     marginTop: theme.spacing.xs,
-    zIndex: 1001,
+    zIndex: 10000,
   },
   filterDropdownItem: {
     flexDirection: 'row',
