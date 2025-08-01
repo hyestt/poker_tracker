@@ -14,12 +14,22 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [sessionFilter, setSessionFilter] = useState<{
     location?: string;
     tag?: string;
+    timeRange?: string;
+    customStartDate?: string;
+    customEndDate?: string;
   }>({});
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [tempSessionFilter, setTempSessionFilter] = useState<{
     location?: string;
     tag?: string;
+    timeRange?: string;
+    customStartDate?: string;
+    customEndDate?: string;
   }>({});
+  
+  // Sort states
+  const [selectedSort, setSelectedSort] = useState('date');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,7 +58,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     let filtered = [...sessions];
     
     // Apply filters
-    if (sessionFilter.location || sessionFilter.tag) {
+    if (sessionFilter.location || sessionFilter.tag || sessionFilter.timeRange || sessionFilter.customStartDate || sessionFilter.customEndDate) {
       filtered = filtered.filter(session => {
         // Location filter
         if (sessionFilter.location && session.location !== sessionFilter.location) {
@@ -59,15 +69,69 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         if (sessionFilter.tag && session.tag !== sessionFilter.tag) {
           return false;
         }
+
+        // Time Range filter
+        if (sessionFilter.timeRange) {
+          const now = new Date();
+          const sessionDate = new Date(session.date || '');
+          
+          switch (sessionFilter.timeRange) {
+            case '1day':
+              const diffHours = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60));
+              if (diffHours > 24) return false;
+              break;
+            case '3days':
+              const diff3Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (diff3Days > 3) return false;
+              break;
+            case '7days':
+              const diff7Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (diff7Days > 7) return false;
+              break;
+            case '30days':
+              const diff30Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+              if (diff30Days > 30) return false;
+              break;
+            case 'custom':
+              // Custom range filter
+              if (sessionFilter.customStartDate || sessionFilter.customEndDate) {
+                const sessionTime = sessionDate.getTime();
+                
+                if (sessionFilter.customStartDate) {
+                  const startTime = new Date(sessionFilter.customStartDate).getTime();
+                  if (sessionTime < startTime) return false;
+                }
+                
+                if (sessionFilter.customEndDate) {
+                  const endTime = new Date(sessionFilter.customEndDate).getTime();
+                  if (sessionTime > endTime) return false;
+                }
+              }
+              break;
+          }
+        }
         
         return true;
       });
     }
     
-    // Sort by date (newest first)
-    filtered.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    // Sort
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (selectedSort) {
+        case 'date':
+          comparison = new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
+          break;
+        case 'amount':
+          const aStats = getSessionStats(a.id);
+          const bStats = getSessionStats(b.id);
+          comparison = aStats.totalResult - bStats.totalResult;
+          break;
+        default:
+          return 0;
+      }
+      return sortDirection === 'desc' ? -comparison : comparison;
+    });
     
     return filtered;
   };
@@ -172,7 +236,10 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             {(() => {
               const activeFilters = [
                 sessionFilter.location,
-                sessionFilter.tag
+                sessionFilter.tag,
+                sessionFilter.timeRange,
+                sessionFilter.customStartDate,
+                sessionFilter.customEndDate
               ].filter(Boolean).length;
               
               return activeFilters > 0 ? `☰ Filter (${activeFilters})` : '☰ Filter';
@@ -180,6 +247,58 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Sort Options */}
+      <View style={styles.sortContainer}>
+        <TouchableOpacity
+          style={[
+            styles.sortOption,
+            selectedSort === 'date' && styles.selectedSortOption
+          ]}
+          onPress={() => {
+            if (selectedSort === 'date') {
+              setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
+            } else {
+              setSelectedSort('date');
+              setSortDirection('desc');
+            }
+          }}
+        >
+          <Text style={[
+            styles.sortOptionText,
+            selectedSort === 'date' && styles.selectedSortOptionText
+          ]}>
+            Date {selectedSort === 'date' ? (sortDirection === 'desc' ? '↓' : '↑') : ''}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[
+            styles.sortOption,
+            selectedSort === 'amount' && styles.selectedSortOption
+          ]}
+          onPress={() => {
+            if (selectedSort === 'amount') {
+              setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
+            } else {
+              setSelectedSort('amount');
+              setSortDirection('desc');
+            }
+          }}
+        >
+          <Text style={[
+            styles.sortOptionText,
+            selectedSort === 'amount' && styles.selectedSortOptionText
+          ]}>
+            Amount {selectedSort === 'amount' ? (sortDirection === 'desc' ? '↓' : '↑') : ''}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Usage Hint */}
+      {sortedSessions.length > 0 && (
+        <Text style={styles.usageHint}>Tap to view • Long press for more actions</Text>
+      )}
 
       {/* Sessions List */}
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
@@ -255,6 +374,51 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
               
+              {/* Time Range Filter */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Time Range</Text>
+                <View style={styles.dropdownContainer}>
+                  <TouchableOpacity
+                    style={styles.dropdown}
+                    onPress={() => {
+                      const options = [
+                        { key: '', label: 'All Time' },
+                        { key: '1day', label: 'Last 24 Hours' },
+                        { key: '3days', label: 'Last 3 Days' },
+                        { key: '7days', label: 'Last 7 Days' },
+                        { key: '30days', label: 'Last 30 Days' }
+                      ];
+                      
+                      Alert.alert(
+                        "Select Time Range",
+                        "",
+                        options.map(option => ({
+                          text: option.label,
+                          onPress: () => {
+                            setTempSessionFilter(prev => ({
+                              ...prev, 
+                              timeRange: option.key || undefined,
+                              customStartDate: undefined,
+                              customEndDate: undefined
+                            }));
+                          }
+                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                      );
+                    }}
+                  >
+                    <Text style={styles.dropdownText}>
+                      {tempSessionFilter.timeRange 
+                        ? (['', '1day', '3days', '7days', '30days'].includes(tempSessionFilter.timeRange)
+                          ? ['All Time', 'Last 24 Hours', 'Last 3 Days', 'Last 7 Days', 'Last 30 Days'][['', '1day', '3days', '7days', '30days'].indexOf(tempSessionFilter.timeRange)]
+                          : tempSessionFilter.timeRange)
+                        : 'All Time'
+                      }
+                    </Text>
+                    <Text style={styles.dropdownArrow}>▼</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               {/* Location Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Location</Text>
@@ -494,6 +658,40 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     color: theme.colors.text,
     fontWeight: '600',
+  },
+  
+  // Sort styles
+  sortContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: theme.spacing.md,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    gap: theme.spacing.xs,
+  },
+  sortOption: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+    backgroundColor: theme.colors.inputBg,
+  },
+  selectedSortOption: {
+    backgroundColor: theme.colors.primary,
+  },
+  sortOptionText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.text,
+  },
+  selectedSortOptionText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  usageHint: {
+    textAlign: 'center',
+    fontSize: theme.font.size.small,
+    color: theme.colors.gray,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    fontStyle: 'italic',
   },
   
   // Modal styles

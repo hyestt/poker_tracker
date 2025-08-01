@@ -288,34 +288,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setShowFilterDropdown(!showFilterDropdown);
   };
 
-  const showSortOptions = (sortKey: string) => {
-    const sortButtons = [
-      {
-        text: sortKey === 'date' ? 'Newest First' : 'Highest First',
-        onPress: () => {
-          setSelectedSort(sortKey);
-          setSortDirection('desc');
-        }
-      },
-      {
-        text: sortKey === 'date' ? 'Oldest First' : 'Lowest First',
-        onPress: () => {
-          setSelectedSort(sortKey);
-          setSortDirection('asc');
-        }
-      },
-      {
-        text: "Cancel",
-        onPress: () => {}
-      }
-    ];
-
-    Alert.alert(
-      "Sort Options",
-      `Choose how to sort by ${sortKey === 'date' ? 'Date' : 'Amount'}:`,
-      sortButtons
-    );
-  };
 
   // Format time ago
   const getTimeAgo = (dateStr: string) => {
@@ -491,7 +463,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               styles.sortOption,
               selectedSort === option.key && styles.selectedSortOption
             ]}
-            onPress={() => showSortOptions(option.key)}
+            onPress={() => {
+              if (selectedSort === option.key) {
+                setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
+              } else {
+                setSelectedSort(option.key);
+                setSortDirection('desc');
+              }
+            }}
           >
             <Text style={[
               styles.sortOptionText,
@@ -518,7 +497,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         
         
         {filteredHands.map((hand) => {
-          const session = sessions.find(s => s.id === hand.sessionId);
           const timeAgo = getTimeAgo(hand.date || '');
           const bbAmount = getBBAmount(hand.result, hand.sessionId);
           
