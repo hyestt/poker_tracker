@@ -1,4 +1,4 @@
-package com.pokertrackerapp
+package com.livehandapp
 
 import android.app.Application
 import com.facebook.react.PackageList

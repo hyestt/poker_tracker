@@ -83,7 +83,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       
       Alert.alert(
         'Purchase Successful!',
-        'Thank you for subscribing to Poker Tracker Premium!',
+        'Thank you for subscribing to LiveHand Premium!',
         [{ text: 'OK', onPress: () => loadSubscriptionData() }]
       );
     } catch (error: any) {
@@ -217,7 +217,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Poker Tracker Premium</Text>
+        <Text style={styles.title}>LiveHand Premium</Text>
         <Text style={styles.subtitle}>
           Unlock advanced features and take your poker game to the next level
         </Text>

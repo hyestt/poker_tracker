@@ -10,7 +10,7 @@ export class DatabaseService {
   private static db: SQLite.SQLiteDatabase | null = null;
   private static readonly DB_NAME = 'poker_tracker.db';
   private static readonly DB_VERSION = '1.1';
-  private static readonly DB_DISPLAY_NAME = 'Poker Tracker Database';
+  private static readonly DB_DISPLAY_NAME = 'LiveHand Database';
   private static readonly DB_SIZE = 200000;
 
   // 初始化數據庫

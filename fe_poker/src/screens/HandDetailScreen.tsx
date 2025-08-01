@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
@@ -121,7 +121,7 @@ ${hand.note || 'No note'}
 
 Result: ${hand.result >= 0 ? '+' : ''}$${hand.result}
 
-Shared from Poker Tracker`;
+Shared from LiveHand`;
   };
 
   const handleShare = async () => {
