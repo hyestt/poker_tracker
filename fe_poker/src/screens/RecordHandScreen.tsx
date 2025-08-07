@@ -168,9 +168,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     const newDetails = currentDetails.slice(0, cursorPosition) + textToInsert + currentDetails.slice(cursorPosition);
     setDetails(newDetails);
     
-    // 更新游標位置到插入文字的右邊
-    const newPosition = cursorPosition + textToInsert.length;
-    setSelection({ start: newPosition, end: newPosition });
+    // 不主動更新游標位置，讓 TextInput 自己處理
+    // 移除了 setSelection 調用以避免游標跳動
     
     setLastInsertedText(textToInsert);
     
@@ -190,9 +189,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const newDetails = currentDetails.slice(0, cursorPosition - 1) + currentDetails.slice(cursorPosition);
       setDetails(newDetails);
       
-      // 更新游標位置
-      const newPosition = cursorPosition - 1;
-      setSelection({ start: newPosition, end: newPosition });
+      // 不主動更新游標位置，讓 TextInput 自己處理
+      // 移除了 setSelection 調用以避免游標跳動
       
       return true; // 表示成功刪除
     }
@@ -404,7 +402,6 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               value={details}
               onChangeText={setDetails}
               onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
-              selection={selection}
               placeholder="Enter detailed hand description..."
               placeholderTextColor={theme.colors.gray}
               multiline={true}
