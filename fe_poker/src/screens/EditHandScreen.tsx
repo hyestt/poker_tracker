@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions, Switch, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
@@ -30,6 +30,30 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
+  const noteInputRef = useRef<TextInput>(null);
+  const resultInputRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const handleInputFocus = (inputRef: React.RefObject<TextInput>) => {
+    setTimeout(() => {
+      if (inputRef.current && scrollViewRef.current) {
+        inputRef.current.measureInWindow((x, y, width, height) => {
+          const screenHeight = Dimensions.get('window').height;
+          const keyboardHeight = 250;
+          const inputBottom = y + height;
+          const availableHeight = screenHeight - keyboardHeight;
+          
+          if (inputBottom > availableHeight) {
+            const scrollOffset = inputBottom - availableHeight + 50;
+            scrollViewRef.current?.scrollTo({
+              y: scrollOffset,
+              animated: true
+            });
+          }
+        });
+      }
+    }, 100);
+  };
   const { updateHand, getHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
 
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
@@ -132,51 +156,136 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   }, [selection]);
 
   const handleQuickInsert = (text: string) => {
-    const cursorPosition = selection.start;
+    const { start, end } = selection;
     const currentDetails = details || '';
     
-    // 檢查是否需要在數字後自動添加空格
+    console.log('[DEBUG] handleQuickInsert called:', {
+      text,
+      start,
+      end,
+      currentDetailsLength: currentDetails.length,
+      selectionState: selection,
+      hasSelection: start !== end
+    });
+    
+    // 檢查是否需要在數字後自動添加空格（只在沒有選中文本時）
     let textToInsert = text;
-    if (cursorPosition > 0) {
-      const previousChar = currentDetails.charAt(cursorPosition - 1);
+    if (start === end && start > 0) {
+      const previousChar = currentDetails.charAt(start - 1);
       const firstCharOfText = text.charAt(0);
       
       // 如果前一個字符是數字，且要插入的第一個字符不是數字、空格、標點符號，則自動添加空格
       if (/\d/.test(previousChar) && 
           !/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)) {
         textToInsert = ' ' + text;
+        console.log('[DEBUG] Added space before text:', textToInsert);
       }
     }
     
-    // 在游標位置插入文字
-    const newDetails = currentDetails.slice(0, cursorPosition) + textToInsert + currentDetails.slice(cursorPosition);
+    // 在游標位置插入文字，或者替換選中的文本
+    const newDetails = currentDetails.slice(0, start) + textToInsert + currentDetails.slice(end);
+    const newPosition = start + textToInsert.length;
+    
+    if (start !== end) {
+      console.log('[DEBUG] Replacing selected text:', {
+        selectedText: currentDetails.slice(start, end),
+        replacementText: textToInsert,
+        oldText: currentDetails,
+        newText: newDetails,
+        newPosition
+      });
+    } else {
+      console.log('[DEBUG] Inserting text at cursor:', {
+        oldText: currentDetails,
+        newText: newDetails,
+        insertPosition: start,
+        newPosition,
+        textToInsert
+      });
+    }
+    
     setDetails(newDetails);
-    
-    // 更新游標位置到插入文字的右邊
-    const newPosition = cursorPosition + textToInsert.length;
-    setSelection({ start: newPosition, end: newPosition });
-    
     setLastInsertedText(textToInsert);
     
-    // 保持TextInput的焦點
+    // 保持TextInput的焦點並設置正確的游標位置
     if (detailsInputRef.current) {
       detailsInputRef.current.focus();
+      // 先設置 TextInput 的實際游標位置
+      console.log('[DEBUG] Setting cursor position via setSelection immediately:', newPosition);
+      detailsInputRef.current.setSelection(newPosition, newPosition);
+      
+      // 然後更新 React state
+      setTimeout(() => {
+        setSelection({ start: newPosition, end: newPosition });
+      }, 0);
+    } else {
+      setSelection({ start: newPosition, end: newPosition });
     }
   };
 
   const handleQuickDelete = useCallback(() => {
     const currentDetails = detailsRef.current;
     const currentSelection = selectionRef.current;
-    const cursorPosition = currentSelection.start;
+    const { start, end } = currentSelection;
     
-    if (cursorPosition > 0 && currentDetails.length > 0) {
-      // 在游標位置刪除一個字符
-      const newDetails = currentDetails.slice(0, cursorPosition - 1) + currentDetails.slice(cursorPosition);
+    console.log('[DEBUG] handleQuickDelete called:', {
+      start,
+      end,
+      currentDetailsLength: currentDetails.length,
+      selectionState: currentSelection,
+      hasSelection: start !== end
+    });
+    
+    if (currentDetails.length > 0) {
+      let newDetails = '';
+      let newPosition = 0;
+      
+      if (start !== end) {
+        // 有文本被選中，刪除選中的文本
+        newDetails = currentDetails.slice(0, start) + currentDetails.slice(end);
+        newPosition = start;
+        
+        console.log('[DEBUG] Deleting selected text:', {
+          selectedText: currentDetails.slice(start, end),
+          oldText: currentDetails,
+          newText: newDetails,
+          newPosition
+        });
+      } else if (start > 0) {
+        // 沒有選中文本，刪除游標前的一個字符
+        newDetails = currentDetails.slice(0, start - 1) + currentDetails.slice(start);
+        newPosition = start - 1;
+        
+        console.log('[DEBUG] Deleting single character:', {
+          deletedChar: currentDetails.charAt(start - 1),
+          oldText: currentDetails,
+          newText: newDetails,
+          oldPosition: start,
+          newPosition
+        });
+      } else {
+        // 游標在最前面，無法刪除
+        return false;
+      }
+      
       setDetails(newDetails);
       
-      // 更新游標位置
-      const newPosition = cursorPosition - 1;
-      setSelection({ start: newPosition, end: newPosition });
+      // 只設置 TextInput 的實際游標位置，不更新 React state 以避免衝突
+      if (detailsInputRef.current) {
+        console.log('[DEBUG] Setting cursor position after delete (TextInput only):', newPosition);
+        // 使用多重延遲確保設置成功
+        detailsInputRef.current.setSelection(newPosition, newPosition);
+        setTimeout(() => {
+          if (detailsInputRef.current) {
+            detailsInputRef.current.setSelection(newPosition, newPosition);
+          }
+        }, 10);
+        setTimeout(() => {
+          if (detailsInputRef.current) {
+            detailsInputRef.current.setSelection(newPosition, newPosition);
+          }
+        }, 50);
+      }
       
       return true; // 表示成功刪除
     }
@@ -384,11 +493,27 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+      <KeyboardAvoidingView 
+        style={styles.flex} 
+        behavior={'padding'}
+        keyboardVerticalOffset={88}
+        enabled={true}
+      >
+      <ScrollView 
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+      >
         <View style={styles.topSection}>
           <View style={styles.fieldColumn}>
             <View style={styles.labelRow}>
               <Text style={styles.label}>Hand Details</Text>
+              {/* Debug Info */}
+              <View style={{ backgroundColor: '#f0f0f0', padding: 4, borderRadius: 4, marginHorizontal: 8 }}>
+                <Text style={{ fontSize: 10, color: '#666' }}>Cursor: {selection.start}-{selection.end} | Len: {details.length}</Text>
+              </View>
               <View style={styles.keyboardToggleContainer}>
                 <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
@@ -412,8 +537,16 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               style={[styles.detailsInput, styles.detailsInputWrapper]}
               value={details}
               onChangeText={setDetails}
-              onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
-              selection={selection}
+              onSelectionChange={(event) => {
+                const newSelection = event.nativeEvent.selection;
+                console.log('[DEBUG] onSelectionChange:', {
+                  oldSelection: selection,
+                  newSelection,
+                  textLength: details.length
+                });
+                setSelection(newSelection);
+              }}
+              // selection={selection} // Removed to avoid conflicts with manual setSelection calls
               placeholder="Enter detailed hand description..."
               placeholderTextColor={theme.colors.gray}
               multiline={true}
@@ -811,14 +944,17 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               <Text style={styles.fieldLabel}>Note</Text>
               <View style={styles.fieldInputContainer}>
                 <TextInput
+                  ref={noteInputRef}
                   style={styles.noteInput}
                   value={note}
                   onChangeText={setNote}
+                  onFocus={() => handleInputFocus(noteInputRef)}
                   placeholder="Add a note..."
                   placeholderTextColor={theme.colors.gray}
                   multiline={true}
                   numberOfLines={3}
                   textAlignVertical="top"
+                  scrollEnabled={false}
                 />
               </View>
             </View>
@@ -830,8 +966,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               <Text style={styles.fieldLabel}>Result ($)</Text>
               <View style={styles.fieldInputContainer}>
                 <Input 
+                  ref={resultInputRef}
                   value={result} 
-                  onChangeText={setResult} 
+                  onChangeText={setResult}
+                  onFocus={() => handleInputFocus(resultInputRef)}
                   placeholder="+150, -75" 
                   keyboardType="numeric" 
                   style={styles.compactInput}
@@ -842,6 +980,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Poker Keyboard Modal */}
       <Modal
@@ -924,15 +1063,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     padding: theme.spacing.xs,
   },
+  flex: {
+    flex: 1,
+  },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
+    paddingBottom: 300,
   },
   topSection: {
-    flex: 1,
+    // 移除 flex: 1 讓內容自然流動
   },
   resultSection: {
     backgroundColor: theme.colors.card,
