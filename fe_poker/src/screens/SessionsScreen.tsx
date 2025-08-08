@@ -166,7 +166,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
     Alert.alert(
       "Delete Session",
-      `Are you sure you want to delete "${session.location}" session? This will also delete all ${sessionHands.length} hand(s) in this session.`,
+      `Are you sure you want to delete "${session.location || 'Untitled Session'}" session? This will also delete all ${sessionHands.length} hand(s) in this session.`,
       [
         { text: "Cancel", style: "cancel" },
         { 
@@ -207,7 +207,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
     Alert.alert(
       "Session Actions",
-      `What would you like to do with "${session.location}" session?`,
+      `What would you like to do with "${session.location || 'Untitled Session'}" session?`,
       actionButtons
     );
   };
@@ -322,7 +322,9 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {/* Left: Session Info */}
                 <View style={styles.leftSection}>
                   <View style={styles.sessionInfoRow}>
-                    <Text style={styles.sessionLocation}>{session.location}</Text>
+                    <Text style={styles.sessionLocation}>
+                      {session.location || 'Untitled Session'}
+                    </Text>
                   </View>
                   <Text style={styles.sessionSubtitle}>
                     ${session.smallBlind}/${session.bigBlind} • {handCount} hand{handCount !== 1 ? 's' : ''}
