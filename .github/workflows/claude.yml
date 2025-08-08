@@ -30,6 +30,16 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@beta
@@ -51,14 +61,18 @@ jobs:
           # Optional: Trigger when specific user is assigned to an issue
           # assignee_trigger: "claude-bot"
           
-          # Optional: Allow Claude to run specific commands
-          # allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
+          # Allow Claude to run test and development commands
+          allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test),Bash(npm run lint),Bash(go run main.go),Bash(go build),Bash(go test)"
           
-          # Optional: Add custom instructions for Claude to customize its behavior for your project
-          # custom_instructions: |
-          #   Follow our coding standards
-          #   Ensure all new code has tests
-          #   Use TypeScript for new files
+          # Custom instructions for poker tracker project
+          custom_instructions: |
+            This is a poker tracking app with React Native frontend and Go backend.
+            - Frontend: fe_poker/ directory with npm commands (test, lint, build)
+            - Backend: be_poker/ directory with Go commands
+            - Follow existing patterns in codebase
+            - Ensure tests pass before suggesting changes
+            - Use TypeScript for frontend, Go for backend
+            - Check CLAUDE.md for development commands
           
           # Optional: Custom environment variables for Claude
           # claude_env: |
