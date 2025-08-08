@@ -56,7 +56,8 @@ npm test
 - **Routes**: `be_poker/routes/` - API route definitions
 - **Handlers**: `be_poker/handlers/` - Request processing logic (sessions, hands, stats)
 - **Models**: `be_poker/models/` - Go data structures
-- **Services**: OpenAI integration for hand analysis
+- **Services**: OpenAI integration for hand analysis, prompt management
+- **Database**: `be_poker/db/` - SQLite database abstraction
 
 ### Core Features
 1. **Session Management**: Create/edit poker sessions with location, blinds, stakes
@@ -66,8 +67,8 @@ npm test
 5. **Dual Mode**: Local SQLite storage + optional API backend sync
 
 ### Technology Stack
-- **Frontend**: React Native 0.80, TypeScript, Zustand (state), React Navigation
-- **Backend**: Go 1.21, SQLite, OpenAI API
+- **Frontend**: React Native 0.80, React 19.1.0, TypeScript, Zustand (state), React Navigation
+- **Backend**: Go 1.21, SQLite, OpenAI API (go-openai v1.32.5)
 - **Mobile**: iOS/Android with native dependencies (date picker, purchases, gesture handling)
 - **Testing**: Jest, React Native Testing Library
 
