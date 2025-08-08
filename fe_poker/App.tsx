@@ -6,7 +6,13 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, LogBox } from 'react-native';
+
+// 隱藏新架構警告以改善用戶體驗
+LogBox.ignoreLogs([
+  'The app is running using the Legacy',
+  'New Architecture',
+]);
 import { NavigationContainer } from '@react-navigation/native';
 import { theme } from './src/theme';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
