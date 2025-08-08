@@ -1,5 +1,5 @@
 import React, { useState, useRef, useLayoutEffect, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal, SafeAreaView, Dimensions, Switch, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { CustomPicker } from '../components/CustomPicker';
@@ -28,6 +28,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const [showExample, setShowExample] = useState(false);
   const detailsInputRef = useRef<TextInput>(null);
+  const noteInputRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const { addHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
 
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
@@ -148,49 +150,132 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   }, []);
 
   const handleQuickInsert = (text: string) => {
-    const cursorPosition = selection.start;
+    const { start, end } = selection;
     const currentDetails = details || '';
     
-    // 檢查是否需要在數字後自動添加空格
+    console.log('[DEBUG RecordHand] handleQuickInsert called:', {
+      text,
+      start,
+      end,
+      currentDetailsLength: currentDetails.length,
+      selectionState: selection,
+      hasSelection: start !== end
+    });
+    
+    // 檢查是否需要在數字後自動添加空格（只在沒有選中文本時）
     let textToInsert = text;
-    if (cursorPosition > 0) {
-      const previousChar = currentDetails.charAt(cursorPosition - 1);
+    if (start === end && start > 0) {
+      const previousChar = currentDetails.charAt(start - 1);
       const firstCharOfText = text.charAt(0);
       
       // 如果前一個字符是數字，且要插入的第一個字符不是數字、空格、標點符號，則自動添加空格
       if (/\d/.test(previousChar) && 
           !/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)) {
         textToInsert = ' ' + text;
+        console.log('[DEBUG RecordHand] Added space before text:', textToInsert);
       }
     }
     
-    // 在游標位置插入文字
-    const newDetails = currentDetails.slice(0, cursorPosition) + textToInsert + currentDetails.slice(cursorPosition);
+    // 在游標位置插入文字，或者替換選中的文本
+    const newDetails = currentDetails.slice(0, start) + textToInsert + currentDetails.slice(end);
+    const newPosition = start + textToInsert.length;
+    
+    if (start !== end) {
+      console.log('[DEBUG RecordHand] Replacing selected text:', {
+        selectedText: currentDetails.slice(start, end),
+        replacementText: textToInsert,
+        oldText: currentDetails,
+        newText: newDetails,
+        newPosition
+      });
+    } else {
+      console.log('[DEBUG RecordHand] Inserting text at cursor:', {
+        oldText: currentDetails,
+        newText: newDetails,
+        insertPosition: start,
+        newPosition,
+        textToInsert
+      });
+    }
+    
     setDetails(newDetails);
-    
-    // 不主動更新游標位置，讓 TextInput 自己處理
-    // 移除了 setSelection 調用以避免游標跳動
-    
     setLastInsertedText(textToInsert);
     
-    // 保持TextInput的焦點
+    // 保持TextInput的焦點並設置正確的游標位置
     if (detailsInputRef.current) {
       detailsInputRef.current.focus();
+      // 先設置 TextInput 的實際游標位置
+      console.log('[DEBUG RecordHand] Setting cursor position via setSelection immediately:', newPosition);
+      detailsInputRef.current.setSelection(newPosition, newPosition);
+      
+      // 然後更新 React state
+      setTimeout(() => {
+        setSelection({ start: newPosition, end: newPosition });
+      }, 0);
+    } else {
+      setSelection({ start: newPosition, end: newPosition });
     }
   };
 
   const handleQuickDelete = useCallback(() => {
     const currentDetails = detailsRef.current;
     const currentSelection = selectionRef.current;
-    const cursorPosition = currentSelection.start;
+    const { start, end } = currentSelection;
     
-    if (cursorPosition > 0 && currentDetails.length > 0) {
-      // 在游標位置刪除一個字符
-      const newDetails = currentDetails.slice(0, cursorPosition - 1) + currentDetails.slice(cursorPosition);
+    console.log('[DEBUG RecordHand] handleQuickDelete called:', {
+      start,
+      end,
+      currentDetailsLength: currentDetails.length,
+      selectionState: currentSelection,
+      hasSelection: start !== end
+    });
+    
+    if (currentDetails.length > 0) {
+      let newDetails = '';
+      let newPosition = 0;
+      
+      if (start !== end) {
+        // 有文本被選中，刪除選中的文本
+        newDetails = currentDetails.slice(0, start) + currentDetails.slice(end);
+        newPosition = start;
+        
+        console.log('[DEBUG RecordHand] Deleting selected text:', {
+          selectedText: currentDetails.slice(start, end),
+          oldText: currentDetails,
+          newText: newDetails,
+          newPosition
+        });
+      } else if (start > 0) {
+        // 沒有選中文本，刪除游標前的一個字符
+        newDetails = currentDetails.slice(0, start - 1) + currentDetails.slice(start);
+        newPosition = start - 1;
+        
+        console.log('[DEBUG RecordHand] Deleting single character:', {
+          deletedChar: currentDetails.charAt(start - 1),
+          oldText: currentDetails,
+          newText: newDetails,
+          oldPosition: start,
+          newPosition
+        });
+      } else {
+        // 游標在最前面，無法刪除
+        return false;
+      }
+      
       setDetails(newDetails);
       
-      // 不主動更新游標位置，讓 TextInput 自己處理
-      // 移除了 setSelection 調用以避免游標跳動
+      // 先設置 TextInput 的實際游標位置，再更新 React state
+      if (detailsInputRef.current) {
+        console.log('[DEBUG RecordHand] Setting cursor position after delete immediately:', newPosition);
+        detailsInputRef.current.setSelection(newPosition, newPosition);
+        
+        // 然後更新 React state
+        setTimeout(() => {
+          setSelection({ start: newPosition, end: newPosition });
+        }, 0);
+      } else {
+        setSelection({ start: newPosition, end: newPosition });
+      }
       
       return true; // 表示成功刪除
     }
@@ -261,6 +346,27 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
   const hideCustomKeyboard = () => {
     setShowCustomKeyboard(false);
+  };
+
+  // 處理輸入框焦點，自動滾動到可見區域
+  const handleInputFocus = (inputRef: React.RefObject<TextInput>) => {
+    setTimeout(() => {
+      if (inputRef.current && scrollViewRef.current) {
+        inputRef.current.measureInWindow((x, y, width, height) => {
+          const screenHeight = Dimensions.get('window').height;
+          const keyboardHeight = 350; // 估計鍵盤高度
+          const visibleHeight = screenHeight - keyboardHeight;
+          
+          if (y + height > visibleHeight) {
+            const scrollY = y + height - visibleHeight + 50; // 額外偏移
+            scrollViewRef.current?.scrollTo({
+              y: scrollY,
+              animated: true
+            });
+          }
+        });
+      }
+    }, 100);
   };
 
   const handleSave = async () => {
@@ -348,7 +454,20 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+      <KeyboardAvoidingView 
+        style={styles.flex} 
+        behavior={'padding'}
+        keyboardVerticalOffset={88}
+        enabled={true}
+      >
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+      >
         <View style={styles.topSection}>
           <View style={styles.fieldColumn}>
             <View style={styles.labelRow}>
@@ -401,7 +520,15 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               style={styles.detailsInput}
               value={details}
               onChangeText={setDetails}
-              onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+              onSelectionChange={(event) => {
+                const newSelection = event.nativeEvent.selection;
+                console.log('[DEBUG RecordHand] onSelectionChange:', {
+                  oldSelection: selection,
+                  newSelection,
+                  textLength: details.length
+                });
+                setSelection(newSelection);
+              }}
               placeholder="Enter detailed hand description..."
               placeholderTextColor={theme.colors.gray}
               multiline={true}
@@ -797,6 +924,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               <Text style={styles.fieldLabel}>Note</Text>
               <View style={styles.fieldInputContainer}>
                 <TextInput
+                  ref={noteInputRef}
                   style={styles.noteInput}
                   value={note}
                   onChangeText={setNote}
@@ -805,6 +933,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                   multiline={true}
                   numberOfLines={3}
                   textAlignVertical="top"
+                  scrollEnabled={false}
+                  onFocus={() => handleInputFocus(noteInputRef)}
                 />
               </View>
             </View>
@@ -828,6 +958,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Poker Keyboard Modal */}
       <Modal
@@ -910,15 +1041,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     padding: theme.spacing.xs,
   },
+  flex: {
+    flex: 1,
+  },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
+    paddingBottom: 300,
   },
   topSection: {
-    flex: 1,
+    // 移除 flex: 1 讓內容自然流動
   },
   resultSection: {
     backgroundColor: theme.colors.card,

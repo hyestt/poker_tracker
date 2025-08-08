@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Input } from './Input';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -104,6 +104,13 @@ export const SessionForm: React.FC<SessionFormProps> = ({
     setIsSubmitting(true);
     
     try {
+      // 驗證必填欄位
+      if (!formData.location.trim()) {
+        Alert.alert('Location Required', 'Please enter a casino or venue name to continue.');
+        setIsSubmitting(false);
+        return;
+      }
+
       const [smallBlindStr, bigBlindStr] = formData.blinds.split('/');
       const smallBlindValue = parseFloat(smallBlindStr) || 0;
       const bigBlindValue = parseFloat(bigBlindStr) || 0;
@@ -185,7 +192,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
           value={formData.location}
           onValueChange={(value) => updateFormData('location', value)}
           onOptionsChange={updateLocationOptions}
-          placeholder="Select location"
+          placeholder="Enter casino/venue name (required)"
         />
       </Card>
 

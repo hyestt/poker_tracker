@@ -48,11 +48,39 @@ export const TagInput: React.FC<TagInputProps> = ({
   }, [tags, availableTags]);
 
   const addTag = (tagToAdd?: string) => {
-    const trimmedValue = (tagToAdd || inputValue).trim();
-    if (trimmedValue && !tags.includes(trimmedValue) && !isAtMaxTags) {
-      onTagsChange([...tags, trimmedValue]);
-      setInputValue('');
-      setShowSuggestions(false);
+    if (tagToAdd) {
+      // 直接添加指定的tag (用于建议tags)
+      const trimmedValue = tagToAdd.trim();
+      if (trimmedValue && !tags.includes(trimmedValue) && !isAtMaxTags) {
+        onTagsChange([...tags, trimmedValue]);
+        setInputValue('');
+        setShowSuggestions(false);
+      }
+    } else {
+      // 添加输入框中的tag和所有选中的popular tags
+      const tagsToAdd = [];
+      
+      // 添加输入框中的tag
+      const trimmedInput = inputValue.trim();
+      if (trimmedInput && !tags.includes(trimmedInput)) {
+        tagsToAdd.push(trimmedInput);
+      }
+      
+      // 添加选中的popular tags
+      selectedPopularTags.forEach(tag => {
+        if (!tags.includes(tag) && !tagsToAdd.includes(tag)) {
+          tagsToAdd.push(tag);
+        }
+      });
+      
+      // 检查是否超过最大标签数量
+      const newTags = [...tags, ...tagsToAdd].slice(0, maxTags);
+      if (newTags.length > tags.length) {
+        onTagsChange(newTags);
+        setInputValue('');
+        setSelectedPopularTags([]);
+        setShowSuggestions(false);
+      }
     }
   };
 
@@ -74,40 +102,20 @@ export const TagInput: React.FC<TagInputProps> = ({
   };
 
   const togglePopularTag = (tag: string) => {
-    setSelectedPopularTags(prev => {
-      if (prev.includes(tag)) {
-        // 如果已選中，則取消選中
-        return prev.filter(t => t !== tag);
-      } else {
-        // 如果未選中，檢查是否會超過限制
-        const wouldExceedLimit = (tags.length + prev.length + 1) > maxTags;
-        if (wouldExceedLimit) {
-          return prev; // 不添加，保持原狀態
-        }
-        return [...prev, tag];
-      }
-    });
-  };
-
-  const addSelectedTags = () => {
-    if (selectedPopularTags.length > 0) {
-      const newTags = [...tags];
-      
-      selectedPopularTags.forEach(tag => {
-        if (!newTags.includes(tag) && newTags.length < maxTags) {
-          newTags.push(tag);
-        }
-      });
-      
-      onTagsChange(newTags);
-      setSelectedPopularTags([]);
-      setShowSuggestions(false);
+    if (tags.includes(tag)) {
+      // 如果tag已经在最终tags中，不做任何操作
+      return;
+    }
+    
+    if (selectedPopularTags.includes(tag)) {
+      // 如果已选中，则取消选中
+      setSelectedPopularTags(prev => prev.filter(t => t !== tag));
+    } else {
+      // 如果未选中，则添加到选中列表
+      setSelectedPopularTags(prev => [...prev, tag]);
     }
   };
 
-  const clearSelection = () => {
-    setSelectedPopularTags([]);
-  };
 
   return (
     <View style={styles.container}>
@@ -153,9 +161,9 @@ export const TagInput: React.FC<TagInputProps> = ({
           onPress={() => addTag()}
           style={[
             styles.addButton, 
-            { opacity: (inputValue.trim() && !isAtMaxTags) ? 1 : 0.5 }
+            { opacity: ((inputValue.trim() || selectedPopularTags.length > 0) && !isAtMaxTags) ? 1 : 0.5 }
           ]}
-          disabled={!inputValue.trim() || isAtMaxTags}
+          disabled={(!inputValue.trim() && selectedPopularTags.length === 0) || isAtMaxTags}
         >
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
@@ -188,55 +196,31 @@ export const TagInput: React.FC<TagInputProps> = ({
           {/* Popular Tags */}
           {!inputValue.trim() && popularTags.length > 0 && (
             <View style={styles.suggestionSection}>
-              <View style={styles.popularTagsHeader}>
-                <Text style={styles.suggestionSectionTitle}>Popular Tags</Text>
-                {selectedPopularTags.length > 0 && (
-                  <View style={styles.multiSelectActions}>
-                    <TouchableOpacity onPress={clearSelection} style={styles.clearButton}>
-                      <Text style={styles.clearButtonText}>Clear</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={addSelectedTags} style={styles.addSelectedButton}>
-                      <Text style={styles.addSelectedButtonText}>
-                        Add {selectedPopularTags.length}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
+              <Text style={styles.suggestionSectionTitle}>Popular Tags</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.suggestionsRow}>
                   {popularTags.map((tag, index) => {
+                    const isDisabled = tags.length >= maxTags;
                     const isSelected = selectedPopularTags.includes(tag);
-                    const wouldExceedLimit = !isSelected && (tags.length + selectedPopularTags.length) >= maxTags;
-                    const isDisabled = wouldExceedLimit;
                     
                     return (
                       <TouchableOpacity
                         key={index}
                         style={[
-                          styles.popularTag,
-                          isSelected && styles.popularTagSelected,
+                          styles.suggestionTag,
+                          isSelected && styles.selectedPopularTag,
                           isDisabled && styles.popularTagDisabled
                         ]}
                         onPress={() => !isDisabled && togglePopularTag(tag)}
                         disabled={isDisabled}
                       >
-                        <View style={styles.popularTagContent}>
-                          <View style={[
-                            styles.checkbox,
-                            isSelected && styles.checkboxSelected,
-                            isDisabled && styles.checkboxDisabled
-                          ]}>
-                            {isSelected && <Text style={styles.checkmark}>✓</Text>}
-                          </View>
-                          <Text style={[
-                            styles.popularTagText,
-                            isSelected && styles.popularTagTextSelected,
-                            isDisabled && styles.popularTagTextDisabled
-                          ]}>
-                            {tag}
-                          </Text>
-                        </View>
+                        <Text style={[
+                          styles.suggestionTagText,
+                          isSelected && styles.selectedPopularTagText,
+                          isDisabled && styles.popularTagTextDisabled
+                        ]}>
+                          {tag}
+                        </Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -352,85 +336,6 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     fontWeight: '500',
   },
-  popularTag: {
-    backgroundColor: theme.colors.inputBg,
-    borderRadius: theme.radius.button,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderWidth: 1,
-    borderColor: theme.colors.gray,
-  },
-  popularTagText: {
-    color: theme.colors.text,
-    fontSize: theme.font.size.small,
-    fontWeight: '500',
-  },
-  popularTagsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xs,
-  },
-  multiSelectActions: {
-    flexDirection: 'row',
-    gap: theme.spacing.xs,
-  },
-  clearButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs / 2,
-    borderRadius: theme.radius.button,
-    backgroundColor: theme.colors.inputBg,
-    borderWidth: 1,
-    borderColor: theme.colors.gray,
-  },
-  clearButtonText: {
-    color: theme.colors.text,
-    fontSize: theme.font.size.small,
-    fontWeight: '500',
-  },
-  addSelectedButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs / 2,
-    borderRadius: theme.radius.button,
-    backgroundColor: theme.colors.primary,
-  },
-  addSelectedButtonText: {
-    color: '#FFFFFF',
-    fontSize: theme.font.size.small,
-    fontWeight: '600',
-  },
-  popularTagSelected: {
-    backgroundColor: theme.colors.primary + '20', // 20% 透明度
-    borderColor: theme.colors.primary,
-  },
-  popularTagContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  checkbox: {
-    width: 16,
-    height: 16,
-    borderRadius: 3,
-    borderWidth: 1,
-    borderColor: theme.colors.gray,
-    backgroundColor: theme.colors.inputBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxSelected: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  popularTagTextSelected: {
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
   inputDisabled: {
     backgroundColor: theme.colors.gray + '20',
     color: theme.colors.gray,
@@ -454,11 +359,15 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     backgroundColor: theme.colors.gray + '10',
   },
-  checkboxDisabled: {
-    backgroundColor: theme.colors.gray + '20',
-    borderColor: theme.colors.gray + '50',
-  },
   popularTagTextDisabled: {
     color: theme.colors.gray,
+  },
+  selectedPopularTag: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  selectedPopularTagText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });
