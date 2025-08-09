@@ -20,6 +20,7 @@ interface State {
   hands: Hand[];
   stats: Stats;
   isLocalMode: boolean; // 是否使用本地模式
+  hasCheckedWelcomeData: boolean; // 是否已經檢查過歡迎數據
   fetchSessions: () => Promise<void>;
   addSession: (session: Session) => Promise<void>;
   deleteSession: (id: string) => Promise<void>;
@@ -85,6 +86,7 @@ export const useSessionStore = create<State>((set, get) => ({
     byLocation: {},
   },
   isLocalMode: true, // 預設使用本地模式
+  hasCheckedWelcomeData: false, // 預設尚未檢查歡迎數據
 
   // ==================== 初始化 ====================
 
@@ -670,6 +672,13 @@ export const useSessionStore = create<State>((set, get) => ({
 
   checkAndCreateWelcomeData: async () => {
     try {
+      const { hasCheckedWelcomeData } = get();
+      // 如果已經檢查過，直接返回
+      if (hasCheckedWelcomeData) {
+        console.log('💡 Welcome data already checked, skipping');
+        return;
+      }
+
       // 檢查是否首次啟動
       const firstLaunchCompleted = await AsyncStorage.getItem('first_launch_completed');
 
@@ -691,9 +700,13 @@ export const useSessionStore = create<State>((set, get) => ({
       } else {
         console.log('💡 Not first launch, skipping welcome data creation');
       }
+
+      // 標記歡迎數據已檢查
+      set({ hasCheckedWelcomeData: true });
     } catch (error) {
       console.error('❌ Error in checkAndCreateWelcomeData:', error);
       // 非關鍵性錯誤，不拋出異常以免影響其他初始化
+      set({ hasCheckedWelcomeData: true }); // 即使出錯也標記已檢查，避免重複嘗試
     }
   },
 
