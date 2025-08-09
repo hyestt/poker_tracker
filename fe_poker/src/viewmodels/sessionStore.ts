@@ -54,17 +54,17 @@ const apiCall = async (url: string, options?: RequestInit) => {
       ...options?.headers,
     },
   });
-  
+
   if (!response.ok) {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);
   }
-  
+
   // 檢查響應是否有內容
   const text = await response.text();
   if (!text) {
     return null; // 空響應返回 null
   }
-  
+
   try {
     return JSON.parse(text);
   } catch (error) {
@@ -99,10 +99,10 @@ export const useSessionStore = create<State>((set, get) => ({
         set({ isLocalMode: true });
         console.log('🔄 使用本地模式設定');
       }
-      
+
       // 檢查是否首次啟動並創建歡迎範例數據
       await get().checkAndCreateWelcomeData();
-      
+
       // 載入資料
       await get().fetchSessions();
       await get().fetchHands();
@@ -121,7 +121,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   fetchSessions: async () => {
     const { isLocalMode } = get();
-    
+
     try {
       if (isLocalMode) {
         // 使用本地 SQLite
@@ -132,7 +132,7 @@ export const useSessionStore = create<State>((set, get) => ({
       } else {
         // 使用 API
         const data = await apiCall(`${API_BASE_URL}/sessions`);
-        
+
         const sessions: Session[] = (data || []).map((session: any) => ({
           id: session.id,
           location: session.location || '',
@@ -146,7 +146,7 @@ export const useSessionStore = create<State>((set, get) => ({
           createdAt: session.createdAt,
           updatedAt: session.updatedAt,
         }));
-        
+
         set({ sessions });
         await AsyncStorage.setItem('poker_sessions', JSON.stringify(sessions));
       }
@@ -161,20 +161,20 @@ export const useSessionStore = create<State>((set, get) => ({
 
   addSession: async (session: Session) => {
     const { isLocalMode } = get();
-    
+
     try {
       // 確保有 ID
       if (!session.id) {
         session.id = generateUUID();
       }
-      
+
       // 確保必填欄位有預設值
       const sessionData = {
         ...session,
         tableSize: session.tableSize || 6,
         tag: session.tag || '',
       };
-      
+
       if (isLocalMode) {
         // 使用本地 SQLite
         await DatabaseService.initialize();
@@ -186,7 +186,7 @@ export const useSessionStore = create<State>((set, get) => ({
           body: JSON.stringify(sessionData),
         });
       }
-      
+
       await get().fetchSessions();
     } catch (error) {
       console.error('Error adding session:', error);
@@ -196,7 +196,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   deleteSession: async (id: string) => {
     const { isLocalMode } = get();
-    
+
     try {
       if (isLocalMode) {
         // 使用本地 SQLite
@@ -208,7 +208,7 @@ export const useSessionStore = create<State>((set, get) => ({
           method: 'DELETE',
         });
       }
-      
+
       await get().fetchSessions();
     } catch (error) {
       console.error('Error deleting session:', error);
@@ -218,7 +218,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   getSession: async (id: string): Promise<Session> => {
     const { isLocalMode } = get();
-    
+
     try {
       if (isLocalMode) {
         // 使用本地 SQLite
@@ -231,11 +231,11 @@ export const useSessionStore = create<State>((set, get) => ({
       } else {
         // 使用 API
         const data = await apiCall(`${API_BASE_URL}/session?id=${id}`);
-        
+
         if (!data) {
           throw new Error('Session not found');
         }
-        
+
         return {
           id: data.id,
           location: data.location || '',
@@ -258,7 +258,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   updateSession: async (session: Session) => {
     const { isLocalMode } = get();
-    
+
     try {
       // 確保所有欄位都正確傳送
       const sessionData = {
@@ -266,7 +266,7 @@ export const useSessionStore = create<State>((set, get) => ({
         tableSize: session.tableSize || 6,
         tag: session.tag || '',
       };
-      
+
       if (isLocalMode) {
         // 使用本地 SQLite
         await DatabaseService.initialize();
@@ -278,7 +278,7 @@ export const useSessionStore = create<State>((set, get) => ({
           body: JSON.stringify(sessionData),
         });
       }
-      
+
       await get().fetchSessions();
       await get().fetchStats();
     } catch (error) {
@@ -291,7 +291,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   fetchHands: async () => {
     const { isLocalMode } = get();
-    
+
     try {
       if (isLocalMode) {
         // 使用本地 SQLite
@@ -302,7 +302,7 @@ export const useSessionStore = create<State>((set, get) => ({
       } else {
         // 使用 API
         const data = await apiCall(`${API_BASE_URL}/hands`);
-        
+
         const hands: Hand[] = (data || []).map((hand: any) => ({
           id: hand.id,
           sessionId: hand.sessionId || '',
@@ -321,7 +321,7 @@ export const useSessionStore = create<State>((set, get) => ({
           createdAt: hand.createdAt,
           updatedAt: hand.updatedAt,
         }));
-        
+
         set({ hands });
         await AsyncStorage.setItem('poker_hands', JSON.stringify(hands));
       }
@@ -336,13 +336,13 @@ export const useSessionStore = create<State>((set, get) => ({
 
   addHand: async (hand: Hand) => {
     const { isLocalMode } = get();
-    
+
     try {
       // 確保有 ID
       if (!hand.id) {
         hand.id = generateUUID();
       }
-      
+
       // 確保必填欄位有預設值
       const handData = {
         ...hand,
@@ -350,7 +350,7 @@ export const useSessionStore = create<State>((set, get) => ({
         result: hand.result || 0,
         villains: hand.villains || [],
       };
-      
+
       if (isLocalMode) {
         // 使用本地 SQLite
         await DatabaseService.initialize();
@@ -362,7 +362,7 @@ export const useSessionStore = create<State>((set, get) => ({
           body: JSON.stringify(handData),
         });
       }
-      
+
       await get().fetchHands();
       await get().fetchStats();
     } catch (error) {
@@ -373,7 +373,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   deleteHand: async (id: string) => {
     const { isLocalMode } = get();
-    
+
     try {
       if (isLocalMode) {
         // 使用本地 SQLite
@@ -385,7 +385,7 @@ export const useSessionStore = create<State>((set, get) => ({
           method: 'DELETE',
         });
       }
-      
+
       await get().fetchHands();
       await get().fetchStats();
     } catch (error) {
@@ -396,7 +396,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   getHand: async (id: string): Promise<Hand> => {
     const { isLocalMode } = get();
-    
+
     try {
       if (isLocalMode) {
         // 使用本地 SQLite
@@ -409,11 +409,11 @@ export const useSessionStore = create<State>((set, get) => ({
       } else {
         // 使用 API
         const data = await apiCall(`${API_BASE_URL}/hand?id=${id}`);
-        
+
         if (!data) {
           throw new Error('Hand not found');
         }
-        
+
         return {
           id: data.id,
           sessionId: data.sessionId || '',
@@ -441,7 +441,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   updateHand: async (hand: Hand) => {
     const { isLocalMode } = get();
-    
+
     try {
       // 確保所有欄位都正確傳送
       const handData = {
@@ -450,7 +450,7 @@ export const useSessionStore = create<State>((set, get) => ({
         result: hand.result || 0,
         villains: hand.villains || [],
       };
-      
+
       if (isLocalMode) {
         // 使用本地 SQLite
         await DatabaseService.initialize();
@@ -462,7 +462,7 @@ export const useSessionStore = create<State>((set, get) => ({
           body: JSON.stringify(handData),
         });
       }
-      
+
       await get().fetchHands();
       await get().fetchStats();
     } catch (error) {
@@ -486,7 +486,7 @@ export const useSessionStore = create<State>((set, get) => ({
       const handForAnalysis = {
         ...hand,
         details: hand.details || `${hand.holeCards} in ${hand.position} position`,
-        result: hand.result || 0
+        result: hand.result || 0,
       };
 
       // AI Analysis 始終使用後端 API 進行分析
@@ -494,7 +494,7 @@ export const useSessionStore = create<State>((set, get) => ({
         method: 'POST',
         body: JSON.stringify({ hand: handForAnalysis }),
       });
-      
+
       // ⚠️ 重要：分析結果始終保存到本地 SQLite，不論任何模式
       if (hand) {
         hand.analysis = response?.analysis || '';
@@ -502,7 +502,7 @@ export const useSessionStore = create<State>((set, get) => ({
         await DatabaseService.updateHand(hand);
         console.log(`✅ AI分析結果已保存到本地SQLite: ${id}`);
       }
-      
+
       await get().fetchHands();
       return response?.analysis || 'Analysis completed';
     } catch (error) {
@@ -515,7 +515,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   fetchStats: async () => {
     const { isLocalMode } = get();
-    
+
     try {
       if (isLocalMode) {
         // 使用本地 SQLite 計算統計
@@ -525,7 +525,7 @@ export const useSessionStore = create<State>((set, get) => ({
       } else {
         // 使用 API
         const data = await apiCall(`${API_BASE_URL}/stats`);
-        
+
         const stats: Stats = {
           totalProfit: data?.totalProfit || 0,
           totalSessions: data?.totalSessions || 0,
@@ -534,7 +534,7 @@ export const useSessionStore = create<State>((set, get) => ({
           byStakes: data?.byStakes || {},
           byLocation: data?.byLocation || {},
         };
-        
+
         set({ stats });
       }
     } catch (error) {
@@ -547,24 +547,24 @@ export const useSessionStore = create<State>((set, get) => ({
           avgSession: 0,
           byStakes: {},
           byLocation: {},
-        }
+        },
       });
     }
   },
 
   // ==================== 工具方法 ====================
 
-  getHandsBySession: (sessionId: string) => 
+  getHandsBySession: (sessionId: string) =>
     get().hands.filter((h: Hand) => h.sessionId === sessionId),
 
   toggleFavorite: async (id: string): Promise<boolean> => {
     try {
       const currentHand = get().hands.find(h => h.id === id);
-      if (!currentHand) throw new Error('Hand not found');
-      
+      if (!currentHand) {throw new Error('Hand not found');}
+
       const updatedHand = { ...currentHand, favorite: !currentHand.favorite };
       await get().updateHand(updatedHand);
-      
+
       return updatedHand.favorite;
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -578,7 +578,7 @@ export const useSessionStore = create<State>((set, get) => ({
     console.log('🔄 切換到本地模式');
     set({ isLocalMode: true });
     await AsyncStorage.setItem('poker_storage_mode', 'local');
-    
+
     // 重新載入資料
     await get().fetchSessions();
     await get().fetchHands();
@@ -589,7 +589,7 @@ export const useSessionStore = create<State>((set, get) => ({
     console.log('🔄 切換到 API 模式');
     set({ isLocalMode: false });
     await AsyncStorage.setItem('poker_storage_mode', 'api');
-    
+
     // 重新載入資料
     await get().fetchSessions();
     await get().fetchHands();
@@ -599,16 +599,16 @@ export const useSessionStore = create<State>((set, get) => ({
   migrateToLocal: async () => {
     try {
       console.log('🚀 開始遷移資料到本地...');
-      
+
       // 初始化本地資料庫
       await DatabaseService.initialize();
-      
+
       // 從 API 獲取所有資料
       const [apiSessions, apiHands] = await Promise.all([
         apiCall(`${API_BASE_URL}/sessions`),
-        apiCall(`${API_BASE_URL}/hands`)
+        apiCall(`${API_BASE_URL}/hands`),
       ]);
-      
+
       // 轉換資料格式
       const sessions: Session[] = (apiSessions || []).map((session: any) => ({
         id: session.id,
@@ -623,7 +623,7 @@ export const useSessionStore = create<State>((set, get) => ({
         createdAt: session.createdAt,
         updatedAt: session.updatedAt,
       }));
-      
+
       const hands: Hand[] = (apiHands || []).map((hand: any) => ({
         id: hand.id,
         sessionId: hand.sessionId || '',
@@ -642,24 +642,24 @@ export const useSessionStore = create<State>((set, get) => ({
         createdAt: hand.createdAt,
         updatedAt: hand.updatedAt,
       }));
-      
+
       // 清空本地資料庫
       await DatabaseService.clearAllData();
-      
+
       // 批量插入資料
       if (sessions.length > 0) {
         await DatabaseService.batchInsertSessions(sessions);
       }
-      
+
       if (hands.length > 0) {
         await DatabaseService.batchInsertHands(hands);
       }
-      
+
       console.log(`✅ 遷移完成！Sessions: ${sessions.length}, Hands: ${hands.length}`);
-      
+
       // 切換到本地模式
       await get().switchToLocalMode();
-      
+
     } catch (error) {
       console.error('❌ 遷移失敗:', error);
       throw error;
@@ -672,20 +672,20 @@ export const useSessionStore = create<State>((set, get) => ({
     try {
       // 檢查是否首次啟動
       const firstLaunchCompleted = await AsyncStorage.getItem('first_launch_completed');
-      
+
       if (!firstLaunchCompleted) {
         console.log('🎉 First launch detected, creating welcome demo data...');
-        
+
         // 檢查歡迎數據是否已存在（避免重複創建）
         const welcomeDataExists = await WelcomeDemoService.checkIfWelcomeDataExists();
-        
+
         if (!welcomeDataExists) {
           await WelcomeDemoService.createWelcomeData();
           console.log('✅ Welcome demo data created successfully');
         } else {
           console.log('✅ Welcome demo data already exists');
         }
-        
+
         // 標記首次啟動已完成
         await AsyncStorage.setItem('first_launch_completed', 'true');
       } else {
@@ -702,11 +702,11 @@ export const useSessionStore = create<State>((set, get) => ({
   getAllUsedTags: () => {
     const { hands } = get();
     const allTags = new Set<string>();
-    
+
     // 添加默認的常用標籤
     const defaultTags = ['bluff', 'value-bet', 'c-bet', 'fold', 'call', 'raise', 'all-in', 'nuts'];
     defaultTags.forEach(tag => allTags.add(tag));
-    
+
     hands.forEach(hand => {
       if (hand.tags && Array.isArray(hand.tags)) {
         hand.tags.forEach(tag => {
@@ -716,8 +716,8 @@ export const useSessionStore = create<State>((set, get) => ({
         });
       }
     });
-    
+
     // 返回按字母順序排序的tags
     return Array.from(allTags).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
   },
-})); 
+}));
