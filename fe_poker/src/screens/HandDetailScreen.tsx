@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Hand, Session, Villain } from '../models';
+import { formatDate } from '../utils/dateFormat';
 
 export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { handId } = route.params;
@@ -40,30 +41,30 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   const renderCards = (cards: string, isBoard = false) => {
-    if (!cards) return null;
-    
+    if (!cards) {return null;}
+
     const cardArray = cards.split(' ');
-    
+
     return (
       <View style={styles.cardsContainer}>
         {cardArray.map((card, index) => {
           const rank = card.slice(0, -1);
           const suit = card.slice(-1);
-          
+
           let label = '';
           if (isBoard) {
-            if (index === 1) label = 'Flop'; // 在第2張牌上顯示Flop（3張牌的中間）
-            else if (index === 3) label = 'Turn'; // 在第4張牌上顯示Turn
-            else if (index === 4) label = 'River'; // 在第5張牌上顯示River
+            if (index === 1) {label = 'Flop';} // 在第2張牌上顯示Flop（3張牌的中間）
+            else if (index === 3) {label = 'Turn';} // 在第4張牌上顯示Turn
+            else if (index === 4) {label = 'River';} // 在第5張牌上顯示River
           }
-          
+
           return (
             <View key={index} style={styles.cardWrapper}>
               {/* Add labels for board cards */}
               <Text style={styles.boardLabel}>
                 {isBoard ? label : ''}
               </Text>
-              
+
               <View style={styles.card}>
                 <Text style={[styles.cardText, { color: getSuitColor(suit) }]}>
                   {rank}{suit}
@@ -95,9 +96,9 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
   );
 
   const generateShareText = () => {
-    if (!hand || !session) return '';
+    if (!hand || !session) {return '';}
 
-    const villainText = hand.villains?.map((v, i) => 
+    const villainText = hand.villains?.map((v, i) =>
       `Villain ${i + 1}: ${v.position || 'Unknown'} - ${v.holeCards || 'Unknown'}`
     ).join('\n') || 'No villains';
 
@@ -105,7 +106,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
 Location: ${session.location}
 Blinds: $${session.smallBlind}/$${session.bigBlind}
-Date: ${session.date}
+Date: ${formatDate(session.date)}
 
 Hero: ${hand.position || 'Unknown'} - ${hand.holeCards || 'Unknown'}
 Board: ${hand.board || 'No flop shown'}
@@ -164,8 +165,8 @@ Shared from LiveHand`;
         <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('AIAnalysis', { hand })} 
+        <TouchableOpacity
+          onPress={() => navigation.navigate('AIAnalysis', { hand })}
           style={styles.aiAnalysisButton}
         >
           <Text style={styles.aiAnalysisButtonText}>GTO Analysis</Text>
@@ -221,11 +222,11 @@ Shared from LiveHand`;
             <Text style={styles.sectionTitle}>Tags</Text>
             <View style={styles.tagsContainer}>
               {hand.tags.map((tag, index) => {
-                const getTagColor = (index: number) => {
+                const getTagColor = (idx: number) => {
                   const colors = ['#FF69B4', '#4169E1', '#32CD32']; // 粉紅色、藍色、綠色
-                  return colors[index] || theme.colors.primary;
+                  return colors[idx] || theme.colors.primary;
                 };
-                
+
                 return (
                   <View key={index} style={[styles.tag, { backgroundColor: getTagColor(index) }]}>
                     <Text style={styles.tagText}>{tag}</Text>
@@ -249,7 +250,7 @@ Shared from LiveHand`;
           <Text style={styles.sectionTitle}>Result</Text>
           <Text style={[
             styles.resultText,
-            { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+            { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss },
           ]}>
             {hand.result >= 0 ? '+' : ''}${hand.result}
           </Text>
@@ -272,7 +273,7 @@ Shared from LiveHand`;
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Date:</Text>
-              <Text style={styles.infoValue}>{session.date}</Text>
+              <Text style={styles.infoValue}>{formatDate(session.date)}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Small Blind:</Text>
@@ -673,4 +674,4 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     fontWeight: '500',
   },
-}); 
+});
