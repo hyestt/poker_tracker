@@ -36,7 +36,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
 
 const mockPreferences = {
-  lastLocation: 'Live Casino',
+  lastLocation: '',
   lastCurrency: 'USD ($)',
   lastTableSize: '6',
   lastBlinds: '1/2',
@@ -124,6 +124,21 @@ describe('NewSessionScreen', () => {
     
     await waitFor(() => {
       expect(getByText('格式：小盲注/大盲注 (例如: 1/2, 0.5/1)')).toBeTruthy();
+    });
+  });
+
+  it('defaults to Live Casino when user has no previous location', async () => {
+    // Use empty lastLocation to simulate new user
+    const emptyPreferences = {
+      ...mockPreferences,
+      lastLocation: '',
+    };
+    (UserPreferencesService.getPreferences as jest.Mock).mockResolvedValue(emptyPreferences);
+
+    const { getByDisplayValue } = render(<NewSessionScreen navigation={mockNavigation} />);
+    
+    await waitFor(() => {
+      expect(getByDisplayValue('Live Casino')).toBeTruthy();
     });
   });
 }); 
