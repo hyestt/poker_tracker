@@ -83,7 +83,7 @@ function HomeStack() {
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Back', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details', headerBackTitle: 'Back' }} />
       <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session', headerBackTitle: 'Back' }} />
       <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
       <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
@@ -95,8 +95,8 @@ function HomeStack() {
 }
 
 const SessionsStack = () => (
-  <Stack.Navigator 
-    screenOptions={{ 
+  <Stack.Navigator
+    screenOptions={{
       headerShown: true,
       headerStyle: {
         backgroundColor: '#2D3748',
@@ -147,18 +147,18 @@ const SessionsStack = () => (
     <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
     <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
-    <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Back' }} />
+    <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
     <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'GTO Analysis' }} />
-    <Stack.Screen 
-      name="PokerKeyboard" 
-      component={PokerKeyboardScreen} 
-      options={{ 
+    <Stack.Screen
+      name="PokerKeyboard"
+      component={PokerKeyboardScreen}
+      options={{
         title: 'Choose Cards',
         presentation: 'modal',
         headerStyle: { backgroundColor: theme.colors.background },
         headerTitleStyle: { color: theme.colors.text },
         headerTintColor: theme.colors.primary,
-      }} 
+      }}
     />
   </Stack.Navigator>
 );
@@ -180,11 +180,11 @@ const App = () => {
       try {
         // 添加延遲確保原生模塊完全初始化
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // 順序初始化而不是並行，避免時序問題
         await initializeSessionStore();
         await RevenueCatService.initialize();
-        
+
         console.log('Services initialized successfully from App.tsx');
       } catch (error) {
         console.error('Failed to initialize services from App.tsx:', error);
@@ -208,8 +208,8 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator 
-        screenOptions={{ 
+      <Tab.Navigator
+        screenOptions={{
           headerShown: false,
           tabBarStyle: {
             backgroundColor: '#2D3748',
@@ -220,15 +220,15 @@ const App = () => {
         }}
       >
         <Tab.Screen name="Sessions" component={SessionsStack} />
-        <Tab.Screen 
-          name="Hands" 
+        <Tab.Screen
+          name="Hands"
           component={HomeStack}
         />
         <Tab.Screen name="Settings" component={SettingsStack} />
       </Tab.Navigator>
     </NavigationContainer>
   );
-}
+};
 
 const styles = StyleSheet.create({
   loadingContainer: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#1F2937',
-  }
+  },
 });
 
 export default App;

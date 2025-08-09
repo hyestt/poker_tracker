@@ -24,9 +24,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const latestHand = await getHand(currentHand.id);
       console.log('Loaded latest hand data from sessionStore:', latestHand);
       console.log('Has existing analysis:', !!latestHand.analysis);
-      
+
       setCurrentHand(latestHand);
-      
+
       // 如果有分析結果，直接顯示
       if (latestHand.analysis) {
         console.log('✅ Found cached analysis, displaying it');
@@ -34,7 +34,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         setLoading(false);
         return;
       }
-      
+
       // 沒有緩存的分析，執行新分析
       console.log('❌ No cached analysis found, performing new analysis');
       await performAIAnalysis();
@@ -62,22 +62,22 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       // 執行真正的AI分析
       const analysisResult = await performRealAIAnalysis(currentHand);
       console.log('AI analysis completed:', analysisResult);
-      
+
       // 更新hand數據
       const updatedHand = {
         ...currentHand,
         analysis: analysisResult,
-        analysisDate: new Date().toLocaleDateString()
+        analysisDate: new Date().toLocaleDateString(),
       };
-      
+
       // 保存到 sessionStore（這會同時更新 localStorage）
       await updateHand(updatedHand);
       console.log('💾 Analysis saved to sessionStore and localStorage');
-      
+
       // 更新組件中的 hand 對象
       setCurrentHand(updatedHand);
       console.log('✅ Hand analysis updated and cached');
-      
+
       setAnalysis(analysisResult);
     } catch (error) {
       console.error('AI analysis error:', error);
@@ -98,7 +98,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         board: handData.board || '',
         details: handData.details || '',
         result: handData.result || 0,
-        villains: handData.villains || []
+        villains: handData.villains || [],
       };
 
       console.log('Sending AI analysis request:', handPayload);
@@ -109,7 +109,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ hand: handPayload })
+        body: JSON.stringify({ hand: handPayload }),
       });
 
       console.log('API response status:', response.status);
@@ -118,7 +118,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         const errorText = await response.text();
         console.error('API error response:', errorText);
         console.error('Request details:', JSON.stringify({ hand: handPayload }, null, 2));
-        
+
         // 顯示具體錯誤而不是回退到模擬
         Alert.alert('API Error', `Server returned ${response.status}: ${errorText}`);
         throw new Error(`API error: ${response.status} - ${errorText}`);
@@ -129,13 +129,13 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       return result.analysis || 'No analysis available';
     } catch (error) {
       console.error('Real AI analysis error:', error);
-      
+
       // 只有在網路錯誤時才回退到模擬分析
       if (error instanceof Error && (error.message.includes('Network request failed') || error.message.includes('fetch'))) {
         console.log('Network error detected, falling back to simulation');
         return await simulateAIAnalysis(handData);
       }
-      
+
       // 其他錯誤直接拋出
       throw error;
     }
@@ -145,42 +145,42 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const simulateAIAnalysis = async (handData: Hand): Promise<string> => {
     // 模擬網絡延遲
     await new Promise(resolve => setTimeout(resolve, 3000));
-    
+
     const position = handData.position || 'Unknown';
     const result = handData.result;
     const holeCards = handData.holeCards || 'Unknown';
     const board = handData.board || 'No board shown';
-    
+
     let analysis = `🎯 Position Analysis:\nPlaying from ${position} position.\n\n`;
     analysis += `🃏 Hole Cards Analysis:\nStarting hand: ${holeCards}\n`;
-    
+
     // 分析起手牌強度
     if (holeCards.includes('A') || holeCards.includes('K')) {
-      analysis += `Strong starting hand with premium cards.\n\n`;
+      analysis += 'Strong starting hand with premium cards.\n\n';
     } else {
-      analysis += `Consider position and stack sizes with this holding.\n\n`;
+      analysis += 'Consider position and stack sizes with this holding.\n\n';
     }
-    
+
     analysis += `🎲 Board Analysis:\n${board}\n\n`;
-    
-    analysis += `💰 Result Analysis:\n`;
+
+    analysis += '💰 Result Analysis:\n';
     if (result > 0) {
       analysis += `Won $${result} - Positive outcome achieved.\n`;
-      analysis += `The play execution appears to have been effective.\n\n`;
-      analysis += `📈 Recommendations:\n`;
-      analysis += `• Continue applying similar strategy in comparable spots\n`;
-      analysis += `• Review the decision points that led to this success\n`;
-      analysis += `• Consider this line in similar board textures`;
+      analysis += 'The play execution appears to have been effective.\n\n';
+      analysis += '📈 Recommendations:\n';
+      analysis += '• Continue applying similar strategy in comparable spots\n';
+      analysis += '• Review the decision points that led to this success\n';
+      analysis += '• Consider this line in similar board textures';
     } else {
       analysis += `Lost $${Math.abs(result)} - Learning opportunity identified.\n`;
-      analysis += `Every loss provides valuable feedback for improvement.\n\n`;
-      analysis += `📉 Areas for Review:\n`;
+      analysis += 'Every loss provides valuable feedback for improvement.\n\n';
+      analysis += '📉 Areas for Review:\n';
       analysis += `• Pre-flop decision making from ${position}\n`;
-      analysis += `• Post-flop betting patterns and sizing\n`;
-      analysis += `• Consider tighter range selection in this position\n`;
-      analysis += `• Review opponent tendencies and adjust accordingly`;
+      analysis += '• Post-flop betting patterns and sizing\n';
+      analysis += '• Consider tighter range selection in this position\n';
+      analysis += '• Review opponent tendencies and adjust accordingly';
     }
-    
+
     return analysis;
   };
 
@@ -202,14 +202,14 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
   // 渲染 markdown 格式的分析結果
   const renderFormattedAnalysis = (text: string) => {
-    if (!text) return null;
-    
+    if (!text) {return null;}
+
     const lines = text.split('\n');
     const elements: React.ReactNode[] = [];
-    
+
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
-      
+
       if (trimmedLine.startsWith('### ')) {
         // 處理 ### 標題
         const title = trimmedLine.replace('### ', '');
@@ -238,51 +238,53 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         // 處理列表項目
         const listItem = trimmedLine.replace(/^[•\-] /, '');
         elements.push(
-          <Text key={index} style={styles.analysisListItem}>
-            • {listItem}
-          </Text>
+          <View key={index} style={styles.listItemContainer}>
+            <Text style={styles.bulletPoint}>•</Text>
+            <Text style={styles.analysisListItem}>
+              {renderTextWithFormatting(listItem)}
+            </Text>
+          </View>
         );
       } else if (trimmedLine) {
         // 處理一般文字
-        let formattedText = trimmedLine;
-        // 處理粗體文字 **text**
-        const boldRegex = /\*\*([^*]+)\*\*/g;
-        const hasBold = boldRegex.test(formattedText);
-        
-        if (hasBold) {
-          const parts = formattedText.split(boldRegex);
-          const textElements: React.ReactNode[] = [];
-          parts.forEach((part, partIndex) => {
-            if (partIndex % 2 === 1) {
-              // 奇數索引是粗體文字
-              textElements.push(
-                <Text key={partIndex} style={styles.analysisBoldText}>
-                  {part}
-                </Text>
-              );
-            } else if (part) {
-              textElements.push(part);
-            }
-          });
-          elements.push(
-            <Text key={index} style={styles.analysisText}>
-              {textElements}
-            </Text>
-          );
-        } else {
-          elements.push(
-            <Text key={index} style={styles.analysisText}>
-              {formattedText}
-            </Text>
-          );
-        }
+        elements.push(
+          <Text key={index} style={styles.analysisText}>
+            {renderTextWithFormatting(trimmedLine)}
+          </Text>
+        );
       } else {
         // 空行作為間距
         elements.push(<View key={index} style={{ height: 8 }} />);
       }
     });
-    
+
     return elements;
+  };
+
+  // 渲染包含格式化文字的函數
+  const renderTextWithFormatting = (text: string) => {
+    if (!text) {return text;}
+
+    // 處理粗體文字 **text**
+    const boldRegex = /\*\*([^*]+)\*\*/g;
+    const parts = text.split(boldRegex);
+    const elements: React.ReactNode[] = [];
+
+    parts.forEach((part, partIndex) => {
+      if (partIndex % 2 === 1) {
+        // 奇數索引是粗體文字
+        elements.push(
+          <Text key={partIndex} style={styles.analysisBoldText}>
+            {part}
+          </Text>
+        );
+      } else if (part) {
+        // 普通文字，保持原樣（包括撲克牌符號）
+        elements.push(part);
+      }
+    });
+
+    return elements.length > 1 ? elements : text;
   };
 
   if (loading) {
@@ -325,7 +327,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
             <Text style={styles.summaryLabel}>Result:</Text>
             <Text style={[
               styles.summaryValue,
-              { color: currentHand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+              { color: currentHand.result >= 0 ? theme.colors.profit : theme.colors.loss },
             ]}>
               {currentHand.result >= 0 ? '+' : ''}${currentHand.result}
             </Text>
@@ -494,12 +496,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: theme.colors.text,
   },
+  listItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.xs,
+    paddingLeft: theme.spacing.sm,
+  },
+  bulletPoint: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    marginRight: theme.spacing.xs,
+    lineHeight: 22,
+  },
   analysisListItem: {
+    flex: 1,
     fontSize: theme.font.size.body,
     color: theme.colors.text,
     lineHeight: 22,
-    marginBottom: theme.spacing.xs,
-    marginLeft: theme.spacing.sm,
   },
   analysisDate: {
     fontSize: theme.font.size.small,
@@ -508,4 +522,4 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
     textAlign: 'center',
   },
-}); 
+});

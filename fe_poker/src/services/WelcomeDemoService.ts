@@ -43,7 +43,7 @@ export class WelcomeDemoService {
       tableSize: 6,
       tag: 'demo',
       createdAt: '2025-08-08T17:27:52.647Z',
-      updatedAt: '2025-08-08T17:27:52.647Z'
+      updatedAt: '2025-08-08T17:27:52.647Z',
     };
   }
 
@@ -51,7 +51,7 @@ export class WelcomeDemoService {
     const demoVillain: Villain = {
       id: 'demo-villain-1',
       holeCards: 'A♣ 6♣',
-      position: 'UTG'
+      position: 'UTG',
     };
 
     return {
@@ -80,7 +80,7 @@ UTG Check Hero Bet $50 Villain Call`,
       villains: [demoVillain],
       date: '2025-08-08T17:27:52.647Z',
       createdAt: '2025-08-08T17:27:52.647Z',
-      updatedAt: '2025-08-08T17:27:52.647Z'
+      updatedAt: '2025-08-08T17:27:52.647Z',
     };
   }
 
