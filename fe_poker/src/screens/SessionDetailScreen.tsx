@@ -44,7 +44,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
   useLayoutEffect(() => {
     if (session) {
       navigation.setOptions({
-        title: session.location || 'Session Details',
+        title: 'Sessions',
         headerLeft: () => (
           <TouchableOpacity
             onPress={() => {
