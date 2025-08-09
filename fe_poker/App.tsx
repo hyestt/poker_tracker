@@ -46,6 +46,40 @@ function HomeStack() {
         headerTitleStyle: {
           color: '#F7FAFC',
         },
+        transitionSpec: {
+          open: {
+            animation: 'timing',
+            config: {
+              duration: 300,
+            },
+          },
+          close: {
+            animation: 'timing',
+            config: {
+              duration: 300,
+            },
+          },
+        },
+        cardStyleInterpolator: ({ current, next, layouts }) => {
+          return {
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0], // 进入时从右边滑入
+                  }),
+                },
+              ],
+            },
+            overlayStyle: {
+              opacity: current.progress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 0.5],
+              }),
+            },
+          };
+        },
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
@@ -70,6 +104,40 @@ const SessionsStack = () => (
       headerTintColor: '#F7FAFC',
       headerTitleStyle: {
         color: '#F7FAFC',
+      },
+      transitionSpec: {
+        open: {
+          animation: 'timing',
+          config: {
+            duration: 300,
+          },
+        },
+        close: {
+          animation: 'timing',
+          config: {
+            duration: 300,
+          },
+        },
+      },
+      cardStyleInterpolator: ({ current, next, layouts }) => {
+        return {
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0], // 进入时从右边滑入
+                }),
+              },
+            ],
+          },
+          overlayStyle: {
+            opacity: current.progress.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0, 0.5],
+            }),
+          },
+        };
       },
     }}
   >
