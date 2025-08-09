@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DatabaseService } from '../services/DatabaseService';
 import RevenueCatService from '../services/RevenueCatService';
+import { WelcomeDemoService } from '../services/WelcomeDemoService';
 
 // 簡單的 UUID 生成函數
 const generateUUID = (): string => {
@@ -39,6 +40,7 @@ interface State {
   migrateToLocal: () => Promise<void>;
   // 新增的初始化方法
   initialize: () => Promise<void>;
+  checkAndCreateWelcomeData: () => Promise<void>;
   // Tags相關方法
   getAllUsedTags: () => string[];
 }
@@ -97,6 +99,9 @@ export const useSessionStore = create<State>((set, get) => ({
         set({ isLocalMode: true });
         console.log('🔄 使用本地模式設定');
       }
+      
+      // 檢查是否首次啟動並創建歡迎範例數據
+      await get().checkAndCreateWelcomeData();
       
       // 載入資料
       await get().fetchSessions();
@@ -658,6 +663,37 @@ export const useSessionStore = create<State>((set, get) => ({
     } catch (error) {
       console.error('❌ 遷移失敗:', error);
       throw error;
+    }
+  },
+
+  // ==================== 歡迎數據管理 ====================
+
+  checkAndCreateWelcomeData: async () => {
+    try {
+      // 檢查是否首次啟動
+      const firstLaunchCompleted = await AsyncStorage.getItem('first_launch_completed');
+      
+      if (!firstLaunchCompleted) {
+        console.log('🎉 First launch detected, creating welcome demo data...');
+        
+        // 檢查歡迎數據是否已存在（避免重複創建）
+        const welcomeDataExists = await WelcomeDemoService.checkIfWelcomeDataExists();
+        
+        if (!welcomeDataExists) {
+          await WelcomeDemoService.createWelcomeData();
+          console.log('✅ Welcome demo data created successfully');
+        } else {
+          console.log('✅ Welcome demo data already exists');
+        }
+        
+        // 標記首次啟動已完成
+        await AsyncStorage.setItem('first_launch_completed', 'true');
+      } else {
+        console.log('💡 Not first launch, skipping welcome data creation');
+      }
+    } catch (error) {
+      console.error('❌ Error in checkAndCreateWelcomeData:', error);
+      // 非關鍵性錯誤，不拋出異常以免影響其他初始化
     }
   },
 
