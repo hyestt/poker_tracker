@@ -33,11 +33,11 @@ export const VillainInput: React.FC<VillainInputProps> = ({
           <Text style={styles.removeButtonText}>×</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.inputRow}>
         <View style={styles.cardSection}>
-          <TouchableOpacity 
-            style={styles.holeCardDisplay} 
+          <TouchableOpacity
+            style={styles.holeCardDisplay}
             onPress={() => onHoleCardsPress(index)}
           >
             {villain.holeCards ? (
@@ -59,7 +59,7 @@ export const VillainInput: React.FC<VillainInputProps> = ({
             )}
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.positionSection}>
           <CustomPicker
             options={positions}
@@ -153,4 +153,4 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: theme.colors.gray,
   },
-}); 
+});

@@ -18,7 +18,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
   onCardSelect,
   initialAction = 'hole',
   initialCards = [],
-  onDone
+  onDone,
 }) => {
   const viewModel = usePokerKeyboardViewModel(initialAction, 5, initialCards);
   const { state, actions } = viewModel;
@@ -36,7 +36,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
     { label: 'Club', symbol: '♣', color: '#22C55E' },
     { label: 'Spade', symbol: '♠', color: '#000000' },
     { label: 'Heart', symbol: '♥', color: '#EF4444' },
-    { label: 'Diamond', symbol: '♦', color: '#A855F7' }
+    { label: 'Diamond', symbol: '♦', color: '#A855F7' },
   ];
 
   const handleActionSelect = (action: 'hole' | 'position') => {
@@ -45,7 +45,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
 
   const handleRankSelect = (rank: string) => {
     actions.selectRank(rank);
-    
+
     // 如果同時有rank和suit，自動組成卡牌
     if (state.selectedSuit) {
       actions.addCard(rank, state.selectedSuit);
@@ -54,7 +54,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
 
   const handleSuitSelect = (suitSymbol: string) => {
     actions.selectSuit(suitSymbol);
-    
+
     // 如果同時有rank和suit，自動組成卡牌
     if (state.selectedRank) {
       actions.addCard(state.selectedRank, suitSymbol);
@@ -96,8 +96,8 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
             {state.inputCards.map((card, index) => {
               const suitColor = getSuitColor(card.suit);
               return (
-                <View 
-                  key={index} 
+                <View
+                  key={index}
                   style={styles.selectedCard}
                 >
                   <Text style={[styles.selectedCardText, { color: suitColor }]}>
@@ -113,8 +113,8 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
             <View style={styles.currentInputSection}>
               <View style={styles.currentInputCard}>
                 <Text style={[
-                  styles.currentInputText, 
-                  { color: state.selectedSuit ? getSuitColor(state.selectedSuit) : '#92400E' }
+                  styles.currentInputText,
+                  { color: state.selectedSuit ? getSuitColor(state.selectedSuit) : '#92400E' },
                 ]}>
                   {state.selectedRank || '?'}{state.selectedSuit || '?'}
                 </Text>
@@ -137,19 +137,19 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
               key={rank}
               style={[
                 styles.rankButton,
-                state.selectedRank === rank && styles.rankButtonSelected
+                state.selectedRank === rank && styles.rankButtonSelected,
               ]}
               onPress={() => handleRankSelect(rank)}
             >
               <Text style={[
                 styles.rankButtonText,
-                state.selectedRank === rank && styles.rankButtonTextSelected
+                state.selectedRank === rank && styles.rankButtonTextSelected,
               ]}>
                 {rank}
               </Text>
             </TouchableOpacity>
           ))}
-          
+
           {/* Add Done button to the right of 5432 */}
           <TouchableOpacity
             style={styles.symbolButton}
@@ -166,19 +166,19 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
               key={rank}
               style={[
                 styles.rankButton,
-                state.selectedRank === rank && styles.rankButtonSelected
+                state.selectedRank === rank && styles.rankButtonSelected,
               ]}
               onPress={() => handleRankSelect(rank)}
             >
               <Text style={[
                 styles.rankButtonText,
-                state.selectedRank === rank && styles.rankButtonTextSelected
+                state.selectedRank === rank && styles.rankButtonTextSelected,
               ]}>
                 {rank}
               </Text>
             </TouchableOpacity>
           ))}
-          
+
           {/* Add × button to the right of 9876 */}
           <TouchableOpacity
             style={styles.clearButton}
@@ -195,13 +195,13 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
               key={rank}
               style={[
                 styles.rankButton,
-                state.selectedRank === rank && styles.rankButtonSelected
+                state.selectedRank === rank && styles.rankButtonSelected,
               ]}
               onPress={() => handleRankSelect(rank)}
             >
               <Text style={[
                 styles.rankButtonText,
-                state.selectedRank === rank && styles.rankButtonTextSelected
+                state.selectedRank === rank && styles.rankButtonTextSelected,
               ]}>
                 {rank}
               </Text>
@@ -218,7 +218,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
             style={[
               styles.suitButton,
               { borderColor: suit.color },
-              state.selectedSuit === suit.symbol && { backgroundColor: suit.color + '20' }
+              state.selectedSuit === suit.symbol && { backgroundColor: suit.color + '20' },
             ]}
             onPress={() => handleSuitSelect(suit.symbol)}
           >
@@ -436,4 +436,4 @@ const styles = StyleSheet.create({
   lastRankRow: {
     marginBottom: theme.spacing.sm,
   },
-}); 
+});

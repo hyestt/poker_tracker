@@ -17,15 +17,15 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
   const [open, setOpen] = useState(false);
 
   const parseValue = (dateString: string): Date => {
-    if (!dateString) return new Date();
+    if (!dateString) {return new Date();}
     const [datePart, timePart] = dateString.split(' ');
-    if (!datePart || !timePart) return new Date();
+    if (!datePart || !timePart) {return new Date();}
     const [year, month, day] = datePart.split('/').map(Number);
     const [hours, minutes] = timePart.split(':').map(Number);
-    if ([year, month, day, hours, minutes].some(isNaN)) return new Date();
+    if ([year, month, day, hours, minutes].some(isNaN)) {return new Date();}
     return new Date(year, month - 1, day, hours, minutes);
   };
-  
+
   const formatDate = (dateToFormat: Date): string => {
     const year = dateToFormat.getFullYear();
     const month = String(dateToFormat.getMonth() + 1).padStart(2, '0');
@@ -38,8 +38,8 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
   const currentDate = parseValue(value);
 
   const PickerComponent = () => (
-    <TouchableOpacity 
-      style={styles.picker} 
+    <TouchableOpacity
+      style={styles.picker}
       onPress={() => setOpen(true)}
       activeOpacity={0.7}
     >
@@ -139,4 +139,4 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     marginLeft: theme.spacing.xs,
   },
-}); 
+});

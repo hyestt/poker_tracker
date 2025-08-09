@@ -54,7 +54,7 @@ describe('NewSessionScreen', () => {
 
   it('renders correctly', async () => {
     const { getByText } = render(<NewSessionScreen navigation={mockNavigation} />);
-    
+
     await waitFor(() => {
       expect(getByText('New Session Setup')).toBeTruthy();
     });
@@ -62,7 +62,7 @@ describe('NewSessionScreen', () => {
 
   it('loads user preferences on mount', async () => {
     render(<NewSessionScreen navigation={mockNavigation} />);
-    
+
     await waitFor(() => {
       expect(UserPreferencesService.getPreferences).toHaveBeenCalled();
     });
@@ -75,7 +75,7 @@ describe('NewSessionScreen', () => {
 
   it('renders all form fields after loading', async () => {
     const { getByText } = render(<NewSessionScreen navigation={mockNavigation} />);
-    
+
     await waitFor(() => {
       expect(getByText('Location')).toBeTruthy();
       expect(getByText('Date & Time')).toBeTruthy();
@@ -88,7 +88,7 @@ describe('NewSessionScreen', () => {
 
   it('navigates to RecordHand screen when form is submitted', async () => {
     const { getByText } = render(<NewSessionScreen navigation={mockNavigation} />);
-    
+
     await waitFor(() => {
       const submitButton = getByText('Start Recording Hands');
       expect(submitButton).toBeTruthy();
@@ -106,7 +106,7 @@ describe('NewSessionScreen', () => {
 
   it('saves user preferences when form is submitted', async () => {
     const { getByText } = render(<NewSessionScreen navigation={mockNavigation} />);
-    
+
     await waitFor(() => {
       const submitButton = getByText('Start Recording Hands');
       fireEvent.press(submitButton);
@@ -121,7 +121,7 @@ describe('NewSessionScreen', () => {
     // This would require more complex testing setup to verify the actual parsing
     // For now, we test that the component renders without errors
     const { getByText } = render(<NewSessionScreen navigation={mockNavigation} />);
-    
+
     await waitFor(() => {
       expect(getByText('格式：小盲注/大盲注 (例如: 1/2, 0.5/1)')).toBeTruthy();
     });
@@ -136,9 +136,9 @@ describe('NewSessionScreen', () => {
     (UserPreferencesService.getPreferences as jest.Mock).mockResolvedValue(emptyPreferences);
 
     const { getByDisplayValue } = render(<NewSessionScreen navigation={mockNavigation} />);
-    
+
     await waitFor(() => {
       expect(getByDisplayValue('Live Casino')).toBeTruthy();
     });
   });
-}); 
+});

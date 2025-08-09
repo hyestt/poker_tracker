@@ -27,7 +27,7 @@ export const ColorTagDisplay: React.FC<ColorTagDisplayProps> = ({
   }
 
   const color = colorMap[tagId] || 'transparent';
-  
+
   const sizeStyles = {
     small: { width: 12, height: 12, borderRadius: 6 },
     medium: { width: 16, height: 16, borderRadius: 8 },
@@ -38,7 +38,7 @@ export const ColorTagDisplay: React.FC<ColorTagDisplayProps> = ({
     <View style={[
       styles.colorTag,
       sizeStyles[size],
-      { backgroundColor: color }
+      { backgroundColor: color },
     ]} />
   );
 };
@@ -48,4 +48,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.1)',
   },
-}); 
+});

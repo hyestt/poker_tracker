@@ -22,7 +22,7 @@ const DelayedApp = () => {
 
   if (!isReady) {
     const { View, ActivityIndicator } = require('react-native');
-    return React.createElement(View, 
+    return React.createElement(View,
       { style: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1F2937' } },
       React.createElement(ActivityIndicator, { size: 'large', color: '#007AFF' })
     );

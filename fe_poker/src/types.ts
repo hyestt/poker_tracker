@@ -65,4 +65,4 @@ export interface FilterOptions {
   results?: 'win' | 'loss' | 'all';
   minAmount?: number;
   maxAmount?: number;
-} 
+}

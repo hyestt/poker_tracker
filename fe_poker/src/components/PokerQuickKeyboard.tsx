@@ -204,4 +204,4 @@ const styles = StyleSheet.create({
   positionButton: {
     backgroundColor: theme.colors.positionButton,
   },
-}); 
+});

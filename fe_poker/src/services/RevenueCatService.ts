@@ -1,16 +1,16 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Purchases, { 
-  CustomerInfo, 
-  PurchasesOffering, 
+import Purchases, {
+  CustomerInfo,
+  PurchasesOffering,
   PurchasesPackage,
-  PURCHASE_TYPE 
+  PURCHASE_TYPE,
 } from 'react-native-purchases';
 
 // RevenueCat API Keys (需要在RevenueCat Dashboard中獲取)
 const REVENUECAT_API_KEY = {
   ios: 'appl_YOUR_IOS_API_KEY_HERE',
-  android: 'goog_YOUR_ANDROID_API_KEY_HERE'
+  android: 'goog_YOUR_ANDROID_API_KEY_HERE',
 };
 
 // 開發環境標誌
@@ -52,20 +52,20 @@ class RevenueCatService {
 
       // 根據平台選擇API Key
       const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY.ios : REVENUECAT_API_KEY.android;
-      
+
       // 檢查API Key是否有效
       if (apiKey.includes('YOUR_') || apiKey.includes('_HERE')) {
         console.warn('⚠️ RevenueCat API Key not configured. Running in mock mode.');
         this.isInitialized = true;
         return;
       }
-      
+
       await Purchases.configure({ apiKey });
-      
+
       if (userId) {
         await Purchases.logIn(userId);
       }
-      
+
       this.isInitialized = true;
       console.log('✅ RevenueCat initialized successfully');
     } catch (error) {
@@ -118,7 +118,7 @@ class RevenueCatService {
             price: pkg.product.priceString,
             period: this.getPeriodString(pkg.product.subscriptionPeriod),
             features: this.getFeaturesForPlan(pkg.identifier),
-            isPopular: pkg.identifier.includes('monthly')
+            isPopular: pkg.identifier.includes('monthly'),
           });
         });
       });
@@ -241,8 +241,8 @@ class RevenueCatService {
   }
 
   private getPeriodString(period: string | null): string {
-    if (!period) return 'One-time';
-    
+    if (!period) {return 'One-time';}
+
     switch (period.toLowerCase()) {
       case 'p1w': return 'Weekly';
       case 'p1m': return 'Monthly';
@@ -261,14 +261,14 @@ class RevenueCatService {
       'Data export',
       'Cloud synchronization',
       'Custom tags and notes',
-      'Priority support'
+      'Priority support',
     ];
 
     if (planId.includes('premium')) {
       return [
         ...baseFeatures,
         'Exclusive premium features',
-        'Early access to new features'
+        'Early access to new features',
       ];
     }
 
@@ -303,7 +303,7 @@ class RevenueCatService {
   }
 
   private getMockCustomerInfo(isPremium: boolean): any {
-    const entitlements = isPremium 
+    const entitlements = isPremium
       ? { active: { pro: { identifier: 'pro', isActive: true } } }
       : { active: {} };
 
@@ -333,4 +333,4 @@ class RevenueCatService {
 }
 
 const revenueCatService = new RevenueCatService();
-export default revenueCatService; 
+export default revenueCatService;

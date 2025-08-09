@@ -9,7 +9,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const { sessions, hands, fetchSessions, fetchHands, deleteSession } = useSessionStore();
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
-  
+
   // Filter states
   const [sessionFilter, setSessionFilter] = useState<{
     location?: string;
@@ -26,7 +26,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     customStartDate?: string;
     customEndDate?: string;
   }>({});
-  
+
   // Sort states
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -56,7 +56,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   // Filter and sort sessions
   const getFilteredSessions = () => {
     let filtered = [...sessions];
-    
+
     // Apply filters
     if (sessionFilter.location || sessionFilter.tag || sessionFilter.timeRange || sessionFilter.customStartDate || sessionFilter.customEndDate) {
       filtered = filtered.filter(session => {
@@ -64,7 +64,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         if (sessionFilter.location && session.location !== sessionFilter.location) {
           return false;
         }
-        
+
         // Tag filter
         if (sessionFilter.tag && session.tag !== sessionFilter.tag) {
           return false;
@@ -74,47 +74,47 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         if (sessionFilter.timeRange) {
           const now = new Date();
           const sessionDate = new Date(session.date || '');
-          
+
           switch (sessionFilter.timeRange) {
             case '1day':
               const diffHours = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60));
-              if (diffHours > 24) return false;
+              if (diffHours > 24) {return false;}
               break;
             case '3days':
               const diff3Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-              if (diff3Days > 3) return false;
+              if (diff3Days > 3) {return false;}
               break;
             case '7days':
               const diff7Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-              if (diff7Days > 7) return false;
+              if (diff7Days > 7) {return false;}
               break;
             case '30days':
               const diff30Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-              if (diff30Days > 30) return false;
+              if (diff30Days > 30) {return false;}
               break;
             case 'custom':
               // Custom range filter
               if (sessionFilter.customStartDate || sessionFilter.customEndDate) {
                 const sessionTime = sessionDate.getTime();
-                
+
                 if (sessionFilter.customStartDate) {
                   const startTime = new Date(sessionFilter.customStartDate).getTime();
-                  if (sessionTime < startTime) return false;
+                  if (sessionTime < startTime) {return false;}
                 }
-                
+
                 if (sessionFilter.customEndDate) {
                   const endTime = new Date(sessionFilter.customEndDate).getTime();
-                  if (sessionTime > endTime) return false;
+                  if (sessionTime > endTime) {return false;}
                 }
               }
               break;
           }
         }
-        
+
         return true;
       });
     }
-    
+
     // Sort
     filtered.sort((a, b) => {
       let comparison = 0;
@@ -132,7 +132,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       }
       return sortDirection === 'desc' ? -comparison : comparison;
     });
-    
+
     return filtered;
   };
 
@@ -152,8 +152,8 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   // Get session color based on result
   const getSessionColor = (result: number) => {
-    if (result > 0) return theme.colors.profit;
-    if (result < 0) return theme.colors.loss;
+    if (result > 0) {return theme.colors.profit;}
+    if (result < 0) {return theme.colors.loss;}
     return theme.colors.gray;
   };
 
@@ -161,25 +161,25 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const handleDeleteSession = (sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId);
     const sessionHands = hands.filter(hand => hand.sessionId === sessionId);
-    
-    if (!session) return;
+
+    if (!session) {return;}
 
     Alert.alert(
-      "Delete Session",
+      'Delete Session',
       `Are you sure you want to delete "${session.location || 'Untitled Session'}" session? This will also delete all ${sessionHands.length} hand(s) in this session.`,
       [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
             try {
               await deleteSession(sessionId);
             } catch (error) {
-              Alert.alert("Error", "Failed to delete session");
+              Alert.alert('Error', 'Failed to delete session');
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -187,26 +187,26 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   // Show session actions on long press
   const showSessionActions = (sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId);
-    if (!session) return;
+    if (!session) {return;}
 
     const actionButtons = [
       {
-        text: "Edit Session",
-        onPress: () => navigation.navigate('EditSession', { sessionId })
+        text: 'Edit Session',
+        onPress: () => navigation.navigate('EditSession', { sessionId }),
       },
       {
-        text: "Delete Session",
-        style: "destructive" as const,
-        onPress: () => handleDeleteSession(sessionId)
+        text: 'Delete Session',
+        style: 'destructive' as const,
+        onPress: () => handleDeleteSession(sessionId),
       },
       {
-        text: "Cancel",
-        style: "cancel" as const
-      }
+        text: 'Cancel',
+        style: 'cancel' as const,
+      },
     ];
 
     Alert.alert(
-      "Session Actions",
+      'Session Actions',
       `What would you like to do with "${session.location || 'Untitled Session'}" session?`,
       actionButtons
     );
@@ -225,8 +225,8 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + theme.spacing.sm }]}>
         <Text style={styles.headerTitle}>Sessions</Text>
-        <TouchableOpacity 
-          style={styles.filterButton} 
+        <TouchableOpacity
+          style={styles.filterButton}
           onPress={() => {
             setTempSessionFilter(sessionFilter);
             setShowFilterModal(true);
@@ -239,9 +239,9 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 sessionFilter.tag,
                 sessionFilter.timeRange,
                 sessionFilter.customStartDate,
-                sessionFilter.customEndDate
+                sessionFilter.customEndDate,
               ].filter(Boolean).length;
-              
+
               return activeFilters > 0 ? `☰ Filter (${activeFilters})` : '☰ Filter';
             })()}
           </Text>
@@ -253,7 +253,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         <TouchableOpacity
           style={[
             styles.sortOption,
-            selectedSort === 'date' && styles.selectedSortOption
+            selectedSort === 'date' && styles.selectedSortOption,
           ]}
           onPress={() => {
             if (selectedSort === 'date') {
@@ -266,16 +266,16 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         >
           <Text style={[
             styles.sortOptionText,
-            selectedSort === 'date' && styles.selectedSortOptionText
+            selectedSort === 'date' && styles.selectedSortOptionText,
           ]}>
             Date {selectedSort === 'date' ? (sortDirection === 'desc' ? '↓' : '↑') : ''}
           </Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity
           style={[
             styles.sortOption,
-            selectedSort === 'amount' && styles.selectedSortOption
+            selectedSort === 'amount' && styles.selectedSortOption,
           ]}
           onPress={() => {
             if (selectedSort === 'amount') {
@@ -288,7 +288,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         >
           <Text style={[
             styles.sortOptionText,
-            selectedSort === 'amount' && styles.selectedSortOptionText
+            selectedSort === 'amount' && styles.selectedSortOptionText,
           ]}>
             Amount {selectedSort === 'amount' ? (sortDirection === 'desc' ? '↓' : '↑') : ''}
           </Text>
@@ -311,7 +311,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           sortedSessions.map((session) => {
             const { totalResult, handCount } = getSessionStats(session.id);
             const sessionBB = session.bigBlind ? Math.round((totalResult / session.bigBlind) * 10) / 10 : 0;
-            
+
             return (
               <TouchableOpacity
                 key={session.id}
@@ -336,14 +336,14 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 <View style={styles.rightSection}>
                   <Text style={[
                     styles.sessionProfit,
-                    { color: getSessionColor(totalResult) }
+                    { color: getSessionColor(totalResult) },
                   ]}>
                     {totalResult >= 0 ? '+' : ''}${totalResult.toFixed(2)}
                   </Text>
                   {session.bigBlind && (
                     <Text style={[
                       styles.sessionBB,
-                      { color: getSessionColor(totalResult) }
+                      { color: getSessionColor(totalResult) },
                     ]}>
                       {sessionBB >= 0 ? '+' : ''}{sessionBB} BB
                     </Text>
@@ -356,7 +356,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       </ScrollView>
 
       {/* Floating Action Button for New Session */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.fabButton}
         onPress={() => navigation.navigate('NewSession')}
       >
@@ -373,9 +373,9 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         <View style={styles.modalOverlay}>
           <View style={styles.filterModal}>
             <Text style={styles.modalTitle}>Filter Sessions</Text>
-            
+
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-              
+
               {/* Time Range Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Time Range</Text>
@@ -388,28 +388,28 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         { key: '1day', label: 'Last 24 Hours' },
                         { key: '3days', label: 'Last 3 Days' },
                         { key: '7days', label: 'Last 7 Days' },
-                        { key: '30days', label: 'Last 30 Days' }
+                        { key: '30days', label: 'Last 30 Days' },
                       ];
-                      
+
                       Alert.alert(
-                        "Select Time Range",
-                        "",
+                        'Select Time Range',
+                        '',
                         options.map(option => ({
                           text: option.label,
                           onPress: () => {
                             setTempSessionFilter(prev => ({
-                              ...prev, 
+                              ...prev,
                               timeRange: option.key || undefined,
                               customStartDate: undefined,
-                              customEndDate: undefined
+                              customEndDate: undefined,
                             }));
-                          }
-                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                          },
+                        })).concat([{ text: 'Cancel', onPress: () => {} }])
                       );
                     }}
                   >
                     <Text style={styles.dropdownText}>
-                      {tempSessionFilter.timeRange 
+                      {tempSessionFilter.timeRange
                         ? (['', '1day', '3days', '7days', '30days'].includes(tempSessionFilter.timeRange)
                           ? ['All Time', 'Last 24 Hours', 'Last 3 Days', 'Last 7 Days', 'Last 30 Days'][['', '1day', '3days', '7days', '30days'].indexOf(tempSessionFilter.timeRange)]
                           : tempSessionFilter.timeRange)
@@ -431,19 +431,19 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       const locations = ['All Locations'].concat(
                         [...new Set(sessions.map(s => s.location).filter(loc => loc))]
                       );
-                      
+
                       Alert.alert(
-                        "Select Location",
-                        "",
+                        'Select Location',
+                        '',
                         locations.map(location => ({
                           text: location,
                           onPress: () => {
                             setTempSessionFilter(prev => ({
-                              ...prev, 
-                              location: location === 'All Locations' ? undefined : location
+                              ...prev,
+                              location: location === 'All Locations' ? undefined : location,
                             }));
-                          }
-                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                          },
+                        })).concat([{ text: 'Cancel', onPress: () => {} }])
                       );
                     }}
                   >
@@ -473,19 +473,19 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         { key: 'pink', name: 'Pink', color: '#EC407A' },
                         { key: 'teal', name: 'Teal', color: '#26A69A' },
                       ];
-                      
+
                       Alert.alert(
-                        "Select Session Color",
-                        "",
+                        'Select Session Color',
+                        '',
                         tags.map(tag => ({
                           text: tag.name,
                           onPress: () => {
                             setTempSessionFilter(prev => ({
-                              ...prev, 
-                              tag: tag.key || undefined
+                              ...prev,
+                              tag: tag.key || undefined,
                             }));
-                          }
-                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                          },
+                        })).concat([{ text: 'Cancel', onPress: () => {} }])
                       );
                     }}
                   >
@@ -493,11 +493,11 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                       {tempSessionFilter.tag && (
                         <View style={[
                           styles.tagColorDot,
-                          { backgroundColor: getTagColor(tempSessionFilter.tag) }
+                          { backgroundColor: getTagColor(tempSessionFilter.tag) },
                         ]} />
                       )}
                       <Text style={styles.dropdownText}>
-                        {tempSessionFilter.tag 
+                        {tempSessionFilter.tag
                           ? tempSessionFilter.tag.charAt(0).toUpperCase() + tempSessionFilter.tag.slice(1)
                           : 'All Tags'
                         }
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     marginTop: 2,
   },
-  
+
   // Filter styles
   filterButton: {
     paddingHorizontal: theme.spacing.sm,
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontWeight: '600',
   },
-  
+
   // Sort styles
   sortContainer: {
     flexDirection: 'row',
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     fontStyle: 'italic',
   },
-  
+
   // Modal styles
   modalOverlay: {
     flex: 1,
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginRight: theme.spacing.xs,
   },
-  
+
   // Modal action buttons
   modalActions: {
     flexDirection: 'row',
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontWeight: '600',
   },
-  
+
   // FAB Button styles
   fabButton: {
     position: 'absolute',

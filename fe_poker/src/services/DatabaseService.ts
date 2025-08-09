@@ -34,7 +34,7 @@ export class DatabaseService {
 
   // 創建表結構
   private static async createTables(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const createSessionsTable = `
       CREATE TABLE IF NOT EXISTS sessions (
@@ -81,13 +81,13 @@ export class DatabaseService {
 
   // 數據庫遷移
   private static async migrateDatabase(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     try {
       // 檢查是否需要添加tags列
-      const [result] = await this.db.executeSql("PRAGMA table_info(hands)");
+      const [result] = await this.db.executeSql('PRAGMA table_info(hands)');
       let hasTagsColumn = false;
-      
+
       for (let i = 0; i < result.rows.length; i++) {
         const row = result.rows.item(i);
         if (row.name === 'tags') {
@@ -107,9 +107,9 @@ export class DatabaseService {
   }
 
   // ==================== SESSIONS CRUD ====================
-  
+
   static async getAllSessions(): Promise<Session[]> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const [results] = await this.db.executeSql('SELECT * FROM sessions ORDER BY date DESC');
     const sessions: Session[] = [];
@@ -135,10 +135,10 @@ export class DatabaseService {
   }
 
   static async getSession(id: string): Promise<Session | null> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const [results] = await this.db.executeSql('SELECT * FROM sessions WHERE id = ?', [id]);
-    
+
     if (results.rows.length === 0) {
       return null;
     }
@@ -160,7 +160,7 @@ export class DatabaseService {
   }
 
   static async insertSession(session: Session): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const sql = `
       INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size, tag)
@@ -181,7 +181,7 @@ export class DatabaseService {
   }
 
   static async updateSession(session: Session): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const sql = `
       UPDATE sessions 
@@ -204,11 +204,11 @@ export class DatabaseService {
   }
 
   static async deleteSession(id: string): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     // 先刪除相關的 hands
     await this.db.executeSql('DELETE FROM hands WHERE session_id = ?', [id]);
-    
+
     // 再刪除 session
     await this.db.executeSql('DELETE FROM sessions WHERE id = ?', [id]);
   }
@@ -216,14 +216,14 @@ export class DatabaseService {
   // ==================== HANDS CRUD ====================
 
   static async getAllHands(): Promise<Hand[]> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const [results] = await this.db.executeSql('SELECT * FROM hands ORDER BY date DESC');
     const hands: Hand[] = [];
 
     for (let i = 0; i < results.rows.length; i++) {
       const row = results.rows.item(i);
-      
+
       // 解析 villains JSON
       let villains = [];
       try {
@@ -269,16 +269,16 @@ export class DatabaseService {
   }
 
   static async getHand(id: string): Promise<Hand | null> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const [results] = await this.db.executeSql('SELECT * FROM hands WHERE id = ?', [id]);
-    
+
     if (results.rows.length === 0) {
       return null;
     }
 
     const row = results.rows.item(0);
-    
+
     // 解析 villains JSON
     let villains = [];
     try {
@@ -321,7 +321,7 @@ export class DatabaseService {
   }
 
   static async insertHand(hand: Hand): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const sql = `
       INSERT INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, 
@@ -353,7 +353,7 @@ export class DatabaseService {
   }
 
   static async updateHand(hand: Hand): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const sql = `
       UPDATE hands 
@@ -387,20 +387,20 @@ export class DatabaseService {
   }
 
   static async deleteHand(id: string): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     await this.db.executeSql('DELETE FROM hands WHERE id = ?', [id]);
   }
 
   static async getHandsBySession(sessionId: string): Promise<Hand[]> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const [results] = await this.db.executeSql('SELECT * FROM hands WHERE session_id = ? ORDER BY date DESC', [sessionId]);
     const hands: Hand[] = [];
 
     for (let i = 0; i < results.rows.length; i++) {
       const row = results.rows.item(i);
-      
+
       // 解析 villains JSON
       let villains = [];
       try {
@@ -437,7 +437,7 @@ export class DatabaseService {
   // ==================== STATS 計算 ====================
 
   static async getStats(): Promise<Stats> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     // 獲取所有 hands 和 sessions 數據
     const [handsResults] = await this.db.executeSql('SELECT result_amount, session_id FROM hands');
@@ -447,15 +447,15 @@ export class DatabaseService {
     const sessionProfits: { [key: string]: number } = {};
     const byStakes: { [key: string]: number } = {};
     const byLocation: { [key: string]: number } = {};
-    
+
     // 計算每個 session 的利潤
     for (let i = 0; i < handsResults.rows.length; i++) {
       const row = handsResults.rows.item(i);
       const result = row.result_amount || 0;
       const sessionId = row.session_id;
-      
+
       totalProfit += result;
-      
+
       if (!sessionProfits[sessionId]) {
         sessionProfits[sessionId] = 0;
       }
@@ -472,21 +472,21 @@ export class DatabaseService {
       const location = row.location || 'Unknown';
       const smallBlind = row.small_blind || 0;
       const bigBlind = row.big_blind || 0;
-      
+
       sessionCount++;
-      
+
       const profit = sessionProfits[sessionId] || 0;
       if (profit > 0) {
         winSessions++;
       }
-      
+
       // 按 stakes 分組
       const stakeKey = `$${smallBlind}/$${bigBlind}`;
       if (!byStakes[stakeKey]) {
         byStakes[stakeKey] = 0;
       }
       byStakes[stakeKey] += profit;
-      
+
       // 按 location 分組
       if (!byLocation[location]) {
         byLocation[location] = 0;
@@ -510,7 +510,7 @@ export class DatabaseService {
   // ==================== 批量操作 ====================
 
   static async batchInsertSessions(sessions: Session[]): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     await this.db.transaction(async (tx: any) => {
       for (const session of sessions) {
@@ -518,7 +518,7 @@ export class DatabaseService {
           INSERT OR REPLACE INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size, tag)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        
+
         await tx.executeSql(sql, [
           session.id,
           session.location,
@@ -535,7 +535,7 @@ export class DatabaseService {
   }
 
   static async batchInsertHands(hands: Hand[]): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     await this.db.transaction(async (tx: any) => {
       for (const hand of hands) {
@@ -544,9 +544,9 @@ export class DatabaseService {
                                       hole_cards, position, is_favorite, tag, board, note, villains)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        
+
         const villainsJson = JSON.stringify(hand.villains || []);
-        
+
         await tx.executeSql(sql, [
           hand.id,
           hand.sessionId,
@@ -570,14 +570,14 @@ export class DatabaseService {
   // ==================== 工具方法 ====================
 
   static async clearAllData(): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     await this.db.executeSql('DELETE FROM hands');
     await this.db.executeSql('DELETE FROM sessions');
   }
 
   static async getDataStats(): Promise<{ sessionsCount: number; handsCount: number }> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) {throw new Error('Database not initialized');}
 
     const [sessionsResult] = await this.db.executeSql('SELECT COUNT(*) as count FROM sessions');
     const [handsResult] = await this.db.executeSql('SELECT COUNT(*) as count FROM hands');
@@ -594,4 +594,4 @@ export class DatabaseService {
       this.db = null;
     }
   }
-} 
+}

@@ -10,12 +10,12 @@ interface TagInputProps {
   maxTags?: number; // 最大標籤數量
 }
 
-export const TagInput: React.FC<TagInputProps> = ({ 
-  tags, 
-  onTagsChange, 
-  placeholder = "Add tag...",
+export const TagInput: React.FC<TagInputProps> = ({
+  tags,
+  onTagsChange,
+  placeholder = 'Add tag...',
   availableTags = [],
-  maxTags = 3
+  maxTags = 3,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -23,7 +23,7 @@ export const TagInput: React.FC<TagInputProps> = ({
 
   // 檢查是否已達到標籤限制
   const isAtMaxTags = tags.length >= maxTags;
-  
+
   // 定義不同順序標籤的顏色
   const getTagColor = (index: number) => {
     const colors = ['#FF69B4', '#4169E1', '#32CD32']; // 粉紅色、藍色、綠色
@@ -32,13 +32,13 @@ export const TagInput: React.FC<TagInputProps> = ({
 
   // 計算建議的tags (過濾已選中的和匹配輸入的)
   const suggestions = useMemo(() => {
-    if (!inputValue.trim() || !availableTags.length) return [];
-    
-    const filtered = availableTags.filter(tag => 
-      !tags.includes(tag) && 
+    if (!inputValue.trim() || !availableTags.length) {return [];}
+
+    const filtered = availableTags.filter(tag =>
+      !tags.includes(tag) &&
       tag.toLowerCase().includes(inputValue.toLowerCase())
     );
-    
+
     return filtered.slice(0, 5); // 最多顯示5個建議
   }, [inputValue, tags, availableTags]);
 
@@ -59,20 +59,20 @@ export const TagInput: React.FC<TagInputProps> = ({
     } else {
       // 添加输入框中的tag和所有选中的popular tags
       const tagsToAdd = [];
-      
+
       // 添加输入框中的tag
       const trimmedInput = inputValue.trim();
       if (trimmedInput && !tags.includes(trimmedInput)) {
         tagsToAdd.push(trimmedInput);
       }
-      
+
       // 添加选中的popular tags
       selectedPopularTags.forEach(tag => {
         if (!tags.includes(tag) && !tagsToAdd.includes(tag)) {
           tagsToAdd.push(tag);
         }
       });
-      
+
       // 检查是否超过最大标签数量
       const newTags = [...tags, ...tagsToAdd].slice(0, maxTags);
       if (newTags.length > tags.length) {
@@ -106,7 +106,7 @@ export const TagInput: React.FC<TagInputProps> = ({
       // 如果tag已经在最终tags中，不做任何操作
       return;
     }
-    
+
     if (selectedPopularTags.includes(tag)) {
       // 如果已选中，则取消选中
       setSelectedPopularTags(prev => prev.filter(t => t !== tag));
@@ -121,8 +121,8 @@ export const TagInput: React.FC<TagInputProps> = ({
     <View style={styles.container}>
       {/* Tags Display */}
       {tags.length > 0 && (
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.tagsContainer}
           contentContainerStyle={styles.tagsContent}
@@ -141,7 +141,7 @@ export const TagInput: React.FC<TagInputProps> = ({
           ))}
         </ScrollView>
       )}
-      
+
       {/* Input Row */}
       <View style={styles.inputRow}>
         <TextInput
@@ -160,8 +160,8 @@ export const TagInput: React.FC<TagInputProps> = ({
         <TouchableOpacity
           onPress={() => addTag()}
           style={[
-            styles.addButton, 
-            { opacity: ((inputValue.trim() || selectedPopularTags.length > 0) && !isAtMaxTags) ? 1 : 0.5 }
+            styles.addButton,
+            { opacity: ((inputValue.trim() || selectedPopularTags.length > 0) && !isAtMaxTags) ? 1 : 0.5 },
           ]}
           disabled={(!inputValue.trim() && selectedPopularTags.length === 0) || isAtMaxTags}
         >
@@ -202,14 +202,14 @@ export const TagInput: React.FC<TagInputProps> = ({
                   {popularTags.map((tag, index) => {
                     const isDisabled = tags.length >= maxTags;
                     const isSelected = selectedPopularTags.includes(tag);
-                    
+
                     return (
                       <TouchableOpacity
                         key={index}
                         style={[
                           styles.suggestionTag,
                           isSelected && styles.selectedPopularTag,
-                          isDisabled && styles.popularTagDisabled
+                          isDisabled && styles.popularTagDisabled,
                         ]}
                         onPress={() => !isDisabled && togglePopularTag(tag)}
                         disabled={isDisabled}
@@ -217,7 +217,7 @@ export const TagInput: React.FC<TagInputProps> = ({
                         <Text style={[
                           styles.suggestionTagText,
                           isSelected && styles.selectedPopularTagText,
-                          isDisabled && styles.popularTagTextDisabled
+                          isDisabled && styles.popularTagTextDisabled,
                         ]}>
                           {tag}
                         </Text>

@@ -27,7 +27,7 @@ const createTestData = async () => {
       currency: 'USD',
       effectiveStack: 200,
       tableSize: 6,
-      tag: 'test'
+      tag: 'test',
     };
 
     await DatabaseService.insertSession(testSession);
@@ -43,7 +43,7 @@ const createTestData = async () => {
       { holeCards: '9♠ 9♥', position: 'BTN', result: -20 },
       { holeCards: '8♠ 8♥', position: 'SB', result: 30 },
       { holeCards: '7♠ 7♥', position: 'BB', result: -15 },
-      { holeCards: 'A♠ K♠', position: 'UTG', result: 40 }
+      { holeCards: 'A♠ K♠', position: 'UTG', result: 40 },
     ];
 
     for (let i = 0; i < hands.length; i++) {
@@ -60,7 +60,7 @@ const createTestData = async () => {
         date: new Date(Date.now() - (hands.length - i) * 60000).toISOString(), // 每手牌間隔1分鐘
         villains: [],
         favorite: false,
-        tag: 'test'
+        tag: 'test',
       };
 
       await DatabaseService.insertHand(testHand);
@@ -69,7 +69,7 @@ const createTestData = async () => {
 
     console.log(`\n🎉 Successfully created ${hands.length} test hands!`);
     console.log('📊 You can now test the 10-hand limit by trying to add one more hand.');
-    
+
   } catch (error) {
     console.error('❌ Error creating test data:', error);
   }

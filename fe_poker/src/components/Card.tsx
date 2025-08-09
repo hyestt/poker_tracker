@@ -23,4 +23,4 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-}); 
+});

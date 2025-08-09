@@ -340,8 +340,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		WHERE id = $1
 	`, hand.SessionID)
 	
-	err = sessionRow.Scan(&smallBlind, &bigBlind)
-	if err != nil {
+	if err := sessionRow.Scan(&smallBlind, &bigBlind); err != nil {
 		http.Error(w, "Failed to get session info for analysis: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -388,8 +387,7 @@ func ToggleFavorite(w http.ResponseWriter, r *http.Request) {
 
 	// 切換 favorite 狀態
 	newFavorite := !currentFavorite
-	_, err := db.DB.Exec(`UPDATE hands SET is_favorite = $1 WHERE id = $2`, newFavorite, id)
-	if err != nil {
+	if _, err := db.DB.Exec(`UPDATE hands SET is_favorite = $1 WHERE id = $2`, newFavorite, id); err != nil {
 		http.Error(w, "Failed to update favorite status: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

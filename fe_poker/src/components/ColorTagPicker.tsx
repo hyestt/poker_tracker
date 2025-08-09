@@ -44,18 +44,18 @@ export const ColorTagPicker: React.FC<ColorTagPickerProps> = ({
     <TouchableOpacity
       style={[
         styles.colorOption,
-        value === item.id && styles.selectedColorOption
+        value === item.id && styles.selectedColorOption,
       ]}
       onPress={() => handleSelectTag(item.id)}
     >
       <View style={[
         styles.colorCircle,
         { backgroundColor: item.color },
-        item.id === '' && styles.noneCircle
+        item.id === '' && styles.noneCircle,
       ]} />
       <Text style={[
         styles.colorName,
-        value === item.id && styles.selectedColorName
+        value === item.id && styles.selectedColorName,
       ]}>
         {item.name}
       </Text>
@@ -63,14 +63,14 @@ export const ColorTagPicker: React.FC<ColorTagPickerProps> = ({
   );
 
   const TagDisplayComponent = () => (
-    <TouchableOpacity 
-      style={[styles.tagDisplay, !title && styles.fullWidthDisplay]} 
+    <TouchableOpacity
+      style={[styles.tagDisplay, !title && styles.fullWidthDisplay]}
       onPress={() => setIsVisible(true)}
     >
       <View style={[
         styles.displayCircle,
         { backgroundColor: selectedTag.color },
-        selectedTag.id === '' && styles.noneDisplayCircle
+        selectedTag.id === '' && styles.noneDisplayCircle,
       ]} />
       <Text style={styles.displayText}>
         {selectedTag.name}
@@ -101,7 +101,7 @@ export const ColorTagPicker: React.FC<ColorTagPickerProps> = ({
           >
             <View style={styles.modal}>
               <Text style={styles.modalTitle}>Select {title || 'Tag'} Color</Text>
-              
+
               <FlatList
                 data={defaultColorTags}
                 renderItem={renderColorTag}
@@ -133,7 +133,7 @@ export const ColorTagPicker: React.FC<ColorTagPickerProps> = ({
         >
           <View style={styles.modal}>
             <Text style={styles.modalTitle}>Select {title || 'Tag'} Color</Text>
-            
+
             <FlatList
               data={defaultColorTags}
               renderItem={renderColorTag}
@@ -260,4 +260,4 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
   },
-}); 
+});

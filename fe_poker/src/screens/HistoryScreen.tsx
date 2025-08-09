@@ -24,14 +24,14 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
   const handleDelete = (id: string) => {
     Alert.alert(
-      "Delete Record",
-      "Are you sure you want to delete this hand record?",
+      'Delete Record',
+      'Are you sure you want to delete this hand record?',
       [
         {
-          text: "Cancel",
-          style: "cancel"
+          text: 'Cancel',
+          style: 'cancel',
         },
-        { text: "Delete", onPress: () => deleteHand(id) }
+        { text: 'Delete', onPress: () => deleteHand(id) },
       ]
     );
   };
@@ -42,7 +42,7 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       const dateB = b.date || '';
       return dateB.localeCompare(dateA);
     }
-    if (sortKey === 'amount') return b.result - a.result;
+    if (sortKey === 'amount') {return b.result - a.result;}
     if (sortKey === 'location') {
       const locA = getSession(a.sessionId)?.location || '';
       const locB = getSession(b.sessionId)?.location || '';
@@ -72,17 +72,17 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 </Text>
                 <Text style={styles.date}>{session?.location} / {hand.date?.slice(0, 16) || 'No date'}</Text>
               </View>
-              
+
               {/* Hero Section */}
               <View style={styles.heroSection}>
                 <Text style={styles.heroLabel}>Hero</Text>
-                <HoleCardsDisplay 
+                <HoleCardsDisplay
                   holeCards={hand.holeCards}
                   position={hand.position}
                   fallback="No cards/position recorded"
                 />
               </View>
-              
+
               <Text style={styles.detail}>{hand.details}</Text>
               <View style={styles.buttonGroup}>
                 <TouchableOpacity onPress={() => navigation.navigate('HandDetail', { handId: hand.id })} style={styles.viewButton}>
@@ -206,4 +206,4 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     fontWeight: 'bold',
   },
-}); 
+});

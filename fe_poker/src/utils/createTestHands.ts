@@ -25,7 +25,7 @@ export const createTestHands = async (): Promise<void> => {
       currency: 'USD',
       effectiveStack: 200,
       tableSize: 6,
-      tag: 'test'
+      tag: 'test',
     };
 
     await DatabaseService.insertSession(testSession);
@@ -41,7 +41,7 @@ export const createTestHands = async (): Promise<void> => {
       { holeCards: '9♠ 9♥', position: 'BTN', result: -20 },
       { holeCards: '8♠ 8♥', position: 'SB', result: 30 },
       { holeCards: '7♠ 7♥', position: 'BB', result: -15 },
-      { holeCards: 'A♠ K♠', position: 'UTG', result: 40 }
+      { holeCards: 'A♠ K♠', position: 'UTG', result: 40 },
     ];
 
     for (let i = 0; i < hands.length; i++) {
@@ -58,7 +58,7 @@ export const createTestHands = async (): Promise<void> => {
         date: new Date(Date.now() - (hands.length - i) * 60000).toISOString(),
         villains: [],
         favorite: false,
-        tag: 'test'
+        tag: 'test',
       };
 
       await DatabaseService.insertHand(testHand);
@@ -67,7 +67,7 @@ export const createTestHands = async (): Promise<void> => {
 
     console.log(`\n🎉 Successfully created ${hands.length} test hands!`);
     console.log('📊 You can now test the 10-hand limit by trying to add one more hand.');
-    
+
   } catch (error) {
     console.error('❌ Error creating test data:', error);
     throw error;

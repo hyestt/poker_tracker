@@ -37,4 +37,4 @@ const styles = StyleSheet.create({
   disabled: {
     backgroundColor: theme.colors.gray,
   },
-}); 
+});

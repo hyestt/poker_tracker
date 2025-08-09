@@ -7,7 +7,7 @@ const LOCAL_IP = '192.168.1.11'; // 本地開發 IP
 const getAPIUrl = (): string => {
   // 使用 Railway 生產環境 (AI分析功能需要)
   return RAILWAY_URL;
-  
+
   // 本地開發時使用下面的設定
   // return `http://localhost:8080`;
   // return `http://${LOCAL_IP}:8080`;

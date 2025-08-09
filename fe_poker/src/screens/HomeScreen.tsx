@@ -47,11 +47,11 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     customStartDate?: string;
     customEndDate?: string;
   }>({});
-  
+
 
 
   // 計算有實際手牌記錄的 sessions 數量
-  const activeSessions = sessions.filter(session => 
+  const activeSessions = sessions.filter(session =>
     hands.some(hand => hand.sessionId === session.id)
   );
 
@@ -74,12 +74,12 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   // Filter and sort hands
   const getFilteredHands = () => {
     let filtered = [...hands];
-    
+
     // Session filter
     if (sessionFilter.location || sessionFilter.dateTime || sessionFilter.timeRange || sessionFilter.position || sessionFilter.tag || sessionFilter.customStartDate || sessionFilter.customEndDate) {
       filtered = filtered.filter(hand => {
         const session = sessions.find(s => s.id === hand.sessionId);
-        if (!session) return false;
+        if (!session) {return false;}
 
         // Location filter
         if (sessionFilter.location && session.location !== sessionFilter.location) {
@@ -95,37 +95,37 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         if (sessionFilter.timeRange) {
           const now = new Date();
           const sessionDate = new Date(session.date || '');
-          
+
           switch (sessionFilter.timeRange) {
             case '1day':
               const diffHours = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60));
-              if (diffHours > 24) return false;
+              if (diffHours > 24) {return false;}
               break;
             case '3days':
               const diff3Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-              if (diff3Days > 3) return false;
+              if (diff3Days > 3) {return false;}
               break;
             case '7days':
               const diff7Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-              if (diff7Days > 7) return false;
+              if (diff7Days > 7) {return false;}
               break;
             case '30days':
               const diff30Days = Math.floor((now.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
-              if (diff30Days > 30) return false;
+              if (diff30Days > 30) {return false;}
               break;
             case 'custom':
               // Custom range filter
               if (sessionFilter.customStartDate || sessionFilter.customEndDate) {
                 const sessionTime = sessionDate.getTime();
-                
+
                 if (sessionFilter.customStartDate) {
                   const startTime = new Date(sessionFilter.customStartDate).getTime();
-                  if (sessionTime < startTime) return false;
+                  if (sessionTime < startTime) {return false;}
                 }
-                
+
                 if (sessionFilter.customEndDate) {
                   const endTime = new Date(sessionFilter.customEndDate).getTime();
-                  if (sessionTime > endTime) return false;
+                  if (sessionTime > endTime) {return false;}
                 }
               }
               break;
@@ -145,7 +145,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         return true;
       });
     }
-    
+
     // Other filters
     switch (selectedFilter) {
       case 'recent':
@@ -163,7 +163,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       default:
         break;
     }
-    
+
     // Sort
     filtered.sort((a, b) => {
       let comparison = 0;
@@ -179,7 +179,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
       return sortDirection === 'desc' ? -comparison : comparison;
     });
-    
+
     return filtered;
   };
 
@@ -187,14 +187,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleDelete = (id: string) => {
     Alert.alert(
-      "Delete Record",
-      "Are you sure you want to delete this hand record?",
+      'Delete Record',
+      'Are you sure you want to delete this hand record?',
       [
         {
-          text: "Cancel",
-          style: "cancel"
+          text: 'Cancel',
+          style: 'cancel',
         },
-        { text: "Delete", onPress: () => deleteHand(id) }
+        { text: 'Delete', onPress: () => deleteHand(id) },
       ]
     );
   };
@@ -202,9 +202,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleAnalyze = async (id: string) => {
     try {
       const analysis = await analyzeHand(id);
-      Alert.alert("AI Analysis Result", analysis, [{ text: "OK" }]);
+      Alert.alert('AI Analysis Result', analysis, [{ text: 'OK' }]);
     } catch (error) {
-      Alert.alert("Analysis Failed", error instanceof Error ? error.message : "Unknown error");
+      Alert.alert('Analysis Failed', error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
@@ -218,7 +218,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       // UI會自動更新星號狀態
     } catch (error) {
       console.error('Toggle favorite error:', error);
-      Alert.alert("Error", `Failed to toggle favorite: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', `Failed to toggle favorite: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -232,16 +232,16 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           'You have reached the free limit of 10 hands. Please upgrade to Premium to add more hands.',
           [
             { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Upgrade', 
+            {
+              text: 'Upgrade',
               style: 'default',
-              onPress: () => navigation.navigate('Subscription')
-            }
+              onPress: () => navigation.navigate('Subscription'),
+            },
           ]
         );
         return;
       }
-      
+
       // 如果沒有達到限制，正常導航到新增頁面
       navigation.navigate('NewSession');
     } catch (error) {
@@ -253,31 +253,31 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const showHandActions = (handId: string) => {
     const hand = hands.find(h => h.id === handId);
-    if (!hand) return;
+    if (!hand) {return;}
 
     const actionButtons = [
       {
-        text: hand.favorite ? "Remove from Starred ⭐" : "Add to Starred ⭐",
-        onPress: () => handleToggleFavorite(handId)
+        text: hand.favorite ? 'Remove from Starred ⭐' : 'Add to Starred ⭐',
+        onPress: () => handleToggleFavorite(handId),
       },
       {
-        text: "Edit Hand",
-        onPress: () => navigation.navigate('EditHand', { handId })
+        text: 'Edit Hand',
+        onPress: () => navigation.navigate('EditHand', { handId }),
       },
       {
-        text: "Delete",
-        style: "destructive" as const,
-        onPress: () => handleDelete(handId)
+        text: 'Delete',
+        style: 'destructive' as const,
+        onPress: () => handleDelete(handId),
       },
       {
-        text: "Cancel",
-        style: "cancel" as const
-      }
+        text: 'Cancel',
+        style: 'cancel' as const,
+      },
     ];
 
     Alert.alert(
-      "Hand Actions",
-      `What would you like to do with this hand?`,
+      'Hand Actions',
+      'What would you like to do with this hand?',
       actionButtons
     );
   };
@@ -295,20 +295,20 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     if (!dateStr || dateStr.trim() === '') {
       return 'Unknown date';
     }
-    
+
     const now = new Date();
     const handDate = new Date(dateStr);
-    
+
     // Check if the date is valid
     if (isNaN(handDate.getTime())) {
       return 'Invalid date';
     }
-    
+
     const diffMs = now.getTime() - handDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffMins < 60) {
       return `${diffMins} minutes ago`;
     } else if (diffHours < 24) {
@@ -321,33 +321,33 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   // Get BB amount
   const getBBAmount = (result: number, sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId);
-    if (!session || !session.bigBlind) return '';
+    if (!session || !session.bigBlind) {return '';}
     const bbAmount = Math.round((result / session.bigBlind) * 10) / 10;
     return `${bbAmount >= 0 ? '' : ''}${bbAmount} BB`;
   };
 
   // Render card icons
   const renderCardIcons = (holeCards: string | undefined) => {
-    if (!holeCards) return null;
-    
+    if (!holeCards) {return null;}
+
     // Parse cards - handle both formats: "AcKc" and "A♠ Q♠"
     let cards: string[] = [];
-    
+
     if (holeCards.includes('♠') || holeCards.includes('♥') || holeCards.includes('♦') || holeCards.includes('♣')) {
-      // New format with symbols: "A♠ Q♠" 
+      // New format with symbols: "A♠ Q♠"
       cards = holeCards.trim().split(/\s+/);
     } else {
       // Old format with letters: "AcKc"
       cards = holeCards.replace(/\s+/g, '').match(/.{2}/g) || [];
     }
-    
+
     return (
       <View style={styles.cardContainer}>
         {cards.map((card, index) => {
           let rank: string;
           let suitSymbol: string;
           let isRed: boolean;
-          
+
           if (card.length === 2 && /[cdhs]/.test(card[1])) {
             // Old format: "Ac", "Kh", etc.
             rank = card[0];
@@ -360,7 +360,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             suitSymbol = card.slice(-1);
             isRed = suitSymbol === '♥' || suitSymbol === '♦';
           }
-          
+
           return (
             <View key={index} style={[styles.cardIcon, isRed ? styles.redCard : styles.blackCard]}>
               <Text style={[styles.cardText, isRed ? styles.redCardText : styles.blackCardText]}>
@@ -389,7 +389,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <Text style={[styles.filterIcon, showFilterDropdown && styles.filterIconRotated]}>▼</Text>
             </View>
           </TouchableOpacity>
-          
+
           {showFilterDropdown && (
             <View style={styles.filterDropdown}>
               {filterOptions.map((option) => (
@@ -397,7 +397,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   key={option.key}
                   style={[
                     styles.filterDropdownItem,
-                    selectedFilter === option.key && styles.selectedFilterDropdownItem
+                    selectedFilter === option.key && styles.selectedFilterDropdownItem,
                   ]}
                   onPress={() => {
                     setSelectedFilter(option.key);
@@ -407,14 +407,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   <View style={styles.filterDropdownTextContainer}>
                     <Text style={[
                       styles.filterDropdownText,
-                      selectedFilter === option.key && styles.selectedFilterDropdownText
+                      selectedFilter === option.key && styles.selectedFilterDropdownText,
                     ]}>
                       {option.key === 'favorites' ? 'Starred' : option.label}
                     </Text>
                     {option.key === 'favorites' && (
                       <Text style={[
                         styles.filterDropdownStar,
-                        selectedFilter === option.key && styles.selectedFilterDropdownText
+                        selectedFilter === option.key && styles.selectedFilterDropdownText,
                       ]}>
                         ⭐
                       </Text>
@@ -428,9 +428,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </View>
           )}
         </View>
-        
-        <TouchableOpacity 
-          style={styles.sessionFilterButton} 
+
+        <TouchableOpacity
+          style={styles.sessionFilterButton}
           onPress={() => {
             setTempSessionFilter(sessionFilter);
             setShowFilterModal(true);
@@ -440,14 +440,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             {(() => {
               const activeFilters = [
                 sessionFilter.location,
-                sessionFilter.dateTime, 
+                sessionFilter.dateTime,
                 sessionFilter.timeRange,
                 sessionFilter.position,
                 sessionFilter.tag,
                 sessionFilter.customStartDate,
-                sessionFilter.customEndDate
+                sessionFilter.customEndDate,
               ].filter(Boolean).length;
-              
+
               return activeFilters > 0 ? `☰ Filter (${activeFilters})` : '☰ Filter';
             })()}
           </Text>
@@ -461,7 +461,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             key={option.key}
             style={[
               styles.sortOption,
-              selectedSort === option.key && styles.selectedSortOption
+              selectedSort === option.key && styles.selectedSortOption,
             ]}
             onPress={() => {
               if (selectedSort === option.key) {
@@ -474,7 +474,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           >
             <Text style={[
               styles.sortOptionText,
-              selectedSort === option.key && styles.selectedSortOptionText
+              selectedSort === option.key && styles.selectedSortOptionText,
             ]}>
               {option.label} {selectedSort === option.key ? (sortDirection === 'desc' ? '↓' : '↑') : ''}
             </Text>
@@ -488,26 +488,26 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       )}
 
       {/* Hands List */}
-      <ScrollView 
+      <ScrollView
         style={styles.handsContainer}
       >
         {filteredHands.length === 0 && (
           <Text style={styles.empty}>No hands found</Text>
         )}
-        
-        
+
+
         {filteredHands.map((hand) => {
           const timeAgo = getTimeAgo(hand.date || '');
           const bbAmount = getBBAmount(hand.result, hand.sessionId);
-          
+
           // Debug favorite status
           if (hand.id === '2c7efa16-c7bd-41ee-bda5-5825feb73822') {
             console.log('DEBUG rendering hand:', hand.id, 'favorite:', hand.favorite, 'type:', typeof hand.favorite);
           }
-          
+
           return (
-            <TouchableOpacity 
-              key={hand.id} 
+            <TouchableOpacity
+              key={hand.id}
               style={styles.handItem}
               onPress={() => navigation.navigate('HandDetail', { handId: hand.id })}
               onLongPress={() => showHandActions(hand.id)}
@@ -536,14 +536,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <View style={styles.rightSection}>
                 <Text style={[
                   styles.amount,
-                  { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+                  { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss },
                 ]}>
                   ${Math.abs(hand.result).toFixed(2)}
                 </Text>
                 {bbAmount && (
                   <Text style={[
                     styles.bbAmount,
-                    { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+                    { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss },
                   ]}>
                     {bbAmount}
                   </Text>
@@ -566,9 +566,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.filterModal}>
             <Text style={styles.modalTitle}>Advanced Filter</Text>
-            
+
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-              
+
               {/* Time Range Filter */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Time Range</Text>
@@ -581,28 +581,28 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                          { key: '1day', label: 'Last 24 Hours' },
                          { key: '3days', label: 'Last 3 Days' },
                          { key: '7days', label: 'Last 7 Days' },
-                         { key: '30days', label: 'Last 30 Days' }
+                         { key: '30days', label: 'Last 30 Days' },
                        ];
-                      
+
                       Alert.alert(
-                        "Select Time Range",
-                        "",
+                        'Select Time Range',
+                        '',
                         options.map(option => ({
                           text: option.label,
                           onPress: () => {
                             setTempSessionFilter(prev => ({
-                              ...prev, 
+                              ...prev,
                               timeRange: option.key || undefined,
                               customStartDate: undefined,
-                              customEndDate: undefined
+                              customEndDate: undefined,
                             }));
-                          }
-                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                          },
+                        })).concat([{ text: 'Cancel', onPress: () => {} }])
                       );
                     }}
                   >
                                          <Text style={styles.dropdownText}>
-                       {tempSessionFilter.timeRange 
+                       {tempSessionFilter.timeRange
                          ? (['', '1day', '3days', '7days', '30days'].includes(tempSessionFilter.timeRange)
                            ? ['All Time', 'Last 24 Hours', 'Last 3 Days', 'Last 7 Days', 'Last 30 Days'][['', '1day', '3days', '7days', '30days'].indexOf(tempSessionFilter.timeRange)]
                            : tempSessionFilter.timeRange)
@@ -622,19 +622,19 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     style={styles.dropdown}
                     onPress={() => {
                       const positions = ['All Positions', 'UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
-                      
+
                       Alert.alert(
-                        "Select Position",
-                        "",
+                        'Select Position',
+                        '',
                         positions.map(position => ({
                           text: position,
                           onPress: () => {
                             setTempSessionFilter(prev => ({
-                              ...prev, 
-                              position: position === 'All Positions' ? undefined : position
+                              ...prev,
+                              position: position === 'All Positions' ? undefined : position,
                             }));
-                          }
-                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                          },
+                        })).concat([{ text: 'Cancel', onPress: () => {} }])
                       );
                     }}
                   >
@@ -664,24 +664,24 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                         }
                         return tags;
                       }, new Set<string>());
-                      
+
                       const tags = [
                         { key: '', name: 'All Tags' },
-                        ...Array.from(allUsedTags).sort().map(tag => ({ key: tag, name: tag }))
+                        ...Array.from(allUsedTags).sort().map(tag => ({ key: tag, name: tag })),
                       ];
-                      
+
                       Alert.alert(
-                        "Select Hand Tag",
-                        "",
+                        'Select Hand Tag',
+                        '',
                         tags.map(tag => ({
                           text: tag.name,
                           onPress: () => {
                             setTempSessionFilter(prev => ({
-                              ...prev, 
-                              tag: tag.key || undefined
+                              ...prev,
+                              tag: tag.key || undefined,
                             }));
-                          }
-                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                          },
+                        })).concat([{ text: 'Cancel', onPress: () => {} }])
                       );
                     }}
                   >
@@ -703,23 +703,23 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     style={styles.dropdown}
                     onPress={() => {
                       const locations = ['All Locations', 'Home Game', 'Casino', 'Online', 'Club', 'Tournament', 'Cash Game'].concat(
-                        [...new Set(sessions.map(s => s.location).filter(loc => 
+                        [...new Set(sessions.map(s => s.location).filter(loc =>
                           loc && !['Home Game', 'Casino', 'Online', 'Club', 'Tournament', 'Cash Game'].includes(loc)
                         ))]
                       );
-                      
+
                       Alert.alert(
-                        "Select Location",
-                        "",
+                        'Select Location',
+                        '',
                         locations.map(location => ({
                           text: location,
                           onPress: () => {
                             setTempSessionFilter(prev => ({
-                              ...prev, 
-                              location: location === 'All Locations' ? undefined : location
+                              ...prev,
+                              location: location === 'All Locations' ? undefined : location,
                             }));
-                          }
-                        })).concat([{ text: "Cancel", onPress: () => {} }])
+                          },
+                        })).concat([{ text: 'Cancel', onPress: () => {} }])
                       );
                     }}
                   >
@@ -760,7 +760,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </Modal>
 
 
-      
+
     </View>
   );
 };
@@ -1199,4 +1199,4 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     padding: theme.spacing.md,
   },
-}); 
+});
