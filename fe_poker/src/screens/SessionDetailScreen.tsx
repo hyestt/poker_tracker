@@ -1,18 +1,15 @@
-import React, { useEffect, useState, useCallback, useLayoutEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
-import { Hand, Session } from '../models';
 import RevenueCatService from '../services/RevenueCatService';
 
 export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { sessionId } = route.params;
   const { sessions, hands, fetchSessions, fetchHands, deleteHand, toggleFavorite } = useSessionStore();
   const [loading, setLoading] = useState(true);
-  const [isPremium, setIsPremium] = useState(false);
-  const [selectedSort, setSelectedSort] = useState('date');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [, setIsPremium] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,7 +23,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
     };
 
     loadData();
-  }, []);
+  }, [fetchSessions, fetchHands]);
 
   // 每次進入頁面時檢查訂閱狀態
   useFocusEffect(
@@ -39,46 +36,20 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
     }, [])
   );
 
-  // 設置自定義的 back button
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <TouchableOpacity 
-          onPress={() => {
-            // 導航到 Sessions 主頁面
-            navigation.navigate('SessionsList');
-          }} 
-          style={styles.headerBackButton}
-        >
-          <Text style={styles.headerBackButtonText}>‹ Back</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
 
   const session = sessions.find(s => s.id === sessionId);
   const sessionHands = hands.filter(hand => hand.sessionId === sessionId);
 
-  // Sort hands with same logic as HomeScreen
+  // Sort hands by date (newest first)
   const getSortedHands = () => {
     let filtered = [...sessionHands];
-    
-    // Sort
+
+    // Sort by date, newest first
     filtered.sort((a, b) => {
-      let comparison = 0;
-      switch (selectedSort) {
-        case 'date':
-          comparison = new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
-          break;
-        case 'amount':
-          comparison = a.result - b.result;
-          break;
-        default:
-          return 0;
-      }
-      return sortDirection === 'desc' ? -comparison : comparison;
+      const comparison = new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
+      return -comparison; // desc order (newest first)
     });
-    
+
     return filtered;
   };
 
@@ -86,11 +57,11 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
 
   const handleDelete = (id: string) => {
     Alert.alert(
-      "Delete Record",
-      "Are you sure you want to delete this hand record?",
+      'Delete Record',
+      'Are you sure you want to delete this hand record?',
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: () => deleteHand(id) }
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', onPress: () => deleteHand(id) },
       ]
     );
   };
@@ -103,7 +74,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       console.log('Toggle successful, new status:', newFavoriteStatus);
     } catch (error) {
       console.error('Toggle favorite error:', error);
-      Alert.alert("Error", `Failed to toggle favorite: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      Alert.alert('Error', `Failed to toggle favorite: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -117,16 +88,16 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
           'You have reached the free limit of 10 hands. Please upgrade to Premium to add more hands.',
           [
             { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Upgrade', 
+            {
+              text: 'Upgrade',
               style: 'default',
-              onPress: () => navigation.navigate('Subscription')
-            }
+              onPress: () => navigation.navigate('Subscription'),
+            },
           ]
         );
         return;
       }
-      
+
       // Navigate to RecordHand with the current sessionId
       navigation.navigate('RecordHand', { sessionId });
     } catch (error) {
@@ -138,78 +109,50 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
 
   const showHandActions = (handId: string) => {
     const hand = hands.find(h => h.id === handId);
-    if (!hand) return;
+    if (!hand) {return;}
 
     const actionButtons = [
       {
-        text: hand.favorite ? "Remove from Starred ⭐" : "Add to Starred ⭐",
-        onPress: () => handleToggleFavorite(handId)
+        text: hand.favorite ? 'Remove from Starred ⭐' : 'Add to Starred ⭐',
+        onPress: () => handleToggleFavorite(handId),
       },
       {
-        text: "Edit Hand",
-        onPress: () => navigation.navigate('EditHand', { handId })
+        text: 'Edit Hand',
+        onPress: () => navigation.navigate('EditHand', { handId }),
       },
       {
-        text: "Delete",
-        style: "destructive" as const,
-        onPress: () => handleDelete(handId)
+        text: 'Delete',
+        style: 'destructive' as const,
+        onPress: () => handleDelete(handId),
       },
       {
-        text: "Cancel",
-        style: "cancel" as const
-      }
+        text: 'Cancel',
+        style: 'cancel' as const,
+      },
     ];
 
     Alert.alert(
-      "Hand Actions",
-      `What would you like to do with this hand?`,
+      'Hand Actions',
+      'What would you like to do with this hand?',
       actionButtons
     );
   };
 
-  const showSortOptions = (sortKey: string) => {
-    const sortButtons = [
-      {
-        text: sortKey === 'date' ? 'Newest First' : 'Highest First',
-        onPress: () => {
-          setSelectedSort(sortKey);
-          setSortDirection('desc');
-        }
-      },
-      {
-        text: sortKey === 'date' ? 'Oldest First' : 'Lowest First',
-        onPress: () => {
-          setSelectedSort(sortKey);
-          setSortDirection('asc');
-        }
-      },
-      {
-        text: "Cancel",
-        onPress: () => {}
-      }
-    ];
-
-    Alert.alert(
-      "Sort Options",
-      `Choose how to sort by ${sortKey === 'date' ? 'Date' : 'Amount'}:`,
-      sortButtons
-    );
-  };
 
   // Format time ago
   const getTimeAgo = (dateStr: string) => {
-    if (!dateStr || dateStr.trim() === '') return 'Unknown date';
-    
+    if (!dateStr || dateStr.trim() === '') {return 'Unknown date';}
+
     const now = new Date();
     const handDate = new Date(dateStr);
-    
-    if (isNaN(handDate.getTime())) return 'Invalid date';
-    
+
+    if (isNaN(handDate.getTime())) {return 'Invalid date';}
+
     const diffMs = now.getTime() - handDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffMins < 60) {
       return `${diffMins} minutes ago`;
     } else if (diffHours < 24) {
@@ -220,32 +163,32 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
   };
 
   // Get BB amount
-  const getBBAmount = (result: number, sessionId: string) => {
-    const session = sessions.find(s => s.id === sessionId);
-    if (!session || !session.bigBlind) return '';
-    const bbAmount = Math.round((result / session.bigBlind) * 10) / 10;
+  const getBBAmount = (result: number, targetSessionId: string) => {
+    const targetSession = sessions.find(s => s.id === targetSessionId);
+    if (!targetSession || !targetSession.bigBlind) {return '';}
+    const bbAmount = Math.round((result / targetSession.bigBlind) * 10) / 10;
     return `${bbAmount >= 0 ? '' : ''}${bbAmount} BB`;
   };
 
   // Render card icons
   const renderCardIcons = (holeCards: string | undefined) => {
-    if (!holeCards) return null;
-    
+    if (!holeCards) {return null;}
+
     let cards: string[] = [];
-    
+
     if (holeCards.includes('♠') || holeCards.includes('♥') || holeCards.includes('♦') || holeCards.includes('♣')) {
       cards = holeCards.trim().split(/\s+/);
     } else {
       cards = holeCards.replace(/\s+/g, '').match(/.{2}/g) || [];
     }
-    
+
     return (
       <View style={styles.cardContainer}>
         {cards.map((card, index) => {
           let rank: string;
           let suitSymbol: string;
           let isRed: boolean;
-          
+
           if (card.length === 2 && /[cdhs]/.test(card[1])) {
             rank = card[0];
             const suit = card[1];
@@ -256,7 +199,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
             suitSymbol = card.slice(-1);
             isRed = suitSymbol === '♥' || suitSymbol === '♦';
           }
-          
+
           return (
             <View key={index} style={[styles.cardIcon, isRed ? styles.redCard : styles.blackCard]}>
               <Text style={[styles.cardText, isRed ? styles.redCardText : styles.blackCardText]}>
@@ -297,7 +240,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
 
       {/* Session Info */}
       <View style={styles.sessionInfo}>
-        <Text style={styles.sessionTitle}>{session.location}</Text>
+        <Text style={styles.sessionTitle}>{session.location || 'Untitled Session'}</Text>
         <Text style={styles.sessionSubtitle}>
           ${session.smallBlind}/${session.bigBlind} • {sortedHands.length} hand{sortedHands.length !== 1 ? 's' : ''}
         </Text>
@@ -309,13 +252,13 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       )}
 
       {/* Hands List */}
-      <ScrollView 
+      <ScrollView
         style={styles.handsContainer}
       >
         {sortedHands.length === 0 && (
           <View style={styles.emptyContainer}>
             <Text style={styles.empty}>No hands in this session</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.addHandButton}
               onPress={handleAddButtonPress}
             >
@@ -323,14 +266,14 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
             </TouchableOpacity>
           </View>
         )}
-        
+
         {sortedHands.map((hand) => {
           const timeAgo = getTimeAgo(hand.date || '');
           const bbAmount = getBBAmount(hand.result, hand.sessionId);
-          
+
           return (
-            <TouchableOpacity 
-              key={hand.id} 
+            <TouchableOpacity
+              key={hand.id}
               style={styles.handItem}
               onPress={() => navigation.navigate('HandDetail', { handId: hand.id })}
               onLongPress={() => showHandActions(hand.id)}
@@ -359,14 +302,14 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
               <View style={styles.rightSection}>
                 <Text style={[
                   styles.amount,
-                  { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+                  { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss },
                 ]}>
                   {hand.result >= 0 ? '+' : ''}${hand.result.toFixed(2)}
                 </Text>
                 {bbAmount && (
                   <Text style={[
                     styles.bbAmount,
-                    { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss }
+                    { color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss },
                   ]}>
                     {bbAmount}
                   </Text>
@@ -379,7 +322,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       </ScrollView>
 
       {/* Floating Action Button - Fixed at bottom center */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.fabButton}
         onPress={handleAddButtonPress}
       >
@@ -580,16 +523,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '300',
     lineHeight: 35,
-  },
-  headerBackButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    marginLeft: theme.spacing.xs,
-  },
-  headerBackButtonText: {
-    color: theme.colors.primary,
-    fontSize: theme.font.size.body,
-    fontWeight: '600',
   },
   backButton: {
     backgroundColor: theme.colors.primary,
