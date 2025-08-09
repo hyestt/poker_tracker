@@ -9,7 +9,7 @@ interface Props {
   style?: ViewStyle;
   inputStyle?: TextStyle;
   secureTextEntry?: boolean;
-  keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
+  keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad' | 'numbers-and-punctuation';
 }
 
 export const Input: React.FC<Props> = ({ value, onChangeText, placeholder, style, inputStyle, secureTextEntry, keyboardType }) => (

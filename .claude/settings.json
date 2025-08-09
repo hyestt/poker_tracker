@@ -48,6 +48,10 @@
     "Edit(*.md)",
     "Edit(*.sh)",
     "Write(fe_poker/**)",
-    "Write(be_poker/**)"
-  ]
+    "Write(be_poker/**)",
+    "Task(**)"
+  ],
+  "preferredAgents": {
+    "default": "mobile-app-builder"
+  }
 }

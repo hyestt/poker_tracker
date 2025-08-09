@@ -397,7 +397,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       position,
       details,
       note,
-      result: parseInt(result) || 0,
+      result: parseFloat(result) || 0,
       date: new Date().toISOString(),
       villains,
       favorite: false,
@@ -949,7 +949,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                   value={result} 
                   onChangeText={setResult} 
                   placeholder="+150, -75" 
-                  keyboardType="numeric" 
+                  keyboardType="numbers-and-punctuation" 
                   style={styles.compactInput}
                 />
               </View>
