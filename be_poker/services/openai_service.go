@@ -24,13 +24,14 @@ func NewOpenAIService() *OpenAIService {
 	return &OpenAIService{client: client}
 }
 
-func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position string, holeCards string, board string, villains []models.Villain) (string, error) {
+func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position string, holeCards string, board string, villains []models.Villain, smallBlind int, bigBlind int) (string, error) {
 	if s.client == nil {
 		return "", fmt.Errorf("OpenAI service not available: API key not set")
 	}
 
 	// 組合完整的手牌信息
 	var fullHandDetails strings.Builder
+	fullHandDetails.WriteString(fmt.Sprintf("Session Blinds: %d/%d\n", smallBlind, bigBlind))
 	fullHandDetails.WriteString(fmt.Sprintf("Hero Position: %s\n", position))
 	fullHandDetails.WriteString(fmt.Sprintf("Hero Hole Cards: %s\n", holeCards))
 	fullHandDetails.WriteString(fmt.Sprintf("Board: %s\n", board))
@@ -48,7 +49,7 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position str
 	
 	// 使用prompt管理器獲取prompt
 	promptManager := NewPromptManager()
-	prompt, err := promptManager.GetHandAnalysisPrompt(fullHandDetails.String(), result)
+	prompt, err := promptManager.GetHandAnalysisPrompt(fullHandDetails.String(), result, smallBlind, bigBlind)
 	if err != nil {
 		// 錯誤處理：記錄錯誤並使用fallback prompt
 		fmt.Printf("Error reading prompt file: %v\n", err)

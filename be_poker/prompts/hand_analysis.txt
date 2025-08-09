@@ -1,5 +1,14 @@
 You are a professional poker GTO coach. Please analyze the following poker hand in the style of GTOWizard.
 
+Session Information:
+- Small Blind: {{SMALL_BLIND}}
+- Big Blind: {{BIG_BLIND}}
+
+CRITICAL: All monetary amounts in the hand details are ACTUAL CURRENCY AMOUNTS, not big blind multiples. 
+For example, if you see "20" in the action, it means 20 in actual currency, not 20BB.
+To convert to big blinds: Amount ÷ {{BIG_BLIND}} = BB
+(e.g., if Big Blind is 2 and you see "20", that equals 10BB)
+
 Hand Details: {{HAND_DETAILS}}
 Result: {{RESULT}}
 

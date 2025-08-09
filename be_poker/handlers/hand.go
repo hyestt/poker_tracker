@@ -330,7 +330,23 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		board = *hand.Board
 	}
 	
-	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains)
+	// 獲取session信息以取得盲注設定
+	var smallBlind, bigBlind int
+	sessionRow := db.DB.QueryRow(`
+		SELECT 
+			COALESCE(small_blind, 0), 
+			COALESCE(big_blind, 0)
+		FROM sessions 
+		WHERE id = $1
+	`, hand.SessionID)
+	
+	err = sessionRow.Scan(&smallBlind, &bigBlind)
+	if err != nil {
+		http.Error(w, "Failed to get session info for analysis: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	
+	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains, smallBlind, bigBlind)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return
