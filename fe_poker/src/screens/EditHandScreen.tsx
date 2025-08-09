@@ -509,11 +509,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         <View style={styles.topSection}>
           <View style={styles.fieldColumn}>
             <View style={styles.labelRow}>
-              <Text style={styles.label}>Hand Details</Text>
-              {/* Debug Info */}
-              <View style={{ backgroundColor: '#f0f0f0', padding: 4, borderRadius: 4, marginHorizontal: 8 }}>
-                <Text style={{ fontSize: 10, color: '#666' }}>Cursor: {selection.start}-{selection.end} | Len: {details.length}</Text>
-              </View>
+              <View style={{ flex: 1 }} />
               <View style={styles.keyboardToggleContainer}>
                 <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
