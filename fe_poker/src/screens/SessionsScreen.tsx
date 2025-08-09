@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
-import { Session } from '../models';
 
 export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { sessions, hands, fetchSessions, fetchHands, deleteSession } = useSessionStore();
@@ -34,6 +33,13 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   useEffect(() => {
     const loadData = async () => {
       try {
+        // 如果數據已經存在，跳過載入直接顯示
+        if (sessions.length > 0) {
+          console.log('Sessions data already available, skipping load');
+          setLoading(false);
+          return;
+        }
+
         await Promise.all([fetchSessions(), fetchHands()]);
       } catch (error) {
         console.error('Error loading sessions data:', error);
@@ -43,7 +49,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     };
 
     loadData();
-  }, []);
+  }, [sessions.length, fetchSessions, fetchHands]);
 
   // Calculate session statistics
   const getSessionStats = (sessionId: string) => {

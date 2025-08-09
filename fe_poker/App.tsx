@@ -140,9 +140,6 @@ const App = () => {
     // 初始化應用服務
     const initializeServices = async () => {
       try {
-        // 添加延遲確保原生模塊完全初始化
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         // 順序初始化而不是並行，避免時序問題
         await initializeSessionStore();
         await RevenueCatService.initialize();

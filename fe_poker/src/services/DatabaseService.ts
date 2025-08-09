@@ -8,6 +8,8 @@ SQLite.enablePromise(true);
 
 export class DatabaseService {
   private static db: SQLite.SQLiteDatabase | null = null;
+  private static isInitialized: boolean = false;
+  private static isInitializing: boolean = false;
   private static readonly DB_NAME = 'poker_tracker.db';
   private static readonly DB_VERSION = '1.1';
   private static readonly DB_DISPLAY_NAME = 'LiveHand Database';
@@ -15,6 +17,20 @@ export class DatabaseService {
 
   // 初始化數據庫
   static async initialize(): Promise<void> {
+    // 如果已經初始化，直接返回
+    if (this.isInitialized && this.db) {
+      return;
+    }
+
+    // 如果正在初始化，等待完成
+    if (this.isInitializing) {
+      while (this.isInitializing) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      return;
+    }
+
+    this.isInitializing = true;
     try {
       this.db = await SQLite.openDatabase({
         name: this.DB_NAME,
@@ -25,10 +41,13 @@ export class DatabaseService {
 
       await this.createTables();
       await this.migrateDatabase();
+      this.isInitialized = true;
       console.log('Database initialized successfully');
     } catch (error) {
       console.error('Database initialization failed:', error);
       throw error;
+    } finally {
+      this.isInitializing = false;
     }
   }
 
@@ -592,6 +611,8 @@ export class DatabaseService {
     if (this.db) {
       await this.db.close();
       this.db = null;
+      this.isInitialized = false;
+      this.isInitializing = false;
     }
   }
 }
