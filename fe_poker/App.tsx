@@ -143,7 +143,7 @@ const SessionsStack = () => (
   >
     <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session', headerBackTitle: 'Back' }} />
-    <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Back', headerBackTitle: 'Back' }} />
+    <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Session Details', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
     <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
