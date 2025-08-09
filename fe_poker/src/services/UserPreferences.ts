@@ -58,7 +58,7 @@ const defaultPreferences: UserPreferences = {
     '🇭🇺 HUF (Ft)',
     '🇧🇬 BGN (лв)',
     '🇷🇴 RON (lei)',
-    '🇦🇷 ARS ($)'
+    '🇦🇷 ARS ($)',
   ],
   customTableSizes: ['2', '4', '6', '8', '9', '10'],
   customBlinds: ['0.5/1', '1/2', '1/3', '2/5', '5/10', '10/20', '25/50'],
@@ -150,4 +150,4 @@ export const UserPreferencesService = {
       console.error('Failed to reset preferences to defaults:', error);
     }
   },
-}; 
+};

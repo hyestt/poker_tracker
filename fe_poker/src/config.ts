@@ -19,5 +19,5 @@ export default {
     SESSIONS: '/sessions',
     STATS: '/stats',
     ANALYZE: '/analyze',
-  }
-}; 
+  },
+};

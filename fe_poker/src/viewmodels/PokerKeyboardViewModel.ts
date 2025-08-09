@@ -41,7 +41,7 @@ export const usePokerKeyboardViewModel = (
       return {
         rank,
         suit,
-        display: cardStr
+        display: cardStr,
       };
     });
   };
@@ -55,10 +55,10 @@ export const usePokerKeyboardViewModel = (
   });
 
   const setSelectedAction = useCallback((action: 'hole' | 'position') => {
-    setState(prev => ({ 
-      ...prev, 
+    setState(prev => ({
+      ...prev,
       selectedAction: action,
-      maxCards: action === 'hole' ? 2 : 1
+      maxCards: action === 'hole' ? 2 : 1,
     }));
   }, []);
 
@@ -81,7 +81,7 @@ export const usePokerKeyboardViewModel = (
       const cardExists = prev.inputCards.some(
         card => card.rank === rank && card.suit === suit
       );
-      
+
       if (cardExists) {
         return prev;
       }
@@ -89,7 +89,7 @@ export const usePokerKeyboardViewModel = (
       const newCard: PokerCard = {
         rank,
         suit,
-        display: `${rank}${suit}`
+        display: `${rank}${suit}`,
       };
 
       return {
@@ -140,4 +140,4 @@ export const usePokerKeyboardViewModel = (
       isCardSelected,
     },
   };
-}; 
+};

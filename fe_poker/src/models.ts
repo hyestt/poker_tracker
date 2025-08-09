@@ -45,4 +45,4 @@ export interface Stats {
   avgSession: number;
   byStakes: Record<string, number>;
   byLocation: Record<string, number>;
-} 
+}

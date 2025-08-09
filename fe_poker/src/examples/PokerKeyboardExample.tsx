@@ -15,9 +15,9 @@ export const PokerKeyboardExample: React.FC = () => {
       Alert.alert('Reminder', 'Please select cards first');
       return;
     }
-    
+
     Alert.alert(
-      'Save Successful', 
+      'Save Successful',
       `Selected cards: ${selectedCards.join(', ')}`
     );
   };
@@ -35,7 +35,7 @@ export const PokerKeyboardExample: React.FC = () => {
           當前已選擇：{selectedCards.length > 0 ? selectedCards.join(', ') : '無'}
         </Text>
       </View>
-      
+
       <PokerKeyboardView
         onBack={handleBack}
         onSave={handleSave}
@@ -68,4 +68,4 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     color: theme.colors.gray,
   },
-}); 
+});

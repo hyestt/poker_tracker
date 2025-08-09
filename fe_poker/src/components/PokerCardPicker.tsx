@@ -39,7 +39,7 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
 
   const handleCardSelect = (card: string) => {
     let newSelectedCards = [...selectedCards];
-    
+
     if (newSelectedCards.includes(card)) {
       // Remove card if already selected
       newSelectedCards = newSelectedCards.filter(c => c !== card);
@@ -47,9 +47,9 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
       // Add card if less than 2 selected
       newSelectedCards.push(card);
     }
-    
+
     setSelectedCards(newSelectedCards);
-    
+
     // Auto confirm when 2 cards are selected
     if (newSelectedCards.length === 2) {
       setTimeout(() => {
@@ -75,7 +75,7 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
     const isSelected = selectedCards.includes(item);
     const rank = item.slice(0, -1);
     const suit = item.slice(-1);
-    
+
     return (
       <TouchableOpacity
         style={[styles.card, isSelected && styles.selectedCard]}
@@ -151,8 +151,8 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
                 <TouchableOpacity style={styles.button} onPress={handleCancel}>
                   <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.button, styles.confirmButton]} 
+                <TouchableOpacity
+                  style={[styles.button, styles.confirmButton]}
                   onPress={handleConfirm}
                 >
                   <Text style={styles.confirmButtonText}>Confirm</Text>
@@ -195,8 +195,8 @@ export const PokerCardPicker: React.FC<PokerCardPickerProps> = ({
               <TouchableOpacity style={styles.button} onPress={handleCancel}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.button, styles.confirmButton]} 
+              <TouchableOpacity
+                style={[styles.button, styles.confirmButton]}
                 onPress={handleConfirm}
               >
                 <Text style={styles.confirmButtonText}>Confirm</Text>
@@ -346,4 +346,4 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     fontWeight: '600',
   },
-}); 
+});

@@ -33,7 +33,7 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
     try {
       const summary = DataLoaderService.getDataSummary();
       setDataSummary(summary);
-      
+
       const stats = await DataLoaderService.validateDataConsistency();
       setMigrationStats(stats);
     } catch (error) {
@@ -45,11 +45,11 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
     setLoading(true);
     try {
       await DataLoaderService.loadDataToSQLite();
-      
+
       // 重新檢查一致性
       const stats = await DataLoaderService.validateDataConsistency();
       setMigrationStats(stats);
-      
+
       Alert.alert(
         '遷移成功',
         `已成功遷移 ${stats.sqliteStats.sessionsCount} 個 sessions 和 ${stats.sqliteStats.handsCount} 個 hands 到本地數據庫`,
@@ -77,10 +77,10 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
             try {
               await DatabaseService.initialize();
               await DatabaseService.clearAllData();
-              
+
               const stats = await DataLoaderService.validateDataConsistency();
               setMigrationStats(stats);
-              
+
               Alert.alert('清空成功', '本地數據已清空');
             } catch (error) {
               console.error('清空數據失敗:', error);
@@ -98,7 +98,7 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
     setLoading(true);
     try {
       const data = await DataLoaderService.getAllDataFromSQLite();
-      
+
       Alert.alert(
         '查詢結果',
         `Sessions: ${data.sessions.length}\nHands: ${data.hands.length}\n\n最新 Session: ${
@@ -124,7 +124,7 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
       </View>
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-        
+
         {/* 數據摘要 */}
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>📊 數據摘要</Text>
@@ -150,19 +150,19 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
                 <Text style={styles.statLabel}>狀態:</Text>
                 <Text style={[
                   styles.consistencyStatus,
-                  migrationStats.isConsistent ? styles.consistent : styles.inconsistent
+                  migrationStats.isConsistent ? styles.consistent : styles.inconsistent,
                 ]}>
                   {migrationStats.isConsistent ? '✅ 一致' : '❌ 不一致'}
                 </Text>
               </View>
-              
+
               <View style={styles.comparisonContainer}>
                 <View style={styles.comparisonColumn}>
                   <Text style={styles.comparisonTitle}>JSON 數據</Text>
                   <Text style={styles.statText}>Sessions: {migrationStats.jsonStats.sessionsCount}</Text>
                   <Text style={styles.statText}>Hands: {migrationStats.jsonStats.handsCount}</Text>
                 </View>
-                
+
                 <View style={styles.comparisonColumn}>
                   <Text style={styles.comparisonTitle}>SQLite 數據</Text>
                   <Text style={styles.statText}>Sessions: {migrationStats.sqliteStats.sessionsCount}</Text>
@@ -176,21 +176,21 @@ export const DataMigrationScreen: React.FC<{ navigation: any }> = ({ navigation 
         {/* 操作按鈕 */}
         <Card style={styles.card}>
           <Text style={styles.cardTitle}>🛠 操作</Text>
-          
+
           <Button
             title="遷移數據到 SQLite"
             onPress={handleMigrateData}
             disabled={loading}
             style={styles.actionButton}
           />
-          
+
           <Button
             title="測試查詢數據"
             onPress={handleTestQuery}
             disabled={loading}
             style={styles.actionButton}
           />
-          
+
           <Button
             title="清空本地數據"
             onPress={handleClearData}
@@ -313,4 +313,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.textSecondary,
   },
-}); 
+});

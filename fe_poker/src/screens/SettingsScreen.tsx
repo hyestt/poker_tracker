@@ -9,14 +9,14 @@ import { UserPreferencesService } from '../services/UserPreferences';
 import { createTestHands } from '../utils/createTestHands';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { 
-    isLocalMode, 
-    switchToLocalMode, 
-    switchToApiMode, 
+  const {
+    isLocalMode,
+    switchToLocalMode,
+    switchToApiMode,
     migrateToLocal,
     fetchSessions,
     fetchHands,
-    fetchStats 
+    fetchStats,
   } = useSessionStore();
 
   const [isPremium, setIsPremium] = useState(false);
@@ -30,18 +30,18 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         setIsLoading(true);
         const premiumStatus = await RevenueCatService.isPremiumUser();
         setIsPremium(premiumStatus);
-        
+
         // 檢查測試模式狀態
         const testStatus = await RevenueCatService.getTestPremiumStatus();
         setIsTestMode(testStatus);
-        
+
         if (!premiumStatus) {
           const availableOfferings = await RevenueCatService.getOfferings();
           setOfferings(availableOfferings);
         }
       } catch (error) {
         Alert.alert('Error', 'Failed to fetch subscription status.');
-        console.error("Failed to fetch subscription status:", error);
+        console.error('Failed to fetch subscription status:', error);
       } finally {
         setIsLoading(false);
       }
@@ -93,14 +93,14 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     try {
       // Initialize database
       await DatabaseService.initialize();
-      
+
       // Get data statistics
       const stats = await DatabaseService.getDataStats();
-      
+
       // Get some sample data
       const sessions = await DatabaseService.getAllSessions();
       const hands = await DatabaseService.getAllHands();
-      
+
       const message = `📊 SQLite Database Status:
 
 📈 Statistics:
@@ -114,7 +114,7 @@ ${sessions.slice(0, 3).map(s => `• ${s.location} - ${s.date}`).join('\n')}
 ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).join('\n')}
 
 🔧 Current Mode: ${isLocalMode ? 'Local SQLite' : 'API Mode'}`;
-      
+
       Alert.alert('SQLite Database Test', message);
     } catch (error) {
       Alert.alert('Error', `Database test failed: ${error}`);
@@ -137,8 +137,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             } catch (error) {
               Alert.alert('Error', `Migration failed: ${error}`);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -146,7 +146,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
   const handleSwitchMode = async () => {
     const newMode = isLocalMode ? 'API Mode' : 'Local Mode';
     const currentMode = isLocalMode ? 'Local Mode' : 'API Mode';
-    
+
     Alert.alert(
       'Switch Storage Mode',
       `Current Mode: ${currentMode}\nSwitch to: ${newMode}\n\nAre you sure you want to switch?`,
@@ -166,8 +166,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             } catch (error) {
               Alert.alert('Error', `Switch failed: ${error}`);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -178,7 +178,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
       await Promise.all([
         fetchSessions(),
         fetchHands(),
-        fetchStats()
+        fetchStats(),
       ]);
       Alert.alert('Success', 'Data refreshed');
     } catch (error) {
@@ -192,7 +192,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
       await RevenueCatService.setTestPremiumStatus(newStatus);
       setIsTestMode(newStatus);
       setIsPremium(newStatus);
-      
+
       Alert.alert(
         'Test Mode Updated',
         `Test premium status: ${newStatus ? 'Premium' : 'Free'}`,
@@ -218,7 +218,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
               await Promise.all([
                 fetchSessions(),
                 fetchHands(),
-                fetchStats()
+                fetchStats(),
               ]);
               Alert.alert(
                 'Success',
@@ -228,8 +228,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
               Alert.alert('Error', 'Failed to create test hands: ' + error);
               console.error('Failed to create test hands:', error);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -250,8 +250,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             } catch (error) {
               Alert.alert('Error', `Reset failed: ${error}`);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -259,7 +259,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-        
+
         {/* Subscription Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>💎 Upgrade to PRO</Text>
@@ -271,7 +271,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             </View>
           ) : (
             <>
-              {offerings.map((offering) => 
+              {offerings.map((offering) =>
                 offering.availablePackages.map((pkg) => (
                   <TouchableOpacity key={pkg.identifier} style={styles.menuItem} onPress={() => handlePurchase(pkg)}>
                     <Text style={styles.menuText}>{`${pkg.product.title} - ${pkg.product.priceString}`}</Text>
@@ -290,7 +290,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         {/* App Settings Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>⚙️ App Settings</Text>
-          
+
           <TouchableOpacity style={styles.menuItem} onPress={handleResetPreferences}>
             <Text style={styles.menuText}>🔄 Reset User Preferences</Text>
             <Text style={styles.menuArrow}>›</Text>
@@ -302,7 +302,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         {__DEV__ && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🧪 Debug & Testing</Text>
-            
+
             <TouchableOpacity style={styles.menuItem} onPress={handleToggleTestPremium}>
               <Text style={styles.menuText}>
                 🔄 Toggle Premium Status (Test Mode)
@@ -318,7 +318,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
               </Text>
               <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>
-            
+
             <View style={styles.debugInfo}>
               <Text style={styles.debugText}>
                 Current Status: {isPremium ? '✅ Premium' : '❌ Free'}
@@ -330,7 +330,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         {/* Support Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🛠️ Support</Text>
-          
+
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Help')}>
             <Text style={styles.menuText}>❓ Help Center</Text>
             <Text style={styles.menuArrow}>›</Text>
@@ -423,4 +423,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-}); 
+});

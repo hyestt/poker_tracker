@@ -15,7 +15,7 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
     }
 
     setIsLoading(true);
-    
+
     try {
       console.log('Creating session with ID:', session.id);
       await addSession(session);
@@ -46,4 +46,4 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-}); 
+});

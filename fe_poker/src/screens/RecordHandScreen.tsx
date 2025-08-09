@@ -56,7 +56,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const updatedVillains = [...villains];
       updatedVillains[selectedVillainIndex] = {
         ...updatedVillains[selectedVillainIndex],
-        holeCards: cardsString
+        holeCards: cardsString,
       };
       setVillains(updatedVillains);
     } else {
@@ -69,7 +69,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     const newVillain: Villain = {
       id: `villain_${Date.now()}`,
       holeCards: '',
-      position: ''
+      position: '',
     };
     setVillains([...villains, newVillain]);
   };
@@ -78,7 +78,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     const updatedVillains = [...villains];
     updatedVillains[index] = {
       ...updatedVillains[index],
-      [field]: value
+      [field]: value,
     };
     setVillains(updatedVillains);
   };
@@ -117,7 +117,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const selectionStart = input.props.selection?.start || currentText.length;
       const newText = currentText.slice(0, selectionStart) + text + currentText.slice(selectionStart);
       setDetails(newText);
-      
+
       // Move cursor to after inserted text
       setTimeout(() => {
         input.setSelection?.(selectionStart + text.length, selectionStart + text.length);
@@ -152,41 +152,41 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const handleQuickInsert = (text: string) => {
     const { start, end } = selection;
     const currentDetails = details || '';
-    
+
     console.log('[DEBUG RecordHand] handleQuickInsert called:', {
       text,
       start,
       end,
       currentDetailsLength: currentDetails.length,
       selectionState: selection,
-      hasSelection: start !== end
+      hasSelection: start !== end,
     });
-    
+
     // 檢查是否需要在數字後自動添加空格（只在沒有選中文本時）
     let textToInsert = text;
     if (start === end && start > 0) {
       const previousChar = currentDetails.charAt(start - 1);
       const firstCharOfText = text.charAt(0);
-      
+
       // 如果前一個字符是數字，且要插入的第一個字符不是數字、空格、標點符號，則自動添加空格
-      if (/\d/.test(previousChar) && 
+      if (/\d/.test(previousChar) &&
           !/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)) {
         textToInsert = ' ' + text;
         console.log('[DEBUG RecordHand] Added space before text:', textToInsert);
       }
     }
-    
+
     // 在游標位置插入文字，或者替換選中的文本
     const newDetails = currentDetails.slice(0, start) + textToInsert + currentDetails.slice(end);
     const newPosition = start + textToInsert.length;
-    
+
     if (start !== end) {
       console.log('[DEBUG RecordHand] Replacing selected text:', {
         selectedText: currentDetails.slice(start, end),
         replacementText: textToInsert,
         oldText: currentDetails,
         newText: newDetails,
-        newPosition
+        newPosition,
       });
     } else {
       console.log('[DEBUG RecordHand] Inserting text at cursor:', {
@@ -194,20 +194,20 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
         newText: newDetails,
         insertPosition: start,
         newPosition,
-        textToInsert
+        textToInsert,
       });
     }
-    
+
     setDetails(newDetails);
     setLastInsertedText(textToInsert);
-    
+
     // 保持TextInput的焦點並設置正確的游標位置
     if (detailsInputRef.current) {
       detailsInputRef.current.focus();
       // 先設置 TextInput 的實際游標位置
       console.log('[DEBUG RecordHand] Setting cursor position via setSelection immediately:', newPosition);
       detailsInputRef.current.setSelection(newPosition, newPosition);
-      
+
       // 然後更新 React state
       setTimeout(() => {
         setSelection({ start: newPosition, end: newPosition });
@@ -221,54 +221,54 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     const currentDetails = detailsRef.current;
     const currentSelection = selectionRef.current;
     const { start, end } = currentSelection;
-    
+
     console.log('[DEBUG RecordHand] handleQuickDelete called:', {
       start,
       end,
       currentDetailsLength: currentDetails.length,
       selectionState: currentSelection,
-      hasSelection: start !== end
+      hasSelection: start !== end,
     });
-    
+
     if (currentDetails.length > 0) {
       let newDetails = '';
       let newPosition = 0;
-      
+
       if (start !== end) {
         // 有文本被選中，刪除選中的文本
         newDetails = currentDetails.slice(0, start) + currentDetails.slice(end);
         newPosition = start;
-        
+
         console.log('[DEBUG RecordHand] Deleting selected text:', {
           selectedText: currentDetails.slice(start, end),
           oldText: currentDetails,
           newText: newDetails,
-          newPosition
+          newPosition,
         });
       } else if (start > 0) {
         // 沒有選中文本，刪除游標前的一個字符
         newDetails = currentDetails.slice(0, start - 1) + currentDetails.slice(start);
         newPosition = start - 1;
-        
+
         console.log('[DEBUG RecordHand] Deleting single character:', {
           deletedChar: currentDetails.charAt(start - 1),
           oldText: currentDetails,
           newText: newDetails,
           oldPosition: start,
-          newPosition
+          newPosition,
         });
       } else {
         // 游標在最前面，無法刪除
         return false;
       }
-      
+
       setDetails(newDetails);
-      
+
       // 先設置 TextInput 的實際游標位置，再更新 React state
       if (detailsInputRef.current) {
         console.log('[DEBUG RecordHand] Setting cursor position after delete immediately:', newPosition);
         detailsInputRef.current.setSelection(newPosition, newPosition);
-        
+
         // 然後更新 React state
         setTimeout(() => {
           setSelection({ start: newPosition, end: newPosition });
@@ -276,7 +276,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       } else {
         setSelection({ start: newPosition, end: newPosition });
       }
-      
+
       return true; // 表示成功刪除
     }
     return false; // 表示無法刪除
@@ -293,10 +293,10 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
           setDeleteTimer(null);
         }
       }, 150); // 每150毫秒刪除一個字符
-      
+
       setDeleteTimer(intervalTimer);
     }, 500); // 長按500毫秒後開始快速刪除
-    
+
     setDeleteTimer(timer);
   };
 
@@ -356,12 +356,12 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
           const screenHeight = Dimensions.get('window').height;
           const keyboardHeight = 350; // 估計鍵盤高度
           const visibleHeight = screenHeight - keyboardHeight;
-          
+
           if (y + height > visibleHeight) {
             const scrollY = y + height - visibleHeight + 50; // 額外偏移
             scrollViewRef.current?.scrollTo({
               y: scrollY,
-              animated: true
+              animated: true,
             });
           }
         });
@@ -403,12 +403,12 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       favorite: false,
       tags,
     };
-    
+
     try {
       await addHand(hand);
       await fetchHands();
       await fetchStats();
-      
+
       // Reset form for recording another hand under the same session
       setHoleCards('');
       setBoard('');
@@ -418,7 +418,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       setResult('');
       setVillains([]);
       setTags([]);
-      
+
       // Show success message
       Alert.alert(
         'Hand Saved',
@@ -434,11 +434,11 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: () => (
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => {
             // 導航到 Session Details 頁面
             navigation.navigate('SessionDetail', { sessionId });
-          }} 
+          }}
           style={styles.headerBackButton}
         >
           <Text style={styles.headerBackButtonText}>‹ Back</Text>
@@ -454,15 +454,15 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.flex} 
+      <KeyboardAvoidingView
+        style={styles.flex}
         behavior={'padding'}
         keyboardVerticalOffset={88}
         enabled={true}
       >
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollContainer} 
+        style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -490,9 +490,9 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 />
               </View>
             </View>
-            
+
             {/* Example for GTO Analysis */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.exampleToggle}
               onPress={() => setShowExample(!showExample)}
             >
@@ -500,13 +500,13 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 💡 Add more details for better AI analysis {showExample ? '▼' : '▶'}
               </Text>
             </TouchableOpacity>
-            
+
             {showExample && (
               <View style={styles.exampleContainer}>
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
                   • Position & stack sizes{'\n'}
-                  • Bet sizes in BB (big blinds){'\n'}  
+                  • Bet sizes in BB (big blinds){'\n'}
                   • Action sequence for each street{'\n'}
                   • Opponent tendencies if known{'\n'}
                   • Table dynamics & reads{'\n'}{'\n'}
@@ -514,7 +514,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 </Text>
               </View>
             )}
-            
+
             <TextInput
               ref={detailsInputRef}
               style={styles.detailsInput}
@@ -525,7 +525,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 console.log('[DEBUG RecordHand] onSelectionChange:', {
                   oldSelection: selection,
                   newSelection,
-                  textLength: details.length
+                  textLength: details.length,
                 });
                 setSelection(newSelection);
               }}
@@ -550,9 +550,9 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                   <Text style={styles.hideKeyboardButtonText}>Hide</Text>
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.quickButtonsSection}>
-            
+
             {/* Round Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
@@ -781,9 +781,9 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             </View>
           )}
         </View>
-        
+
         <View style={styles.spacer} />
-        
+
         <View style={styles.bottomSection}>
           {/* Board Row */}
           <View style={styles.fullWidthField}>
@@ -799,7 +799,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                         const getSuitColor = (suit: string) => {
                           return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
                         };
-                        
+
                         return (
                           <View key={index} style={styles.boardCardWrapper}>
                             {/* Add label above second flop card for center alignment */}
@@ -818,7 +818,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                             {index !== 1 && index !== 3 && index !== 4 && (
                               <Text style={styles.boardLabelPlaceholder}> </Text>
                             )}
-                            
+
                             <View style={styles.miniCard}>
                               <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
                                 {rank}{suit}
@@ -945,11 +945,11 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
             <View style={styles.fieldHeaderRow}>
               <Text style={styles.fieldLabel}>Result ($)</Text>
               <View style={styles.fieldInputContainer}>
-                <Input 
-                  value={result} 
-                  onChangeText={setResult} 
-                  placeholder="+150, -75" 
-                  keyboardType="numbers-and-punctuation" 
+                <Input
+                  value={result}
+                  onChangeText={setResult}
+                  placeholder="+150, -75"
+                  keyboardType="numbers-and-punctuation"
                   style={styles.compactInput}
                 />
               </View>
@@ -977,12 +977,12 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
-          
+
           <PokerKeyboardView
             onCardSelect={handleCardSelect}
             initialAction="hole"
-            initialCards={selectedVillainIndex !== null && selectedVillainIndex < villains.length ? 
-              (villains[selectedVillainIndex]?.holeCards ? villains[selectedVillainIndex].holeCards!.split(' ') : []) : 
+            initialCards={selectedVillainIndex !== null && selectedVillainIndex < villains.length ?
+              (villains[selectedVillainIndex]?.holeCards ? villains[selectedVillainIndex].holeCards!.split(' ') : []) :
               (holeCards ? holeCards.split(' ') : [])
             }
             onDone={handlePokerKeyboardClose}
@@ -1007,7 +1007,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
-          
+
           <PokerKeyboardView
             onCardSelect={handleBoardCardSelect}
             initialAction="hole"
@@ -1521,4 +1521,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-}); 
+});

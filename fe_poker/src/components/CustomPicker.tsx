@@ -18,7 +18,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
   value,
   onValueChange,
   onOptionsChange,
-  placeholder = "Select an option",
+  placeholder = 'Select an option',
   allowCustom = true,
   allowDelete = true,
   title,
@@ -126,7 +126,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
               onPress={(e) => e.stopPropagation()}
             >
               <Text style={styles.modalTitle}>Select {title}</Text>
-              
+
               <FlatList
                 data={options}
                 keyExtractor={(item) => item}
@@ -199,7 +199,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
         >
           <View style={styles.modal}>
             <Text style={styles.modalTitle}>Select Option</Text>
-            
+
             <FlatList
               data={options}
               renderItem={renderOption}
@@ -410,4 +410,4 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     fontWeight: '600',
   },
-}); 
+});

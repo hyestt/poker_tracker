@@ -42,12 +42,12 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           const keyboardHeight = 250;
           const inputBottom = y + height;
           const availableHeight = screenHeight - keyboardHeight;
-          
+
           if (inputBottom > availableHeight) {
             const scrollOffset = inputBottom - availableHeight + 50;
             scrollViewRef.current?.scrollTo({
               y: scrollOffset,
-              animated: true
+              animated: true,
             });
           }
         });
@@ -77,7 +77,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const handleCardSelect = useCallback((selectedCards: string[]) => {
     const cardsString = selectedCards.join(' ');
     console.log('handleCardSelect called with:', selectedCards, 'cardsString:', cardsString, 'selectedVillainIndex:', selectedVillainIndex);
-    
+
     if (selectedVillainIndex !== null) {
       // Update villain cards using functional update to avoid dependency on villains
       setVillains(currentVillains => {
@@ -86,7 +86,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           const updatedVillains = [...currentVillains];
           updatedVillains[selectedVillainIndex] = {
             ...updatedVillains[selectedVillainIndex],
-            holeCards: cardsString
+            holeCards: cardsString,
           };
           console.log('Updated villains:', updatedVillains);
           return updatedVillains;
@@ -129,7 +129,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       const selectionStart = input.props.selection?.start || currentText.length;
       const newText = currentText.slice(0, selectionStart) + text + currentText.slice(selectionStart);
       setDetails(newText);
-      
+
       // Move cursor to after inserted text
       setTimeout(() => {
         input.setSelection?.(selectionStart + text.length, selectionStart + text.length);
@@ -158,41 +158,41 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const handleQuickInsert = (text: string) => {
     const { start, end } = selection;
     const currentDetails = details || '';
-    
+
     console.log('[DEBUG] handleQuickInsert called:', {
       text,
       start,
       end,
       currentDetailsLength: currentDetails.length,
       selectionState: selection,
-      hasSelection: start !== end
+      hasSelection: start !== end,
     });
-    
+
     // 檢查是否需要在數字後自動添加空格（只在沒有選中文本時）
     let textToInsert = text;
     if (start === end && start > 0) {
       const previousChar = currentDetails.charAt(start - 1);
       const firstCharOfText = text.charAt(0);
-      
+
       // 如果前一個字符是數字，且要插入的第一個字符不是數字、空格、標點符號，則自動添加空格
-      if (/\d/.test(previousChar) && 
+      if (/\d/.test(previousChar) &&
           !/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)) {
         textToInsert = ' ' + text;
         console.log('[DEBUG] Added space before text:', textToInsert);
       }
     }
-    
+
     // 在游標位置插入文字，或者替換選中的文本
     const newDetails = currentDetails.slice(0, start) + textToInsert + currentDetails.slice(end);
     const newPosition = start + textToInsert.length;
-    
+
     if (start !== end) {
       console.log('[DEBUG] Replacing selected text:', {
         selectedText: currentDetails.slice(start, end),
         replacementText: textToInsert,
         oldText: currentDetails,
         newText: newDetails,
-        newPosition
+        newPosition,
       });
     } else {
       console.log('[DEBUG] Inserting text at cursor:', {
@@ -200,20 +200,20 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         newText: newDetails,
         insertPosition: start,
         newPosition,
-        textToInsert
+        textToInsert,
       });
     }
-    
+
     setDetails(newDetails);
     setLastInsertedText(textToInsert);
-    
+
     // 保持TextInput的焦點並設置正確的游標位置
     if (detailsInputRef.current) {
       detailsInputRef.current.focus();
       // 先設置 TextInput 的實際游標位置
       console.log('[DEBUG] Setting cursor position via setSelection immediately:', newPosition);
       detailsInputRef.current.setSelection(newPosition, newPosition);
-      
+
       // 然後更新 React state
       setTimeout(() => {
         setSelection({ start: newPosition, end: newPosition });
@@ -227,49 +227,49 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     const currentDetails = detailsRef.current;
     const currentSelection = selectionRef.current;
     const { start, end } = currentSelection;
-    
+
     console.log('[DEBUG] handleQuickDelete called:', {
       start,
       end,
       currentDetailsLength: currentDetails.length,
       selectionState: currentSelection,
-      hasSelection: start !== end
+      hasSelection: start !== end,
     });
-    
+
     if (currentDetails.length > 0) {
       let newDetails = '';
       let newPosition = 0;
-      
+
       if (start !== end) {
         // 有文本被選中，刪除選中的文本
         newDetails = currentDetails.slice(0, start) + currentDetails.slice(end);
         newPosition = start;
-        
+
         console.log('[DEBUG] Deleting selected text:', {
           selectedText: currentDetails.slice(start, end),
           oldText: currentDetails,
           newText: newDetails,
-          newPosition
+          newPosition,
         });
       } else if (start > 0) {
         // 沒有選中文本，刪除游標前的一個字符
         newDetails = currentDetails.slice(0, start - 1) + currentDetails.slice(start);
         newPosition = start - 1;
-        
+
         console.log('[DEBUG] Deleting single character:', {
           deletedChar: currentDetails.charAt(start - 1),
           oldText: currentDetails,
           newText: newDetails,
           oldPosition: start,
-          newPosition
+          newPosition,
         });
       } else {
         // 游標在最前面，無法刪除
         return false;
       }
-      
+
       setDetails(newDetails);
-      
+
       // 只設置 TextInput 的實際游標位置，不更新 React state 以避免衝突
       if (detailsInputRef.current) {
         console.log('[DEBUG] Setting cursor position after delete (TextInput only):', newPosition);
@@ -286,7 +286,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           }
         }, 50);
       }
-      
+
       return true; // 表示成功刪除
     }
     return false; // 表示無法刪除
@@ -303,10 +303,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           setDeleteTimer(null);
         }
       }, 150); // 每150毫秒刪除一個字符
-      
+
       setDeleteTimer(intervalTimer);
     }, 500); // 長按500毫秒後開始快速刪除
-    
+
     setDeleteTimer(timer);
   };
 
@@ -385,7 +385,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         setLoading(false);
       }
     };
-    
+
     if (handId) {
       loadHand();
     } else {
@@ -430,7 +430,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     };
     console.log('Saving hand with villains:', villains);
     console.log('Complete hand object:', hand);
-    
+
     try {
       await updateHand(hand);
       await fetchHands();
@@ -443,7 +443,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, tags, updateHand, fetchHands, fetchStats, navigation]);
 
   const handleSaveRef = useRef(handleSave);
-  
+
   // 更新 ref 中的 handleSave 函數
   useEffect(() => {
     handleSaveRef.current = handleSave;
@@ -463,7 +463,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     const newVillain: Villain = {
       id: `villain_${Date.now()}`,
       holeCards: '',
-      position: ''
+      position: '',
     };
     setVillains([...villains, newVillain]);
   };
@@ -472,7 +472,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     const updatedVillains = [...villains];
     updatedVillains[index] = {
       ...updatedVillains[index],
-      [field]: value
+      [field]: value,
     };
     setVillains(updatedVillains);
   };
@@ -493,14 +493,14 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.flex} 
+      <KeyboardAvoidingView
+        style={styles.flex}
         behavior={'padding'}
         keyboardVerticalOffset={88}
         enabled={true}
       >
-      <ScrollView 
-        style={styles.scrollContainer} 
+      <ScrollView
+        style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -538,7 +538,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 console.log('[DEBUG] onSelectionChange:', {
                   oldSelection: selection,
                   newSelection,
-                  textLength: details.length
+                  textLength: details.length,
                 });
                 setSelection(newSelection);
               }}
@@ -564,9 +564,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                   <Text style={styles.hideKeyboardButtonText}>Hide</Text>
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.quickButtonsSection}>
-            
+
             {/* Round Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
@@ -797,9 +797,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             </View>
           )}
         </View>
-        
+
         <View style={styles.spacer} />
-        
+
         <View style={styles.bottomSection}>
           {/* Board Row */}
           <View style={styles.fullWidthField}>
@@ -815,7 +815,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                         const getSuitColor = (suit: string) => {
                           return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
                         };
-                        
+
                         return (
                           <View key={index} style={styles.boardCardWrapper}>
                             {/* Add label above second flop card for center alignment */}
@@ -834,7 +834,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                             {index !== 1 && index !== 3 && index !== 4 && (
                               <Text style={styles.boardLabelPlaceholder}> </Text>
                             )}
-                            
+
                             <View style={styles.miniCard}>
                               <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
                                 {rank}{suit}
@@ -961,13 +961,13 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             <View style={styles.fieldHeaderRow}>
               <Text style={styles.fieldLabel}>Result ($)</Text>
               <View style={styles.fieldInputContainer}>
-                <Input 
+                <Input
                   ref={resultInputRef}
-                  value={result} 
+                  value={result}
                   onChangeText={setResult}
                   onFocus={() => handleInputFocus(resultInputRef)}
-                  placeholder="+150, -75" 
-                  keyboardType="numbers-and-punctuation" 
+                  placeholder="+150, -75"
+                  keyboardType="numbers-and-punctuation"
                   style={styles.compactInput}
                 />
               </View>
@@ -995,12 +995,12 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
-          
+
           <PokerKeyboardView
             onCardSelect={handleCardSelect}
             initialAction="hole"
-            initialCards={selectedVillainIndex !== null && selectedVillainIndex < villains.length ? 
-              (villains[selectedVillainIndex]?.holeCards ? villains[selectedVillainIndex].holeCards!.split(' ') : []) : 
+            initialCards={selectedVillainIndex !== null && selectedVillainIndex < villains.length ?
+              (villains[selectedVillainIndex]?.holeCards ? villains[selectedVillainIndex].holeCards!.split(' ') : []) :
               (holeCards ? holeCards.split(' ') : [])
             }
             onDone={handlePokerKeyboardClose}
@@ -1025,7 +1025,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
-          
+
           <PokerKeyboardView
             onCardSelect={handleBoardCardSelect}
             initialAction="hole"
@@ -1524,4 +1524,4 @@ const styles = StyleSheet.create({
   positionButton: {
     backgroundColor: theme.colors.positionButton,
   },
-}); 
+});

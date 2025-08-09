@@ -19,21 +19,21 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
   currentText = '',
   cursorPosition = 0,
 }) => {
-  
+
   const handleInsert = (text: string) => {
     // 檢查是否需要在數字後自動添加空格
     let textToInsert = text;
     if (cursorPosition > 0) {
       const previousChar = currentText.charAt(cursorPosition - 1);
       const firstCharOfText = text.charAt(0);
-      
+
       // 如果前一個字符是數字，且要插入的第一個字符不是數字、空格、標點符號，則自動添加空格
-      if (/\d/.test(previousChar) && 
+      if (/\d/.test(previousChar) &&
           !/[\d\s.,!?;:()\-+*/=]/.test(firstCharOfText)) {
         textToInsert = ' ' + text;
       }
     }
-    
+
     onQuickInsert(textToInsert);
   };
   return (
@@ -361,4 +361,4 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.positionButton,
     borderColor: theme.colors.positionButton,
   },
-}); 
+});

@@ -18,12 +18,12 @@ export const HoleCardsDisplay: React.FC<HoleCardsDisplayProps> = ({
   };
 
   const renderCards = () => {
-    if (!holeCards) return null;
-    
+    if (!holeCards) {return null;}
+
     return (
       <View style={styles.cardsContainer}>
         {holeCards.split(' ').map((card, index) => {
-          if (!card) return null;
+          if (!card) {return null;}
           const rank = card.slice(0, -1);
           const suit = card.slice(-1);
           return (
@@ -39,7 +39,7 @@ export const HoleCardsDisplay: React.FC<HoleCardsDisplayProps> = ({
   };
 
   const hasData = holeCards || position;
-  
+
   if (!hasData) {
     return (
       <Text style={styles.fallbackText}>
@@ -91,4 +91,4 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.font.size.body,
   },
-}); 
+});

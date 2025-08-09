@@ -10,14 +10,14 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
   console.log('EditSessionScreen route params:', route.params);
   const { sessionId } = route.params || {};
   console.log('EditSessionScreen sessionId:', sessionId);
-  
+
   if (!sessionId) {
     console.error('No sessionId provided to EditSessionScreen');
   }
-  
+
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   const { updateSession, getSession, fetchSessions, fetchStats } = useSessionStore();
 
   useEffect(() => {
@@ -29,11 +29,11 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
       console.log('Loading session with ID:', sessionId);
       const sessionData = await getSession(sessionId);
       console.log('Loaded session data:', sessionData);
-      
+
       if (!sessionData) {
         throw new Error('Session not found');
       }
-      
+
       setSession(sessionData);
       setLoading(false);
     } catch (error) {
@@ -105,4 +105,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: theme.spacing.sm,
   },
-}); 
+});

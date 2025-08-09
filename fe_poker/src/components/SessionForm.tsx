@@ -21,7 +21,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
   initialSession,
   onSubmit,
   submitButtonTitle,
-  isLoading = false
+  isLoading = false,
 }) => {
   // 使用單一狀態對象管理表單數據
   const [formData, setFormData] = useState({
@@ -31,9 +31,9 @@ export const SessionForm: React.FC<SessionFormProps> = ({
     currency: '',
     effectiveStack: '',
     tableSize: '',
-    tag: ''
+    tag: '',
   });
-  
+
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,7 +41,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
   const updateFormData = useCallback((field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   }, []);
 
@@ -52,10 +52,10 @@ export const SessionForm: React.FC<SessionFormProps> = ({
     // 確保只有一個小數點
     const parts = numericValue.split('.');
     const validValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue;
-    
+
     setFormData(prev => ({
       ...prev,
-      [field]: validValue
+      [field]: validValue,
     }));
   }, []);
 
@@ -66,7 +66,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
   const loadPreferencesAndInitialize = async () => {
     const prefs = await UserPreferencesService.getPreferences();
     setPreferences(prefs);
-    
+
     if (initialSession) {
       // 編輯模式 - 載入現有 session 資料
       setFormData({
@@ -76,13 +76,13 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         currency: initialSession.currency || '',
         effectiveStack: initialSession.effectiveStack?.toString() || '',
         tableSize: initialSession.tableSize?.toString() || '',
-        tag: initialSession.tag || ''
+        tag: initialSession.tag || '',
       });
     } else {
       // 新建模式 - 設定預設值
       const now = new Date();
       const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
+
       setFormData({
         location: prefs.lastLocation || 'Live Casino',
         date: formattedDate,
@@ -90,7 +90,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         currency: prefs.lastCurrency || '🇺🇸 USD ($)',
         effectiveStack: '100',
         tableSize: prefs.lastTableSize || '6',
-        tag: ''
+        tag: '',
       });
     }
   };
@@ -102,7 +102,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // 驗證必填欄位
       if (!formData.location.trim()) {
@@ -249,11 +249,11 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         <View style={styles.horizontalContainer}>
           <Text style={styles.fieldTitle}>Effective Stack</Text>
           <View style={styles.inputContainer}>
-            <Input 
-              value={formData.effectiveStack} 
+            <Input
+              value={formData.effectiveStack}
               onChangeText={(value) => updateNumericField('effectiveStack', value)}
-              placeholder="Starting stack amount" 
-              keyboardType="numeric" 
+              placeholder="Starting stack amount"
+              keyboardType="numeric"
             />
           </View>
         </View>
@@ -268,8 +268,8 @@ export const SessionForm: React.FC<SessionFormProps> = ({
       </Card>
 
       <View style={styles.buttonContainer}>
-        <Button 
-          title={submitButtonTitle} 
+        <Button
+          title={submitButtonTitle}
           onPress={handleSubmit}
           disabled={isLoading || isSubmitting}
         />
@@ -316,4 +316,4 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.lg,
   },
-}); 
+});

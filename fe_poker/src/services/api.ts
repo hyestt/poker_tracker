@@ -19,7 +19,7 @@ class ApiService {
   async getHands(): Promise<Hand[]> {
     try {
       const response = await fetch(`${this.baseUrl}${config.ENDPOINTS.HANDS}`);
-      if (!response.ok) throw new Error(`API錯誤: ${response.status}`);
+      if (!response.ok) {throw new Error(`API錯誤: ${response.status}`);}
       return await response.json();
     } catch (error) {
       return this.handleError(error);
@@ -30,7 +30,7 @@ class ApiService {
   async getSessions(): Promise<Session[]> {
     try {
       const response = await fetch(`${this.baseUrl}${config.ENDPOINTS.SESSIONS}`);
-      if (!response.ok) throw new Error(`API錯誤: ${response.status}`);
+      if (!response.ok) {throw new Error(`API錯誤: ${response.status}`);}
       return await response.json();
     } catch (error) {
       return this.handleError(error);
@@ -45,7 +45,7 @@ class ApiService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(hand),
       });
-      if (!response.ok) throw new Error(`API錯誤: ${response.status}`);
+      if (!response.ok) {throw new Error(`API錯誤: ${response.status}`);}
       return await response.json();
     } catch (error) {
       return this.handleError(error);
@@ -58,7 +58,7 @@ class ApiService {
       const response = await fetch(`${this.baseUrl}${config.ENDPOINTS.HANDS}/${id}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error(`API錯誤: ${response.status}`);
+      if (!response.ok) {throw new Error(`API錯誤: ${response.status}`);}
     } catch (error) {
       this.handleError(error);
     }
@@ -70,7 +70,7 @@ class ApiService {
       const response = await fetch(`${this.baseUrl}${config.ENDPOINTS.ANALYZE}/${id}`, {
         method: 'POST',
       });
-      if (!response.ok) throw new Error(`API錯誤: ${response.status}`);
+      if (!response.ok) {throw new Error(`API錯誤: ${response.status}`);}
       const data = await response.json();
       return data.analysis || '無法取得分析結果';
     } catch (error) {
@@ -82,7 +82,7 @@ class ApiService {
   async getStats(): Promise<Stats> {
     try {
       const response = await fetch(`${this.baseUrl}${config.ENDPOINTS.STATS}`);
-      if (!response.ok) throw new Error(`API錯誤: ${response.status}`);
+      if (!response.ok) {throw new Error(`API錯誤: ${response.status}`);}
       return await response.json();
     } catch (error) {
       return this.handleError(error);
@@ -91,4 +91,4 @@ class ApiService {
 }
 
 // 導出單例
-export default new ApiService(); 
+export default new ApiService();

@@ -63,7 +63,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   const handlePurchase = async (plan: SubscriptionPlan) => {
     try {
       setPurchasing(plan.id);
-      
+
       const offerings = await revenueCatService.getOfferings();
       let packageToPurchase = null;
 
@@ -72,7 +72,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         packageToPurchase = offering.availablePackages.find(
           pkg => pkg.identifier === plan.id
         );
-        if (packageToPurchase) break;
+        if (packageToPurchase) {break;}
       }
 
       if (!packageToPurchase) {
@@ -80,7 +80,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       }
 
       await revenueCatService.purchasePackage(packageToPurchase);
-      
+
       Alert.alert(
         'Purchase Successful!',
         'Thank you for subscribing to LiveHand Premium!',
@@ -91,7 +91,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         // User cancelled the purchase
         return;
       }
-      
+
       Alert.alert(
         'Purchase Failed',
         error.message || 'Something went wrong. Please try again.'
@@ -106,7 +106,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       setLoading(true);
       await revenueCatService.restorePurchases();
       await loadSubscriptionData();
-      
+
       Alert.alert(
         'Restore Successful',
         'Your purchases have been restored!'
@@ -133,26 +133,26 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   );
 
   const renderPremiumStatus = () => {
-    const statusCardStyle = isPremium ? 
-      { ...styles.statusCard, ...styles.premiumCard } : 
+    const statusCardStyle = isPremium ?
+      { ...styles.statusCard, ...styles.premiumCard } :
       { ...styles.statusCard, ...styles.freeCard };
-      
+
     return (
       <Card style={statusCardStyle}>
         <Text style={styles.statusTitle}>
           {isPremium ? '🎉 Premium Active' : '📱 Free Version'}
         </Text>
         <Text style={styles.statusDescription}>
-          {isPremium 
+          {isPremium
             ? 'You have access to all premium features!'
             : 'Upgrade to unlock advanced features and unlimited usage.'
           }
         </Text>
-        
+
         {isPremium && (
           <View style={styles.activeFeatures}>
             <Text style={styles.activeFeaturesTitle}>Active Features:</Text>
-            {Object.entries(premiumFeatures).map(([key, isActive]) => 
+            {Object.entries(premiumFeatures).map(([key, isActive]) =>
               isActive ? (
                 <Text key={key} style={styles.activeFeatureItem}>
                   ✓ {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -166,16 +166,16 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   };
 
   const renderSubscriptionPlan = (plan: SubscriptionPlan) => {
-    const planCardStyle = plan.isPopular ? 
-      { ...styles.planCard, ...styles.popularPlan } : 
+    const planCardStyle = plan.isPopular ?
+      { ...styles.planCard, ...styles.popularPlan } :
       styles.planCard;
-      
-    const buttonStyle = isPremium ? 
+
+    const buttonStyle = isPremium ?
       { ...styles.subscribeButton, ...styles.disabledButton } :
-      plan.isPopular ? 
+      plan.isPopular ?
         { ...styles.subscribeButton, ...styles.popularButton } :
         styles.subscribeButton;
-        
+
     return (
       <Card key={plan.id} style={planCardStyle}>
         {plan.isPopular && (
@@ -183,21 +183,21 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
             <Text style={styles.popularBadgeText}>Most Popular</Text>
           </View>
         )}
-        
+
         <Text style={styles.planTitle}>{plan.title}</Text>
         <Text style={styles.planPrice}>{plan.price}</Text>
         <Text style={styles.planPeriod}>per {plan.period.toLowerCase()}</Text>
         <Text style={styles.planDescription}>{plan.description}</Text>
-        
+
         {renderFeatureList(plan.features)}
-        
+
         <Button
           title={purchasing === plan.id ? 'Processing...' : `Subscribe ${plan.price}`}
           onPress={() => handlePurchase(plan)}
           disabled={purchasing !== null || isPremium}
           style={buttonStyle}
         />
-        
+
         {purchasing === plan.id && (
           <ActivityIndicator style={styles.loadingIndicator} color={theme.colors.primary} />
         )}
@@ -236,7 +236,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         <TouchableOpacity style={styles.restoreButton} onPress={handleRestorePurchases}>
           <Text style={styles.restoreButtonText}>Restore Purchases</Text>
         </TouchableOpacity>
-        
+
         <Text style={styles.disclaimer}>
           Subscriptions will be charged to your Apple ID account. Auto-renewal may be turned off by going to Account Settings after purchase.
         </Text>
@@ -422,4 +422,4 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     paddingHorizontal: theme.spacing.md,
   },
-}); 
+});
