@@ -18,7 +18,7 @@ func NewPromptManager() *PromptManager {
 }
 
 // 讀取prompt文件並替換變數
-func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int) (string, error) {
+func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int, smallBlind int, bigBlind int) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "hand_analysis.txt")
 	
 	// 讀取prompt文件
@@ -31,6 +31,9 @@ func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int) (
 	prompt := string(content)
 	prompt = strings.ReplaceAll(prompt, "{{HAND_DETAILS}}", handDetails)
 	prompt = strings.ReplaceAll(prompt, "{{RESULT}}", fmt.Sprintf("%+d", result))
+	prompt = strings.ReplaceAll(prompt, "{{SMALL_BLIND}}", fmt.Sprintf("%d", smallBlind))
+	prompt = strings.ReplaceAll(prompt, "{{BIG_BLIND}}", fmt.Sprintf("%d", bigBlind))
+	prompt = strings.ReplaceAll(prompt, "{{LANGUAGE}}", "Traditional Chinese")
 	
 	return prompt, nil
 }
