@@ -84,7 +84,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
       const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
       setFormData({
-        location: prefs.lastLocation || '',
+        location: prefs.lastLocation || 'Live Casino',
         date: formattedDate,
         blinds: prefs.lastBlinds || '1/2',
         currency: prefs.lastCurrency || '🇺🇸 USD ($)',
