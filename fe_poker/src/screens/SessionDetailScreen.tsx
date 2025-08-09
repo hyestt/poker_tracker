@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -39,6 +39,25 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
 
   const session = sessions.find(s => s.id === sessionId);
   const sessionHands = hands.filter(hand => hand.sessionId === sessionId);
+
+  // 動態設置標題和返回按鈕
+  useLayoutEffect(() => {
+    if (session) {
+      navigation.setOptions({
+        title: session.location || 'Session Details',
+        headerLeft: () => (
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('SessionsList');
+            }}
+            style={styles.headerBackButton}
+          >
+            <Text style={styles.headerBackButtonText}>‹ Back</Text>
+          </TouchableOpacity>
+        ),
+      });
+    }
+  }, [navigation, session]);
 
   // Sort hands by date (newest first)
   const getSortedHands = () => {
@@ -534,5 +553,15 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     fontSize: theme.font.size.body,
+  },
+  headerBackButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
+  },
+  headerBackButtonText: {
+    color: theme.colors.primary,
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
   },
 });
