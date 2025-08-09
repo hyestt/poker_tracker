@@ -422,7 +422,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       position,
       details,
       note,
-      result: parseInt(result) || 0,
+      result: parseFloat(result) || 0,
       date: new Date().toISOString(),
       villains: villains,
       favorite,
@@ -967,7 +967,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                   onChangeText={setResult}
                   onFocus={() => handleInputFocus(resultInputRef)}
                   placeholder="+150, -75" 
-                  keyboardType="numeric" 
+                  keyboardType="numbers-and-punctuation" 
                   style={styles.compactInput}
                 />
               </View>
