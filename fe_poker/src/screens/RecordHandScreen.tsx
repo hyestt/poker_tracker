@@ -497,7 +497,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               onPress={() => setShowExample(!showExample)}
             >
               <Text style={styles.exampleToggleText}>
-                💡 Add more details for better AI analysis {showExample ? '▼' : '▶'}
+                💡 Add hand details for better AI analysis {showExample ? '▼' : '▶'}
               </Text>
             </TouchableOpacity>
 
@@ -505,12 +505,12 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
               <View style={styles.exampleContainer}>
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
-                  • Position & stack sizes{'\n'}
-                  • Bet sizes in BB (big blinds){'\n'}
-                  • Action sequence for each street{'\n'}
-                  • Opponent tendencies if known{'\n'}
-                  • Table dynamics & reads{'\n'}{'\n'}
-                  Example: "UTG (100BB) raises 3BB, I 3-bet 9BB from CO with 150BB, UTG calls. Flop A♠K♦5♣: I c-bet 12BB, UTG calls. Turn 2♥: I bet 30BB, UTG raises to 90BB..."
+                  • Cards & position are entered below{'\n'}
+                  • Focus on betting action{'\n'}
+                  • Bet sizes in dollars{'\n'}
+                  Example: {'\n'}Preflop: UTG Bet 15 BTN Raise 45 UTG Call{'\n'} 
+                            Flop: UTG Check BTN Bet 30 UTG Call{'\n'}
+                            Turn: BTN Bet 100 UTG Fold
                 </Text>
               </View>
             )}

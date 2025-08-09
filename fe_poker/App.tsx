@@ -16,7 +16,7 @@ LogBox.ignoreLogs([
 import { NavigationContainer } from '@react-navigation/native';
 import { theme } from './src/theme';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { NewSessionScreen } from './src/screens/NewSessionScreen';
 import { RecordHandScreen } from './src/screens/RecordHandScreen';
@@ -50,36 +50,17 @@ function HomeStack() {
           open: {
             animation: 'timing',
             config: {
-              duration: 300,
+              duration: 250,
             },
           },
           close: {
             animation: 'timing',
             config: {
-              duration: 300,
+              duration: 250,
             },
           },
         },
-        cardStyleInterpolator: ({ current, next, layouts }) => {
-          return {
-            cardStyle: {
-              transform: [
-                {
-                  translateX: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [layouts.screen.width, 0], // 进入时从右边滑入
-                  }),
-                },
-              ],
-            },
-            overlayStyle: {
-              opacity: current.progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 0.5],
-              }),
-            },
-          };
-        },
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
@@ -109,36 +90,17 @@ const SessionsStack = () => (
         open: {
           animation: 'timing',
           config: {
-            duration: 300,
+            duration: 250,
           },
         },
         close: {
           animation: 'timing',
           config: {
-            duration: 300,
+            duration: 250,
           },
         },
       },
-      cardStyleInterpolator: ({ current, next, layouts }) => {
-        return {
-          cardStyle: {
-            transform: [
-              {
-                translateX: current.progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [layouts.screen.width, 0], // 进入时从右边滑入
-                }),
-              },
-            ],
-          },
-          overlayStyle: {
-            opacity: current.progress.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 0.5],
-            }),
-          },
-        };
-      },
+      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
     }}
   >
     <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ headerShown: false }} />
@@ -147,7 +109,7 @@ const SessionsStack = () => (
     <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
     <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
-    <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details' }} />
+    <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details', headerBackTitle: 'Back' }} />
     <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'GTO Analysis' }} />
     <Stack.Screen
       name="PokerKeyboard"
