@@ -31,6 +31,40 @@ export class WelcomeDemoService {
     }
   }
 
+  static async recreateWelcomeData(): Promise<void> {
+    try {
+      await DatabaseService.initialize();
+      console.log('🔄 Recreating welcome demo data...');
+
+      // Delete existing demo data if it exists
+      try {
+        await DatabaseService.deleteHand(this.DEMO_HAND_ID);
+        console.log('🗑️ Deleted existing demo hand');
+      } catch (error) {
+        console.log('No existing demo hand to delete');
+      }
+
+      try {
+        await DatabaseService.deleteSession(this.DEMO_SESSION_ID);
+        console.log('🗑️ Deleted existing demo session');
+      } catch (error) {
+        console.log('No existing demo session to delete');
+      }
+
+      // Create new demo data
+      const demoSession = this.createDemoSession();
+      const demoHand = this.createDemoHand();
+
+      await DatabaseService.insertSession(demoSession);
+      await DatabaseService.insertHand(demoHand);
+
+      console.log('✅ Welcome demo data recreated successfully!');
+    } catch (error) {
+      console.error('❌ Failed to recreate welcome demo data:', error);
+      throw error;
+    }
+  }
+
   private static createDemoSession(): Session {
     return {
       id: this.DEMO_SESSION_ID,

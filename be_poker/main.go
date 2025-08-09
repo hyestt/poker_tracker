@@ -115,12 +115,14 @@ func main() {
 	// 環境檢查
 	checkEnvironment()
 	
-	// 初始化資料庫
-	fmt.Println("🗄️  Connecting to database...")
+	// 初始化資料庫（可選）
+	fmt.Println("🗄️  Initializing database connection...")
 	if err := db.InitDB(); err != nil {
-		log.Fatalf("❌ Database connection failed: %v", err)
+		fmt.Printf("⚠️  Database initialization failed: %v\n", err)
+		fmt.Println("🚀 Continuing in API-only mode (AI analysis still available)")
+	} else {
+		fmt.Println("✅ Database ready")
 	}
-	fmt.Println("✅ Database ready")
 	fmt.Println()
 	
 	// 註冊路由

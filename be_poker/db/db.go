@@ -11,10 +11,11 @@ import (
 var DB *sql.DB
 
 func InitDB() error {
-	// 使用 Railway PostgreSQL 資料庫
+	// 嘗試使用 Railway PostgreSQL 資料庫，如果不可用則跳過
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		return fmt.Errorf("DATABASE_URL environment variable is not set")
+		log.Printf("⚠️ DATABASE_URL not set - running in API-only mode (analysis features still available)")
+		return nil
 	}
 	
 	log.Printf("🗄️  Using PostgreSQL database from Railway")

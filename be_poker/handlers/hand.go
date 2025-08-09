@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 	"poker_tracker_backend/db"
@@ -330,20 +331,9 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		board = *hand.Board
 	}
 	
-	// 獲取session信息以取得盲注設定
-	var smallBlind, bigBlind int
-	sessionRow := db.DB.QueryRow(`
-		SELECT 
-			COALESCE(small_blind, 0), 
-			COALESCE(big_blind, 0)
-		FROM sessions 
-		WHERE id = $1
-	`, hand.SessionID)
-	
-	if err := sessionRow.Scan(&smallBlind, &bigBlind); err != nil {
-		http.Error(w, "Failed to get session info for analysis: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	// 使用預設盲注值進行分析（前端管理所有session資料）
+	var smallBlind, bigBlind int = 1, 2
+	log.Printf("ℹ️ Using default blinds (1/2) for analysis - frontend manages session data")
 	
 	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains, smallBlind, bigBlind)
 	if err != nil {

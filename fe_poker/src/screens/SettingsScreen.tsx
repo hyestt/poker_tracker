@@ -7,8 +7,9 @@ import RevenueCatService from '../services/RevenueCatService';
 import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import { UserPreferencesService } from '../services/UserPreferences';
 import { createTestHands } from '../utils/createTestHands';
+import { WelcomeDemoService } from '../services/WelcomeDemoService';
 
-export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation: _navigation }) => {
   const {
     isLocalMode,
     switchToLocalMode,
@@ -256,6 +257,60 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
     );
   };
 
+  const handleCreateWelcomeDemo = async () => {
+    try {
+      setIsLoading(true);
+
+      // Check if welcome demo data already exists
+      const welcomeDataExists = await WelcomeDemoService.checkIfWelcomeDataExists();
+
+      if (welcomeDataExists) {
+        Alert.alert(
+          'Demo Session Exists',
+          'A welcome demo session already exists. Do you want to recreate it?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Recreate',
+              onPress: async () => {
+                try {
+                  setIsLoading(true);
+                  await WelcomeDemoService.recreateWelcomeData();
+                  await Promise.all([
+                    fetchSessions(),
+                    fetchHands(),
+                    fetchStats(),
+                  ]);
+                  Alert.alert('Success', 'Welcome demo session recreated successfully! Check your History to view the demo content.');
+                } catch (error) {
+                  const errorMessage = error instanceof Error ? error.message : String(error);
+                  Alert.alert('Error', `Failed to recreate demo session: ${errorMessage}`);
+                  console.error('Failed to recreate welcome demo:', error);
+                } finally {
+                  setIsLoading(false);
+                }
+              },
+            },
+          ]
+        );
+      } else {
+        await WelcomeDemoService.createWelcomeData();
+        await Promise.all([
+          fetchSessions(),
+          fetchHands(),
+          fetchStats(),
+        ]);
+        Alert.alert('Success', 'Welcome demo session created successfully! Check your History to view the demo content.');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      Alert.alert('Error', `Failed to create demo session: ${errorMessage}`);
+      console.error('Failed to create welcome demo:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
@@ -315,6 +370,13 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             <TouchableOpacity style={styles.menuItem} onPress={handleCreateTestHands}>
               <Text style={styles.menuText}>
                 🎯 Create 9 Test Hands
+              </Text>
+              <Text style={styles.menuArrow}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleCreateWelcomeDemo}>
+              <Text style={styles.menuText}>
+                🎉 Create Welcome Demo Session
               </Text>
               <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>

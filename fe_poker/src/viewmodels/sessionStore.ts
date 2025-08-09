@@ -484,29 +484,54 @@ export const useSessionStore = create<State>((set, get) => ({
         throw new Error('Hand not found');
       }
 
-      // 確保手牌有必要的分析數據
+      // 確保手牌有必要的分析數據，並轉換為後端期望的格式
       const handForAnalysis = {
-        ...hand,
-        details: hand.details || `${hand.holeCards} in ${hand.position} position`,
+        id: hand.id,
+        sessionId: hand.sessionId,
+        holeCards: hand.holeCards || null,
+        board: hand.board || null,
+        position: hand.position || null,
+        details: hand.details || `${hand.holeCards || 'Unknown cards'} in ${hand.position || 'unknown'} position`,
+        note: hand.note || null,
         result: hand.result || 0,
+        date: hand.date || new Date().toISOString(),
+        tag: hand.tag || '',
+        villains: hand.villains || [],
+        analysis: hand.analysis || '',
+        analysisDate: hand.analysisDate || '',
+        favorite: hand.favorite || false,
       };
 
       // AI Analysis 始終使用後端 API 進行分析
-      const response = await apiCall(`${API_BASE_URL}/analyze`, {
-        method: 'POST',
-        body: JSON.stringify({ hand: handForAnalysis }),
-      });
+      try {
+        const response = await apiCall(`${API_BASE_URL}/analyze`, {
+          method: 'POST',
+          body: JSON.stringify({ hand: handForAnalysis }),
+        });
 
-      // ⚠️ 重要：分析結果始終保存到本地 SQLite，不論任何模式
-      if (hand) {
-        hand.analysis = response?.analysis || '';
-        hand.analysisDate = response?.date || new Date().toISOString();
-        await DatabaseService.updateHand(hand);
-        console.log(`✅ AI分析結果已保存到本地SQLite: ${id}`);
+        // ⚠️ 重要：分析結果始終保存到本地 SQLite，不論任何模式
+        if (hand && response?.analysis) {
+          hand.analysis = response.analysis;
+          hand.analysisDate = response.date || new Date().toISOString();
+          await DatabaseService.updateHand(hand);
+          console.log(`✅ AI分析結果已保存到本地SQLite: ${id}`);
+        }
+
+        await get().fetchHands();
+        return response?.analysis || 'Analysis completed';
+      } catch (apiError) {
+        console.warn('API analysis failed:', apiError);
+        
+        // 如果API失敗，但手牌已有分析結果，則返回現有分析
+        if (hand.analysis && hand.analysis.trim()) {
+          console.log('✅ Returning existing analysis from database');
+          return hand.analysis;
+        }
+        
+        // 拋出更友好的錯誤訊息
+        const errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
+        throw new Error(`Analysis failed: ${errorMessage}. Please check if the backend server is running and properly configured.`);
       }
-
-      await get().fetchHands();
-      return response?.analysis || 'Analysis completed';
     } catch (error) {
       console.error('Error analyzing hand:', error);
       throw error;

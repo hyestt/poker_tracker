@@ -45,4 +45,4 @@ Is this action high frequency? What are the recommended actions and sizing frequ
 ## River  
 ...(if applicable)
 
-CRITICAL REQUIREMENT: Your ENTIRE response must be written in {{LANGUAGE}}. 
+CRITICAL REQUIREMENT: Your ENTIRE response must be written in english. 

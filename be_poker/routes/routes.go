@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"net/http"
 	"poker_tracker_backend/handlers"
 )
@@ -72,6 +73,24 @@ func RegisterRoutes() {
 		case http.MethodPut:
 			handlers.UpdateHand(w, r)
 		}
+	})
+
+	// 健康檢查路由
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		response := map[string]interface{}{
+			"status": "healthy",
+			"service": "poker-tracker-backend",
+			"features": map[string]bool{
+				"ai_analysis": true,
+				"database": false, // Will be updated based on actual DB status
+			},
+		}
+		json.NewEncoder(w).Encode(response)
 	})
 
 	// 測試路由
