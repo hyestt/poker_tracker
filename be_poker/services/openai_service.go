@@ -89,16 +89,9 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position str
 	if len(villains) > 0 {
 		fullHandDetails.WriteString("\nVillains:\n")
 		for i, villain := range villains {
-			villainCards := ""
-			if villain.HoleCards != nil {
-				villainCards = formatHoleCards(*villain.HoleCards)
-			}
-			villainPos := ""
-			if villain.Position != nil {
-				villainPos = *villain.Position
-			}
+			villainCards := formatHoleCards(villain.HoleCards)
 			fullHandDetails.WriteString(fmt.Sprintf("Villain %d - Position: %s, Hole Cards: %s\n", 
-				i+1, villainPos, villainCards))
+				i+1, villain.Position, villainCards))
 		}
 	}
 	
