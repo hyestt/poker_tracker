@@ -217,7 +217,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
             key={suit.label}
             style={[
               styles.suitButton,
-              { borderColor: suit.color },
+              { borderColor: suit.label === 'Spade' ? '#FFFFFF' : suit.color },
               state.selectedSuit === suit.symbol && { backgroundColor: suit.color + '20' },
             ]}
             onPress={() => handleSuitSelect(suit.symbol)}
@@ -225,7 +225,7 @@ export const PokerKeyboardView: React.FC<PokerKeyboardViewProps> = ({
             <Text style={[styles.suitSymbol, { color: suit.color }]}>
               {suit.symbol}
             </Text>
-            <Text style={[styles.suitLabel, { color: suit.color }]}>
+            <Text style={[styles.suitLabel, { color: suit.label === 'Spade' ? '#FFFFFF' : suit.color }]}>
               {suit.label}
             </Text>
           </TouchableOpacity>

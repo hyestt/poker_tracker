@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSessionStore } from '../viewmodels/sessionStore';
+import { Session } from '../models';
 import { theme } from '../theme';
 
 export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -51,11 +52,52 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     loadData();
   }, [sessions.length, fetchSessions, fetchHands]);
 
+  // Calculate session duration
+  const getSessionDuration = (session: Session) => {
+    if (!session.date) return '';
+
+    const startTime = new Date(session.date).getTime();
+    let endTime: number;
+
+    // 如果有 cashOutTime，使用 cashOutTime；否則使用當前時間
+    if (session.cashOutTime) {
+      // 解析 cashOutTime 格式 "2025/08/10 15:06"
+      const cashOutDate = session.cashOutTime.replace(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/, '$1-$2-$3T$4:$5');
+      endTime = new Date(cashOutDate).getTime();
+    } else {
+      endTime = new Date().getTime();
+    }
+
+    const durationMs = endTime - startTime;
+    const minutes = Math.floor(durationMs / (1000 * 60));
+
+    if (minutes < 60) {
+      return `${minutes} min`;
+    } else if (minutes < 1440) { // 1440 minutes = 24 hours
+      const hours = Math.floor(minutes / 60);
+      return `${hours} h`;
+    } else {
+      const days = Math.floor(minutes / 1440);
+      return `${days} d`;
+    }
+  };
+
   // Calculate session statistics
-  const getSessionStats = (sessionId: string) => {
-    const sessionHands = hands.filter(hand => hand.sessionId === sessionId);
-    const totalResult = sessionHands.reduce((sum, hand) => sum + hand.result, 0);
+  const getSessionStats = (session: Session) => {
+    const sessionHands = hands.filter(hand => hand.sessionId === session.id);
     const handCount = sessionHands.length;
+
+    let totalResult = 0;
+
+    // 如果 session 有 cashOut (已結束)，使用 cashOut - buyIn
+    if (session.cashOut !== undefined && session.cashOut !== null) {
+      const buyIn = session.buyIn || 0;
+      totalResult = session.cashOut - buyIn;
+    } else {
+      // 如果 session 沒有 cashOut (進行中)，使用原來的手牌累加邏輯
+      totalResult = sessionHands.reduce((sum, hand) => sum + hand.result, 0);
+    }
+
     return { totalResult, handCount };
   };
 
@@ -129,8 +171,8 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           comparison = new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
           break;
         case 'amount':
-          const aStats = getSessionStats(a.id);
-          const bStats = getSessionStats(b.id);
+          const aStats = getSessionStats(a);
+          const bStats = getSessionStats(b);
           comparison = aStats.totalResult - bStats.totalResult;
           break;
         default:
@@ -315,8 +357,9 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           </View>
         ) : (
           sortedSessions.map((session) => {
-            const { totalResult, handCount } = getSessionStats(session.id);
+            const { totalResult, handCount } = getSessionStats(session);
             const sessionBB = session.bigBlind ? Math.round((totalResult / session.bigBlind) * 10) / 10 : 0;
+            const duration = getSessionDuration(session);
 
             return (
               <TouchableOpacity
@@ -333,7 +376,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                     </Text>
                   </View>
                   <Text style={styles.sessionSubtitle}>
-                    ${session.smallBlind}/${session.bigBlind} • {handCount} hand{handCount !== 1 ? 's' : ''}
+                    ${session.smallBlind}/${session.bigBlind} • {handCount} hand{handCount !== 1 ? 's' : ''}{duration ? ` • ${duration}` : ''}
                   </Text>
                   <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
                 </View>

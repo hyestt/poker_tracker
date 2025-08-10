@@ -700,7 +700,7 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.xs,
   },
   headerBackButtonText: {
-    color: theme.colors.primary,
+    color: '#FFFFFF',
     fontSize: theme.font.size.body,
     fontWeight: '600',
   },
