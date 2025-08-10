@@ -25,15 +25,15 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       // Check GTO analysis quota first
       const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
       setQuotaInfo(quotaStatus);
-      
+
       console.log('GTO Quota Status:', quotaStatus);
-      
+
       // If user can't use GTO analysis and hand has no existing analysis, show quota message
       if (!quotaStatus.canUse && !currentHand.analysis) {
         setLoading(false);
         return;
       }
-      
+
       // Proceed with loading hand data
       await loadLatestHandData();
     } catch (error) {
@@ -72,28 +72,28 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     console.log('performAIAnalysis started, forceReanalyze:', forceReanalyze);
     console.log('Current hand analysis exists:', !!currentHand.analysis);
     console.log('Current hand analysis content:', currentHand.analysis ? 'YES' : 'NO');
-    
+
     // Check quota before starting analysis
     const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
     setQuotaInfo(quotaStatus);
-    
+
     if (!quotaStatus.canUse && (forceReanalyze || !currentHand.analysis)) {
       Alert.alert(
         'GTO Analysis Limit Reached',
-        quotaStatus.isPremium 
-          ? 'Please try again later.' 
-          : `You've used your free daily GTO analysis. Upgrade to Premium for unlimited analysis.`,
-        quotaStatus.isPremium 
+        quotaStatus.isPremium
+          ? 'Please try again later.'
+          : 'You\'ve used your free daily GTO analysis. Upgrade to Premium for unlimited analysis.',
+        quotaStatus.isPremium
           ? [{ text: 'OK' }]
           : [
               { text: 'Maybe Later', style: 'cancel' },
-              { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') }
+              { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') },
             ]
       );
       setLoading(false);
       return;
     }
-    
+
     setLoading(true);
     try {
       // Check if we already have analysis (unless forcing reanalysis)
@@ -105,7 +105,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       }
 
       console.log('Performing new AI analysis...');
-      
+
       // Use the quota (this increments the counter for non-premium users)
       const quotaUsed = await RevenueCatService.useGTOAnalysis();
       if (!quotaUsed) {
@@ -113,11 +113,11 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         setLoading(false);
         return;
       }
-      
+
       // Update quota info after using analysis
       const updatedQuotaStatus = await RevenueCatService.canUseGTOAnalysis();
       setQuotaInfo(updatedQuotaStatus);
-      
+
       // Execute the actual AI analysis
       const analysisResult = await performRealAIAnalysis(currentHand);
       console.log('AI analysis completed:', analysisResult);
@@ -365,7 +365,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       </View>
     );
   }
-  
+
   // Show quota exceeded message if user can't use analysis and no existing analysis
   if (quotaInfo && !quotaInfo.canUse && !currentHand.analysis) {
     return (
@@ -384,21 +384,21 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <Text style={styles.quotaExceededIcon}>🎯</Text>
           <Text style={styles.quotaExceededTitle}>Daily Analysis Limit Reached</Text>
           <Text style={styles.quotaExceededMessage}>
-            {quotaInfo.isPremium 
+            {quotaInfo.isPremium
               ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
               : 'You\'ve used your 1 free GTO analysis for today. Upgrade to Premium for unlimited daily analysis.'}
           </Text>
-          
+
           {!quotaInfo.isPremium && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.upgradeToPremiumButton}
               onPress={() => navigation.navigate('Subscription')}
             >
               <Text style={styles.upgradeToPremiumButtonText}>Upgrade to Premium</Text>
             </TouchableOpacity>
           )}
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.goBackButton}
             onPress={() => navigation.goBack()}
           >
@@ -421,9 +421,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           {quotaInfo && (
             <View style={styles.quotaIndicator}>
               <Text style={styles.quotaText}>
-                {quotaInfo.isPremium 
-                  ? '♾️ Unlimited'
-                  : quotaInfo.remainingFree > 0 
+                {quotaInfo.isPremium
+                  ? ''
+                  : quotaInfo.remainingFree > 0
                     ? `${quotaInfo.remainingFree} free left`
                     : '0 free left'}
               </Text>
