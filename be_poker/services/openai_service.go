@@ -24,6 +24,41 @@ func NewOpenAIService() *OpenAIService {
 	return &OpenAIService{client: client}
 }
 
+// parseBoard 解析 board 字串，分割成 flop/turn/river
+func parseBoard(board string) (flop, turn, river string) {
+	if len(board) < 6 { // 至少需要3張牌(flop)，每張2字符
+		return "", "", ""
+	}
+	
+	// 每張牌2字符，如 "AH"
+	cards := make([]string, 0, 5)
+	for i := 0; i < len(board); i += 2 {
+		if i+1 < len(board) {
+			cards = append(cards, board[i:i+2])
+		}
+	}
+	
+	if len(cards) >= 3 {
+		flop = strings.Join(cards[0:3], " ") // "AH 7S 2D"
+	}
+	if len(cards) >= 4 {
+		turn = cards[3] // "5S"
+	}
+	if len(cards) >= 5 {
+		river = cards[4] // "KS"
+	}
+	
+	return flop, turn, river
+}
+
+// formatHoleCards 格式化底牌，確保空格分隔格式
+func formatHoleCards(holeCards string) string {
+	if len(holeCards) == 4 { // 如 "AHKS" 
+		return holeCards[0:2] + " " + holeCards[2:4] // "AH KS"
+	}
+	return holeCards // 已經是正確格式或空字串
+}
+
 func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position string, holeCards string, board string, villains []models.Villain, smallBlind int, bigBlind int) (string, error) {
 	if s.client == nil {
 		return "", fmt.Errorf("OpenAI service not available: API key not set")
@@ -33,15 +68,37 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position str
 	var fullHandDetails strings.Builder
 	fullHandDetails.WriteString(fmt.Sprintf("Session Blinds: %d/%d\n", smallBlind, bigBlind))
 	fullHandDetails.WriteString(fmt.Sprintf("Hero Position: %s\n", position))
-	fullHandDetails.WriteString(fmt.Sprintf("Hero Hole Cards: %s\n", holeCards))
-	fullHandDetails.WriteString(fmt.Sprintf("Board: %s\n", board))
+	fullHandDetails.WriteString(fmt.Sprintf("Hero Hole Cards: %s\n", formatHoleCards(holeCards)))
+	
+	// 解析並格式化 board
+	if board != "" {
+		flop, turn, river := parseBoard(board)
+		
+		if flop != "" {
+			fullHandDetails.WriteString(fmt.Sprintf("Flop: %s\n", flop))
+		}
+		if turn != "" {
+			fullHandDetails.WriteString(fmt.Sprintf("Turn: %s\n", turn))
+		}
+		if river != "" {
+			fullHandDetails.WriteString(fmt.Sprintf("River: %s\n", river))
+		}
+	}
 	
 	// 添加 Villain 資訊
 	if len(villains) > 0 {
 		fullHandDetails.WriteString("\nVillains:\n")
 		for i, villain := range villains {
+			villainCards := ""
+			if villain.HoleCards != nil {
+				villainCards = formatHoleCards(*villain.HoleCards)
+			}
+			villainPos := ""
+			if villain.Position != nil {
+				villainPos = *villain.Position
+			}
 			fullHandDetails.WriteString(fmt.Sprintf("Villain %d - Position: %s, Hole Cards: %s\n", 
-				i+1, villain.Position, villain.HoleCards))
+				i+1, villainPos, villainCards))
 		}
 	}
 	
