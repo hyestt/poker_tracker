@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { theme } from '../theme';
 
@@ -19,6 +19,7 @@ export const TagInput: React.FC<TagInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 檢查是否已達到標籤限制
   const isAtMaxTags = tags.length >= maxTags;
@@ -47,13 +48,23 @@ export const TagInput: React.FC<TagInputProps> = ({
   }, [tags, availableTags]);
 
   const addTag = (tagToAdd?: string) => {
+    // 清除隱藏timeout，防止建議在點擊時消失
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+
     if (tagToAdd) {
       // 直接添加指定的tag (用于建议tags)
       const trimmedValue = tagToAdd.trim();
       if (trimmedValue && !tags.includes(trimmedValue) && !isAtMaxTags) {
         onTagsChange([...tags, trimmedValue]);
         setInputValue('');
-        setShowSuggestions(false);
+        // 不立即隱藏建議，讓用戶可以繼續選擇更多標籤
+        // 只有在達到最大標籤數時才隱藏建議
+        if (tags.length + 1 >= maxTags) {
+          setShowSuggestions(false);
+        }
       }
     } else {
       // 只添加输入框中的tag
@@ -68,6 +79,10 @@ export const TagInput: React.FC<TagInputProps> = ({
 
   const removeTag = (tagToRemove: string) => {
     onTagsChange(tags.filter(tag => tag !== tagToRemove));
+    // 移除標籤後，如果輸入框有焦點，重新顯示建議
+    if (showSuggestions === false && !inputValue.trim()) {
+      setShowSuggestions(true);
+    }
   };
 
   const handleInputSubmit = () => {
@@ -80,10 +95,16 @@ export const TagInput: React.FC<TagInputProps> = ({
 
   const handleInputBlur = () => {
     // 延遲隱藏建議，讓用戶有時間點擊建議
-    setTimeout(() => setShowSuggestions(false), 150);
+    hideTimeoutRef.current = setTimeout(() => setShowSuggestions(false), 200);
   };
 
   const togglePopularTag = (tag: string) => {
+    // 清除隱藏timeout，防止建議在點擊時消失
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+
     if (tags.includes(tag)) {
       // 如果tag已经在最终tags中，不做任何操作
       return;
@@ -92,6 +113,11 @@ export const TagInput: React.FC<TagInputProps> = ({
     // 直接添加到最终tags中，不需要中间选择状态
     if (!isAtMaxTags) {
       onTagsChange([...tags, tag]);
+      // 不立即隱藏建議，讓用戶可以繼續選擇更多標籤
+      // 只有在達到最大標籤數時才隱藏建議
+      if (tags.length + 1 >= maxTags) {
+        setShowSuggestions(false);
+      }
     }
   };
 
