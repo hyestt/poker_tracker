@@ -19,7 +19,6 @@ export const TagInput: React.FC<TagInputProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedPopularTags, setSelectedPopularTags] = useState<string[]>([]);
 
   // 檢查是否已達到標籤限制
   const isAtMaxTags = tags.length >= maxTags;
@@ -57,28 +56,11 @@ export const TagInput: React.FC<TagInputProps> = ({
         setShowSuggestions(false);
       }
     } else {
-      // 添加输入框中的tag和所有选中的popular tags
-      const tagsToAdd = [];
-
-      // 添加输入框中的tag
+      // 只添加输入框中的tag
       const trimmedInput = inputValue.trim();
-      if (trimmedInput && !tags.includes(trimmedInput)) {
-        tagsToAdd.push(trimmedInput);
-      }
-
-      // 添加选中的popular tags
-      selectedPopularTags.forEach(tag => {
-        if (!tags.includes(tag) && !tagsToAdd.includes(tag)) {
-          tagsToAdd.push(tag);
-        }
-      });
-
-      // 检查是否超过最大标签数量
-      const newTags = [...tags, ...tagsToAdd].slice(0, maxTags);
-      if (newTags.length > tags.length) {
-        onTagsChange(newTags);
+      if (trimmedInput && !tags.includes(trimmedInput) && !isAtMaxTags) {
+        onTagsChange([...tags, trimmedInput]);
         setInputValue('');
-        setSelectedPopularTags([]);
         setShowSuggestions(false);
       }
     }
@@ -107,12 +89,9 @@ export const TagInput: React.FC<TagInputProps> = ({
       return;
     }
 
-    if (selectedPopularTags.includes(tag)) {
-      // 如果已选中，则取消选中
-      setSelectedPopularTags(prev => prev.filter(t => t !== tag));
-    } else {
-      // 如果未选中，则添加到选中列表
-      setSelectedPopularTags(prev => [...prev, tag]);
+    // 直接添加到最终tags中，不需要中间选择状态
+    if (!isAtMaxTags) {
+      onTagsChange([...tags, tag]);
     }
   };
 
@@ -161,9 +140,9 @@ export const TagInput: React.FC<TagInputProps> = ({
           onPress={() => addTag()}
           style={[
             styles.addButton,
-            { opacity: ((inputValue.trim() || selectedPopularTags.length > 0) && !isAtMaxTags) ? 1 : 0.5 },
+            { opacity: (inputValue.trim() && !isAtMaxTags) ? 1 : 0.5 },
           ]}
-          disabled={(!inputValue.trim() && selectedPopularTags.length === 0) || isAtMaxTags}
+          disabled={!inputValue.trim() || isAtMaxTags}
         >
           <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
@@ -201,14 +180,12 @@ export const TagInput: React.FC<TagInputProps> = ({
                 <View style={styles.suggestionsRow}>
                   {popularTags.map((tag, index) => {
                     const isDisabled = tags.length >= maxTags;
-                    const isSelected = selectedPopularTags.includes(tag);
 
                     return (
                       <TouchableOpacity
                         key={index}
                         style={[
                           styles.suggestionTag,
-                          isSelected && styles.selectedPopularTag,
                           isDisabled && styles.popularTagDisabled,
                         ]}
                         onPress={() => !isDisabled && togglePopularTag(tag)}
@@ -216,7 +193,6 @@ export const TagInput: React.FC<TagInputProps> = ({
                       >
                         <Text style={[
                           styles.suggestionTagText,
-                          isSelected && styles.selectedPopularTagText,
                           isDisabled && styles.popularTagTextDisabled,
                         ]}>
                           {tag}
@@ -361,13 +337,5 @@ const styles = StyleSheet.create({
   },
   popularTagTextDisabled: {
     color: theme.colors.gray,
-  },
-  selectedPopularTag: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  selectedPopularTagText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
   },
 });
