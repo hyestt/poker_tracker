@@ -119,28 +119,55 @@ UTG Check Hero Bet $50 Villain Call`,
   }
 
   private static getGTOAnalysis(): string {
-    return `## 1. Technical Analysis
-- **Preflop**: Excellent 3-bet with A♠K♠ from the BTN. Raising to $25 against UTG's $6 open and the cold-caller is a premium play. This sizing (4x the original bet) builds the pot appropriately with a strong suited ace-king.
-- **Flop (A♥7♣2♦)**: Perfect continuation bet of $25 into the $56 pot (roughly 45% pot size). You have top pair with the best kicker on this dry board and should bet for value against weaker aces and drawing hands.
-- **Turn (5♠)**: The check is a reasonable line for pot control. With $106 in the pot, checking back allows bluff-catchers to stay in while avoiding building a massive pot with one pair.
-- **River (K♣)**: Outstanding value bet! You improved to two pair and the $50 bet into $106 (roughly 47% pot size) is perfectly sized to extract value from weaker aces in villain's range.
+    return `
+**Summary**
+Overall: ⭐⭐
 
-## 2. Decision Evaluation
-- **Preflop Sizing**: The $25 3-bet is well-sized against the $6 open and cold-caller, approximately 4x the original bet.
-- **Flop Continuation**: The $25 bet represents good value with top pair top kicker on a dry board.
-- **Turn Control**: Checking with one pair in a $106 pot shows excellent pot control.
-- **River Value**: The $50 value bet after improving to two pair maximizes profit against villain's capped range.
+The hand shows some solid plays but also significant deviations from GTO strategy, particularly on the turn. The turn check was a missed opportunity to extract value. To improve, consider betting more frequently on the turn with strong hands and adjusting sizing to maximize value.
 
-## 3. Improvement Suggestions
-- **Turn Alternative**: Could consider a smaller bet around $35-40 to extract thin value from weaker aces.
-- **River Sizing**: The $50 bet is well-calibrated. Against loose opponents, could potentially bet $60-70 for maximum value.
-- **Overall Execution**: This hand demonstrates excellent post-flop play with appropriate bet sizing throughout.
+## Preflop  
+**Player Action:** 
+Hero is in the BTN position holding A♠ K♠. After UTG opens for $6 and UTG2 calls, Hero raises to $25.
 
-## 4. Learning Points
-- **Bet Sizing**: Proper bet sizing relative to pot size (40-50%) extracts optimal value while maintaining fold equity.
-- **Currency Awareness**: All bets are in actual dollar amounts ($6, $25, $50) rather than big blind multiples.
-- **Value Extraction**: When improving from one pair to two pair on the river, betting for value is crucial against opponent's range of weaker aces.
-- **Positional Play**: Button position allows for superior post-flop control and decision-making throughout all streets.`;
+**GTO Recommendation:** 
+Raising with A♠ K♠ from the BTN is a high-frequency action. The recommended range includes raising with strong hands and some suited connectors. A typical sizing would be around 2.5-3x the initial raise, which aligns with Hero's action.
+
+**Rating & Summary:** 
+⭐⭐⭐⭐⭐ Comments  
+This is a strong preflop play, capitalizing on position and hand strength. The sizing is appropriate, and the action is consistent with GTO principles.
+
+## Flop  
+**Player Action:** 
+The flop comes A♦ 7♣. UTG checks, and Hero bets $25. UTG1 calls.
+
+**GTO Recommendation:** 
+On this flop, betting with top pair (A♠ K♠) is standard. A continuation bet is recommended, especially against two opponents, to protect equity and extract value.
+
+**Rating & Summary:** 
+⭐⭐⭐⭐⭐ Comments
+Hero's action on the flop is solid, maintaining aggression with a strong hand. The bet size is appropriate for the board.
+
+## Turn  
+**Player Action:** 
+The turn is a blank, and both UTG and Hero check.
+
+**GTO Recommendation:** 
+Checking on the turn with top pair is a deviation from GTO. Hero should consider betting to extract value from weaker hands and protect against potential draws. 
+
+**Rating & Summary:** 
+⭐⭐ Comments
+This check is a small mistake. Hero should have continued betting to maximize value and apply pressure on opponents.
+
+## River  
+**Player Action:** 
+The river is also a blank. UTG checks, and Hero bets $50. Villain calls.
+
+**GTO Recommendation:** 
+Betting on the river is a good move, as Hero still has the best hand. The sizing is reasonable, aiming to extract value from weaker Aces or other hands that might call.
+
+**Rating & Summary:** 
+⭐⭐⭐⭐ Comments
+Hero's river bet is a solid play, capitalizing on the strength of the hand.`;
   }
 
   static async checkIfWelcomeDataExists(): Promise<boolean> {

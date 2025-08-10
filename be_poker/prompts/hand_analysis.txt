@@ -19,7 +19,7 @@ Please provide your analysis in {{LANGUAGE}} language following this format:
 **Summary**
 Overall: ⭐⭐
 
-End with 2-3 sentences explaining overall performance, streets that deviated from GTO, and improvement suggestions.
+End with 1-2 sentences explaining overall performance, streets that deviated from GTO, and improvement suggestions.
 Be strict in your evaluation.
 ---
 
@@ -27,7 +27,7 @@ Be strict in your evaluation.
 **Player Action:** 
 Describe Hero's action, position, and amount  
 **GTO Recommendation:** 
-Is this action high frequency? What are the recommended actions and sizing frequencies?  
+Is this action high frequency? What are the recommended actions and sizing frequencies? Use 1-2 short sentences
 **Rating & Summary:** 
 ⭐⭐⭐⭐⭐ Comments  
 

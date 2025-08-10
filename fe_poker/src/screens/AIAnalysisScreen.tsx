@@ -265,7 +265,17 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const renderTextWithFormatting = (text: string) => {
     if (!text) {return text;}
 
-    // 處理粗體文字 **text**
+    // 檢查整行是否是粗體標題格式 (如 **Summary** 或 **Player Action:**)
+    const wholeBoldMatch = text.match(/^\*\*(.+?)\*\*:?$/);
+    if (wholeBoldMatch) {
+      return (
+        <Text style={styles.analysisBoldText}>
+          {wholeBoldMatch[1]}{text.endsWith(':') ? ':' : ''}
+        </Text>
+      );
+    }
+
+    // 處理混合文字中的粗體部分 **text**
     const boldRegex = /\*\*([^*]+)\*\*/g;
     const parts = text.split(boldRegex);
     const elements: React.ReactNode[] = [];
