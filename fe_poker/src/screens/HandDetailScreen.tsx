@@ -61,7 +61,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
           return (
             <View key={index} style={styles.cardWrapper}>
               {/* Add labels for board cards */}
-              <Text style={styles.boardLabel}>
+              <Text style={[styles.boardLabel, !label && styles.boardLabelEmpty]}>
                 {isBoard ? label : ''}
               </Text>
 
@@ -653,6 +653,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     minHeight: 16,
     lineHeight: 16,
+  },
+  boardLabelEmpty: {
+    minHeight: 0,
+    marginBottom: 0,
   },
   boardLabelPlaceholder: {
     fontSize: theme.font.size.body,
