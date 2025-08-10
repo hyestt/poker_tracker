@@ -22,6 +22,10 @@ DerivedData
 *.xcuserstate
 **/.xcode.env.local
 
+# Xcode schemes (personal settings)
+*.xcscheme
+!*.xcscheme/shared
+
 # Android/IntelliJ
 #
 build/
