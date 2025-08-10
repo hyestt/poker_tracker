@@ -179,7 +179,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
   const handleConfirmEndSession = async () => {
     // 驗證 cash out 金額
     if (!cashOutAmount || cashOutAmount.trim() === '') {
-      Alert.alert('Cash Out Amount Required', 'Please enter the cash out amount to end this session.');
+      Alert.alert('Cashout Amount Required', 'Please fill in cashout amount to end this session.');
       return;
     }
 
@@ -189,10 +189,25 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       return;
     }
 
+    // 驗證 cash out 時間不能早於 session 開始時間
+    if (session && session.date && cashOutTime) {
+      const sessionStartTime = new Date(session.date).getTime();
+      const cashOutDateTime = new Date(cashOutTime.replace(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/, '$1-$2-$3T$4:$5')).getTime();
+      
+      if (cashOutDateTime < sessionStartTime) {
+        Alert.alert(
+          'Invalid Time', 
+          'Cash out time cannot be earlier than session start time.\n\nSession started: ' + 
+          session.date + '\nCash out time: ' + cashOutTime
+        );
+        return;
+      }
+    }
+
     try {
       // 調用 sessionStore 的 endSession 方法
       await endSession(sessionId, amount, cashOutTime);
-      
+
       setShowEndSessionModal(false);
       // 返回到主 Sessions 頁面
       navigation.navigate('Sessions');
@@ -404,12 +419,8 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
           <View style={styles.endSessionModal}>
             <SafeAreaView>
               <Text style={styles.modalTitle}>End Session</Text>
-              
-              <View style={styles.modalContent}>
-                <Text style={styles.modalSubtitle}>
-                  Please enter your cash out details to end this session.
-                </Text>
 
+              <View style={styles.modalContent}>
                 {/* Cash Out Amount */}
                 <View style={styles.inputSection}>
                   <Text style={styles.inputLabel}>Cash Out Amount ($)</Text>
@@ -688,7 +699,7 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     fontWeight: '600',
   },
-  
+
   // End Session Modal styles
   modalOverlay: {
     flex: 1,
@@ -714,12 +725,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     padding: theme.spacing.lg,
-  },
-  modalSubtitle: {
-    fontSize: theme.font.size.body,
-    color: theme.colors.gray,
-    textAlign: 'center',
-    marginBottom: theme.spacing.lg,
   },
   inputSection: {
     marginBottom: theme.spacing.md,
