@@ -436,8 +436,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       headerLeft: () => (
         <TouchableOpacity
           onPress={() => {
-            // 導航到 Session Details 頁面
-            navigation.navigate('SessionDetail', { sessionId });
+            // 返回上一頁
+            navigation.goBack();
           }}
           style={styles.headerBackButton}
         >

@@ -48,7 +48,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
         headerLeft: () => (
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate('SessionsList');
+              navigation.goBack();
             }}
             style={styles.headerBackButton}
           >
