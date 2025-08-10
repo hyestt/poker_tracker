@@ -210,7 +210,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
 
       setShowEndSessionModal(false);
       // 返回到主 Sessions 頁面
-      navigation.navigate('Sessions');
+      navigation.navigate('SessionsList');
     } catch (error) {
       console.error('Failed to end session:', error);
       Alert.alert('Error', 'Failed to end session');
