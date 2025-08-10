@@ -8,25 +8,25 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, LogBox } from 'react-native';
 
-// 隱藏所有開發警告以改善用戶體驗
-LogBox.ignoreLogs([
-  'The app is running using the Legacy',
-  'New Architecture',
-  'Cannot connect to Metro',
-  'Metro',
-  'Remote debugger',
-  'Warning:',
-  'ReactNativeFiberHostComponent',
-  'VirtualizedLists should never be nested',
-  'Require cycle:',
-  'source.uri should not be an empty string',
-  'componentWillReceiveProps',
-  'componentWillMount',
-  'componentWillUpdate',
-  'Failed to print',
-  'RevenueCat',
-  'Flipper',
-]);
+// 臨時移除警告過濾以檢查連線問題
+// LogBox.ignoreLogs([
+//   'The app is running using the Legacy',
+//   'New Architecture',
+//   'Cannot connect to Metro',
+//   'Metro',
+//   'Remote debugger',
+//   'Warning:',
+//   'ReactNativeFiberHostComponent',
+//   'VirtualizedLists should never be nested',
+//   'Require cycle:',
+//   'source.uri should not be an empty string',
+//   'componentWillReceiveProps',
+//   'componentWillMount',
+//   'componentWillUpdate',
+//   'Failed to print',
+//   'RevenueCat',
+//   'Flipper',
+// ]);
 
 // 在生產環境下完全關閉所有 console 輸出
 if (!__DEV__) {
