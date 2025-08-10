@@ -3,13 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
-	"time"
 	"poker_tracker_backend/db"
 	"poker_tracker_backend/models"
 	"poker_tracker_backend/services"
-	"github.com/google/uuid"
+	"time"
 )
 
 func CreateHand(w http.ResponseWriter, r *http.Request) {
@@ -19,9 +19,9 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	
+
 	hand.ID = uuid.New().String()
-	
+
 	// 調試信息
 	holeCardsStr := ""
 	positionStr := ""
@@ -32,20 +32,25 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 		positionStr = *hand.Position
 	}
 	fmt.Printf("DEBUG CreateHand: HoleCards='%s', Position='%s'\n", holeCardsStr, positionStr)
-	
+
+	if db.DB == nil {
+		http.Error(w, "Database not initialized", http.StatusInternalServerError)
+		return
+	}
+
 	// 使用新的資料庫結構欄位
 	stmt, err := db.DB.Prepare(`
-		INSERT INTO hands (
-			id, session_id, position, hole_cards, details, result_amount, 
-			analysis, analysis_date, is_favorite, tag, board, note, villains, date
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-	`)
+                INSERT INTO hands (
+                        id, session_id, position, hole_cards, details, result_amount,
+                        analysis, analysis_date, is_favorite, tag, board, note, villains, date
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        `)
 	if err != nil {
 		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
-	
+
 	// 處理villains JSON
 	villainsJSON := "[]"
 	if hand.Villains != nil && len(hand.Villains) > 0 {
@@ -54,29 +59,29 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 			villainsJSON = string(villainsBytes)
 		}
 	}
-	
+
 	_, err = stmt.Exec(
-		hand.ID, 
-		hand.SessionID, 
-		hand.Position, 
-		hand.HoleCards, 
-		hand.Details, 
-		hand.Result, 
-		hand.Analysis, 
-		hand.AnalysisDate, 
-		hand.Favorite, 
+		hand.ID,
+		hand.SessionID,
+		hand.Position,
+		hand.HoleCards,
+		hand.Details,
+		hand.Result,
+		hand.Analysis,
+		hand.AnalysisDate,
+		hand.Favorite,
 		"", // tag
-		hand.Board, 
-		hand.Note, 
-		villainsJSON, 
+		hand.Board,
+		hand.Note,
+		villainsJSON,
 		hand.Date,
 	)
-	
+
 	if err != nil {
 		http.Error(w, "Insert error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(hand)
@@ -107,33 +112,33 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer rows.Close()
-	
+
 	hands := []models.Hand{}
 	for rows.Next() {
 		var h models.Hand
 		var villainsJSON string
-		
+
 		err := rows.Scan(
-			&h.ID, 
-			&h.SessionID, 
-			&h.Position, 
-			&h.HoleCards, 
-			&h.Details, 
-			&h.Result, 
-			&h.Analysis, 
-			&h.AnalysisDate, 
-			&h.Favorite, 
-			&h.Tag, 
-			&h.Board, 
-			&h.Note, 
-			&villainsJSON, 
+			&h.ID,
+			&h.SessionID,
+			&h.Position,
+			&h.HoleCards,
+			&h.Details,
+			&h.Result,
+			&h.Analysis,
+			&h.AnalysisDate,
+			&h.Favorite,
+			&h.Tag,
+			&h.Board,
+			&h.Note,
+			&villainsJSON,
 			&h.Date,
 		)
-		
+
 		if err != nil {
 			continue // 跳過錯誤的行
 		}
-		
+
 		// 解析villains JSON
 		if villainsJSON != "" && villainsJSON != "[]" {
 			err := json.Unmarshal([]byte(villainsJSON), &h.Villains)
@@ -141,10 +146,10 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 				h.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
 			}
 		}
-		
+
 		hands = append(hands, h)
 	}
-	
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(hands)
@@ -156,7 +161,7 @@ func GetHand(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing id parameter", http.StatusBadRequest)
 		return
 	}
-	
+
 	row := db.DB.QueryRow(`
 		SELECT 
 			id, 
@@ -176,32 +181,32 @@ func GetHand(w http.ResponseWriter, r *http.Request) {
 		FROM hands 
 		WHERE id = $1
 	`, id)
-	
+
 	var h models.Hand
 	var villainsJSON string
-	
+
 	err := row.Scan(
-		&h.ID, 
-		&h.SessionID, 
-		&h.Position, 
-		&h.HoleCards, 
-		&h.Details, 
-		&h.Result, 
-		&h.Analysis, 
-		&h.AnalysisDate, 
-		&h.Favorite, 
-		&h.Tag, 
-		&h.Board, 
-		&h.Note, 
-		&villainsJSON, 
+		&h.ID,
+		&h.SessionID,
+		&h.Position,
+		&h.HoleCards,
+		&h.Details,
+		&h.Result,
+		&h.Analysis,
+		&h.AnalysisDate,
+		&h.Favorite,
+		&h.Tag,
+		&h.Board,
+		&h.Note,
+		&villainsJSON,
 		&h.Date,
 	)
-	
+
 	if err != nil {
 		http.Error(w, "Hand not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
-	
+
 	// 解析villains JSON
 	if villainsJSON != "" && villainsJSON != "[]" {
 		err := json.Unmarshal([]byte(villainsJSON), &h.Villains)
@@ -209,7 +214,7 @@ func GetHand(w http.ResponseWriter, r *http.Request) {
 			h.Villains = []models.Villain{} // 如果解析失敗，設為空陣列
 		}
 	}
-	
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(h)
@@ -222,41 +227,40 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	
+
 	// 將 villains 序列化為 JSON
 	villainsJSON, err := json.Marshal(hand.Villains)
 	if err != nil {
 		http.Error(w, "Failed to serialize villains: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = $1, board = $2, position = $3, details = $4, note = $5, result_amount = $6, date = $7, villains = $8, is_favorite = $9, tag = $10, analysis = $11 WHERE id = $12`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
-	
-	_, err = stmt.Exec(hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Favorite, "", hand.Analysis, id)
+
+	_, err = stmt.Exec(hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Favorite, hand.Tag, hand.Analysis, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	// 返回更新後的手牌
 	row := db.DB.QueryRow(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag FROM hands WHERE id = $1`, id)
 	var updatedHand models.Hand
 	var updatedVillainsJSON string
-	var tag string
-	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Board, &updatedHand.Position, &updatedHand.Details, &updatedHand.Note, &updatedHand.Result, &updatedHand.Date, &updatedVillainsJSON, &updatedHand.Analysis, &updatedHand.Favorite, &tag)
+	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Board, &updatedHand.Position, &updatedHand.Details, &updatedHand.Note, &updatedHand.Result, &updatedHand.Date, &updatedVillainsJSON, &updatedHand.Analysis, &updatedHand.Favorite, &updatedHand.Tag)
 	if err != nil {
 		http.Error(w, "Failed to retrieve updated hand", http.StatusInternalServerError)
 		return
 	}
-	
+
 	// 設置空的 analysis_date
 	updatedHand.AnalysisDate = ""
-	
+
 	// 反序列化 villains JSON
 	if updatedVillainsJSON != "" && updatedVillainsJSON != "[]" {
 		if err := json.Unmarshal([]byte(updatedVillainsJSON), &updatedHand.Villains); err != nil {
@@ -265,7 +269,7 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 	} else {
 		updatedHand.Villains = []models.Villain{}
 	}
-	
+
 	json.NewEncoder(w).Encode(updatedHand)
 }
 
@@ -275,13 +279,13 @@ func DeleteHand(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing id parameter", http.StatusBadRequest)
 		return
 	}
-	
+
 	_, err := db.DB.Exec(`DELETE FROM hands WHERE id = $1`, id)
 	if err != nil {
 		http.Error(w, "Delete error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -295,14 +299,14 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		Hand models.Hand `json:"hand"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	hand := request.Hand
-	
+
 	// 確保手牌資料完整
 	if hand.Details == "" {
 		http.Error(w, "Hand details are required for analysis", http.StatusBadRequest)
@@ -320,7 +324,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	position := ""
 	holeCards := ""
 	board := ""
-	
+
 	if hand.Position != nil {
 		position = *hand.Position
 	}
@@ -330,11 +334,11 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	if hand.Board != nil {
 		board = *hand.Board
 	}
-	
+
 	// 使用預設盲注值進行分析（前端管理所有session資料）
 	var smallBlind, bigBlind int = 1, 2
 	log.Printf("ℹ️ Using default blinds (1/2) for analysis - frontend manages session data")
-	
+
 	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains, smallBlind, bigBlind)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
@@ -343,7 +347,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 
 	// ⚠️ 注意：分析結果不保存到後端資料庫，只返回給前端
 	// 前端會將結果保存到本地 SQLite
-	
+
 	// 返回分析結果
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -388,4 +392,4 @@ func ToggleFavorite(w http.ResponseWriter, r *http.Request) {
 		"favorite": newFavorite,
 	}
 	json.NewEncoder(w).Encode(response)
-} 
+}
