@@ -50,6 +50,11 @@ import { PokerKeyboardScreen } from './src/screens/PokerKeyboardScreen';
 import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
+
+// Import test utility in development
+if (__DEV__) {
+  require('./src/utils/testPremiumModel');
+}
 import { SessionsScreen } from './src/screens/SessionsScreen';
 import { SessionDetailScreen } from './src/screens/SessionDetailScreen';
 import RevenueCatService from './src/services/RevenueCatService';

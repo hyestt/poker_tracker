@@ -4,7 +4,6 @@ import Purchases, {
   CustomerInfo,
   PurchasesOffering,
   PurchasesPackage,
-  PURCHASE_TYPE,
 } from 'react-native-purchases';
 
 // RevenueCat API Keys (需要在RevenueCat Dashboard中獲取)
@@ -36,6 +35,12 @@ export interface PremiumFeatures {
   exportData: boolean;
   cloudSync: boolean;
   customTags: boolean;
+}
+
+export interface GTOAnalysisQuota {
+  date: string;
+  usedCount: number;
+  maxFreeCount: number;
 }
 
 class RevenueCatService {
@@ -285,7 +290,7 @@ class RevenueCatService {
       {
         id: 'pro_monthly_mock',
         title: '月度 PRO 會員',
-        description: '解鎖所有進階功能',
+        description: '無限 GTO 分析 + 所有功能',
         price: '$4.99',
         period: '每月',
         features: this.getFeaturesForPlan('pro_monthly_mock'),
@@ -294,7 +299,7 @@ class RevenueCatService {
       {
         id: 'pro_yearly_mock',
         title: '年度 PRO 會員',
-        description: '解鎖所有進階功能，並享有折扣',
+        description: '無限 GTO 分析 + 所有功能（省17%）',
         price: '$49.99',
         period: '每年',
         features: this.getFeaturesForPlan('pro_yearly_mock'),
@@ -329,6 +334,121 @@ class RevenueCatService {
   async clearTestPremiumStatus(): Promise<void> {
     await AsyncStorage.removeItem(TEST_PREMIUM_KEY);
     console.log('🧪 Test mode: Premium status cleared');
+  }
+
+  // ==================== GTO Analysis Quota Management ====================
+
+  async getGTOAnalysisQuota(): Promise<GTOAnalysisQuota> {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const quotaData = await AsyncStorage.getItem('gto_analysis_quota');
+      
+      if (quotaData) {
+        const quota: GTOAnalysisQuota = JSON.parse(quotaData);
+        
+        // If it's a new day, reset the quota
+        if (quota.date !== today) {
+          const newQuota: GTOAnalysisQuota = {
+            date: today,
+            usedCount: 0,
+            maxFreeCount: 1,
+          };
+          await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
+          return newQuota;
+        }
+        
+        return quota;
+      } else {
+        // First time - create new quota
+        const newQuota: GTOAnalysisQuota = {
+          date: today,
+          usedCount: 0,
+          maxFreeCount: 1,
+        };
+        await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
+        return newQuota;
+      }
+    } catch (error) {
+      console.error('Failed to get GTO analysis quota:', error);
+      // Return default quota on error
+      return {
+        date: new Date().toISOString().split('T')[0],
+        usedCount: 0,
+        maxFreeCount: 1,
+      };
+    }
+  }
+
+  async canUseGTOAnalysis(): Promise<{ canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean }> {
+    try {
+      const isPremium = await this.isPremiumUser();
+      
+      // Premium users have unlimited access
+      if (isPremium) {
+        return {
+          canUse: true,
+          isPremium: true,
+          remainingFree: -1, // -1 indicates unlimited
+          needsPremium: false,
+        };
+      }
+
+      // Non-premium users have daily quota
+      const quota = await this.getGTOAnalysisQuota();
+      const remainingFree = Math.max(0, quota.maxFreeCount - quota.usedCount);
+      const canUse = remainingFree > 0;
+
+      return {
+        canUse,
+        isPremium: false,
+        remainingFree,
+        needsPremium: !canUse,
+      };
+    } catch (error) {
+      console.error('Failed to check GTO analysis availability:', error);
+      return {
+        canUse: false,
+        isPremium: false,
+        remainingFree: 0,
+        needsPremium: true,
+      };
+    }
+  }
+
+  async useGTOAnalysis(): Promise<boolean> {
+    try {
+      const { canUse, isPremium } = await this.canUseGTOAnalysis();
+      
+      if (!canUse) {
+        return false;
+      }
+
+      // Premium users don't need quota tracking
+      if (isPremium) {
+        return true;
+      }
+
+      // Increment quota usage for non-premium users
+      const quota = await this.getGTOAnalysisQuota();
+      quota.usedCount += 1;
+      await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(quota));
+
+      console.log(`🎯 GTO Analysis used. Remaining free: ${quota.maxFreeCount - quota.usedCount}`);
+      return true;
+    } catch (error) {
+      console.error('Failed to use GTO analysis:', error);
+      return false;
+    }
+  }
+
+  // Test method: reset daily quota (for testing purposes)
+  async resetGTOQuotaForTesting(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem('gto_analysis_quota');
+      console.log('🧪 Test mode: GTO Analysis quota reset');
+    } catch (error) {
+      console.error('Failed to reset GTO quota:', error);
+    }
   }
 }
 

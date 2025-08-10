@@ -5,6 +5,7 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Hand, Session, Villain } from '../models';
 import { formatDate } from '../utils/dateFormat';
+import RevenueCatService from '../services/RevenueCatService';
 
 export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { handId } = route.params;
@@ -12,6 +13,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [hand, setHand] = useState<Hand | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [gtoQuotaInfo, setGtoQuotaInfo] = useState<{canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean} | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -22,6 +24,10 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
           const sessionData = await getSession(handData.sessionId);
           setHand(handData);
           setSession(sessionData);
+          
+          // Check GTO analysis quota
+          const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
+          setGtoQuotaInfo(quotaStatus);
         } catch (error) {
           console.error('Failed to load hand/session:', error);
           Alert.alert('Error', 'Failed to load hand details');
@@ -166,10 +172,32 @@ Shared from LiveHand`;
           <Text style={styles.editButtonText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => navigation.navigate('AIAnalysis', { hand })}
-          style={styles.aiAnalysisButton}
+          onPress={() => {
+            if (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) {
+              Alert.alert(
+                'GTO Analysis Limit Reached',
+                gtoQuotaInfo.isPremium 
+                  ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
+                  : 'You\'ve used your 1 free GTO analysis for today. Upgrade to Premium for unlimited analysis.',
+                gtoQuotaInfo.isPremium 
+                  ? [{ text: 'OK' }]
+                  : [
+                      { text: 'Maybe Later', style: 'cancel' },
+                      { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') }
+                    ]
+              );
+            } else {
+              navigation.navigate('AIAnalysis', { hand });
+            }
+          }}
+          style={[
+            styles.aiAnalysisButton,
+            (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) && styles.aiAnalysisButtonDisabled
+          ]}
         >
-          <Text style={styles.aiAnalysisButtonText}>GTO Analysis</Text>
+          <Text style={styles.aiAnalysisButtonText}>
+            GTO Analysis{gtoQuotaInfo && !gtoQuotaInfo.isPremium && gtoQuotaInfo.remainingFree >= 0 && ` (${gtoQuotaInfo.remainingFree})`}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
           <Text style={styles.shareButtonText}>Share</Text>
@@ -335,6 +363,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: theme.font.size.body,
     textAlign: 'center',
+  },
+  aiAnalysisButtonDisabled: {
+    backgroundColor: theme.colors.gray,
+    opacity: 0.6,
   },
   shareButton: {
     backgroundColor: theme.colors.profit,

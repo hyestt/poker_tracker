@@ -4,19 +4,43 @@ import { theme } from '../theme';
 import { Hand } from '../models';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSessionStore } from '../viewmodels/sessionStore';
+import RevenueCatService from '../services/RevenueCatService';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [analysis, setAnalysis] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [currentHand, setCurrentHand] = useState<Hand>(route.params.hand);
+  const [quotaInfo, setQuotaInfo] = useState<{canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean} | null>(null);
   const { getHand, updateHand } = useSessionStore();
 
   console.log('AIAnalysisScreen mounted with hand:', currentHand);
   console.log('Hand has existing analysis:', !!currentHand.analysis);
 
   useEffect(() => {
-    loadLatestHandData();
+    checkGTOQuotaAndLoadData();
   }, []);
+
+  const checkGTOQuotaAndLoadData = async () => {
+    try {
+      // Check GTO analysis quota first
+      const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
+      setQuotaInfo(quotaStatus);
+      
+      console.log('GTO Quota Status:', quotaStatus);
+      
+      // If user can't use GTO analysis and hand has no existing analysis, show quota message
+      if (!quotaStatus.canUse && !currentHand.analysis) {
+        setLoading(false);
+        return;
+      }
+      
+      // Proceed with loading hand data
+      await loadLatestHandData();
+    } catch (error) {
+      console.error('Error checking GTO quota:', error);
+      await loadLatestHandData(); // Continue with normal flow on error
+    }
+  };
 
   const loadLatestHandData = async () => {
     try {
@@ -48,9 +72,31 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     console.log('performAIAnalysis started, forceReanalyze:', forceReanalyze);
     console.log('Current hand analysis exists:', !!currentHand.analysis);
     console.log('Current hand analysis content:', currentHand.analysis ? 'YES' : 'NO');
+    
+    // Check quota before starting analysis
+    const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
+    setQuotaInfo(quotaStatus);
+    
+    if (!quotaStatus.canUse && (forceReanalyze || !currentHand.analysis)) {
+      Alert.alert(
+        'GTO Analysis Limit Reached',
+        quotaStatus.isPremium 
+          ? 'Please try again later.' 
+          : `You've used your free daily GTO analysis. Upgrade to Premium for unlimited analysis.`,
+        quotaStatus.isPremium 
+          ? [{ text: 'OK' }]
+          : [
+              { text: 'Maybe Later', style: 'cancel' },
+              { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') }
+            ]
+      );
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     try {
-      // 檢查是否已有分析結果（除非強制重新分析）
+      // Check if we already have analysis (unless forcing reanalysis)
       if (!forceReanalyze && currentHand.analysis) {
         console.log('✅ Using cached analysis, skipping API call');
         setAnalysis(currentHand.analysis);
@@ -59,22 +105,35 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       }
 
       console.log('Performing new AI analysis...');
-      // 執行真正的AI分析
+      
+      // Use the quota (this increments the counter for non-premium users)
+      const quotaUsed = await RevenueCatService.useGTOAnalysis();
+      if (!quotaUsed) {
+        Alert.alert('Error', 'Unable to use GTO analysis at this time');
+        setLoading(false);
+        return;
+      }
+      
+      // Update quota info after using analysis
+      const updatedQuotaStatus = await RevenueCatService.canUseGTOAnalysis();
+      setQuotaInfo(updatedQuotaStatus);
+      
+      // Execute the actual AI analysis
       const analysisResult = await performRealAIAnalysis(currentHand);
       console.log('AI analysis completed:', analysisResult);
 
-      // 更新hand數據
+      // Update hand data
       const updatedHand = {
         ...currentHand,
         analysis: analysisResult,
         analysisDate: new Date().toLocaleDateString(),
       };
 
-      // 保存到 sessionStore（這會同時更新 localStorage）
+      // Save to sessionStore (this also updates localStorage)
       await updateHand(updatedHand);
       console.log('💾 Analysis saved to sessionStore and localStorage');
 
-      // 更新組件中的 hand 對象
+      // Update the component's hand object
       setCurrentHand(updatedHand);
       console.log('✅ Hand analysis updated and cached');
 
@@ -306,6 +365,49 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       </View>
     );
   }
+  
+  // Show quota exceeded message if user can't use analysis and no existing analysis
+  if (quotaInfo && !quotaInfo.canUse && !currentHand.analysis) {
+    return (
+      <View style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>GTO Analysis</Text>
+          <View style={styles.reanalyzeButton} />
+        </View>
+
+        {/* Quota Exceeded Message */}
+        <View style={styles.quotaExceededContainer}>
+          <Text style={styles.quotaExceededIcon}>🎯</Text>
+          <Text style={styles.quotaExceededTitle}>Daily Analysis Limit Reached</Text>
+          <Text style={styles.quotaExceededMessage}>
+            {quotaInfo.isPremium 
+              ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
+              : 'You\'ve used your 1 free GTO analysis for today. Upgrade to Premium for unlimited daily analysis.'}
+          </Text>
+          
+          {!quotaInfo.isPremium && (
+            <TouchableOpacity 
+              style={styles.upgradeToPremiumButton}
+              onPress={() => navigation.navigate('Subscription')}
+            >
+              <Text style={styles.upgradeToPremiumButtonText}>Upgrade to Premium</Text>
+            </TouchableOpacity>
+          )}
+          
+          <TouchableOpacity 
+            style={styles.goBackButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.goBackButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -315,9 +417,22 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>GTO Analysis</Text>
-        <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeButton}>
-          <Text style={styles.reanalyzeButtonText}>Re-analyze</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRightSection}>
+          {quotaInfo && (
+            <View style={styles.quotaIndicator}>
+              <Text style={styles.quotaText}>
+                {quotaInfo.isPremium 
+                  ? '♾️ Unlimited'
+                  : quotaInfo.remainingFree > 0 
+                    ? `${quotaInfo.remainingFree} free left`
+                    : '0 free left'}
+              </Text>
+            </View>
+          )}
+          <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeButton}>
+            <Text style={styles.reanalyzeButtonText}>Re-analyze</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Content */}
@@ -399,6 +514,72 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: theme.font.size.small,
   },
+  headerRightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  quotaIndicator: {
+    backgroundColor: theme.colors.inputBg,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+  },
+  quotaText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  quotaExceededContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+  },
+  quotaExceededIcon: {
+    fontSize: 64,
+    marginBottom: theme.spacing.md,
+  },
+  quotaExceededTitle: {
+    fontSize: theme.font.size.title,
+    fontWeight: '700',
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  quotaExceededMessage: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.text,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+  },
+  upgradeToPremiumButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.button,
+    marginBottom: theme.spacing.md,
+  },
+  upgradeToPremiumButtonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: theme.font.size.body,
+    textAlign: 'center',
+  },
+  goBackButton: {
+    backgroundColor: theme.colors.inputBg,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.button,
+  },
+  goBackButtonText: {
+    color: theme.colors.text,
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
+    textAlign: 'center',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -476,7 +657,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   analysisMainTitle: {
-    fontSize: theme.font.size.large,
+    fontSize: theme.font.size.title,
     fontWeight: '700',
     color: theme.colors.text,
     marginTop: theme.spacing.md,

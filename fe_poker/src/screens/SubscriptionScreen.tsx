@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  ViewStyle,
 } from 'react-native';
 import { theme } from '../theme';
 import { Card } from '../components/Card';
@@ -30,33 +29,42 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
 
   useEffect(() => {
     initializeRevenueCat();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const initializeRevenueCat = async () => {
     try {
+      console.log('🔄 Initializing RevenueCat...');
       await revenueCatService.initialize();
+      console.log('✅ RevenueCat initialized');
       await loadSubscriptionData();
+      console.log('✅ Subscription data loaded');
     } catch (error) {
-      console.error('Failed to initialize RevenueCat:', error);
+      console.error('❌ Failed to initialize RevenueCat:', error);
       Alert.alert('Error', 'Failed to load subscription information');
     } finally {
       setLoading(false);
+      console.log('✅ SubscriptionScreen initialization complete');
     }
   };
 
   const loadSubscriptionData = async () => {
     try {
+      console.log('📊 Loading subscription data...');
       const [subscriptionPlans, premiumStatus, features] = await Promise.all([
         revenueCatService.getSubscriptionPlans(),
         revenueCatService.isPremiumUser(),
         revenueCatService.getPremiumFeatures(),
       ]);
 
+      console.log('📋 Subscription plans:', subscriptionPlans);
+      console.log('👑 Premium status:', premiumStatus);
+      console.log('🎯 Premium features:', features);
+
       setPlans(subscriptionPlans);
       setIsPremium(premiumStatus);
       setPremiumFeatures(features);
     } catch (error) {
-      console.error('Failed to load subscription data:', error);
+      console.error('❌ Failed to load subscription data:', error);
     }
   };
 
@@ -215,20 +223,85 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>LiveHand Premium</Text>
-        <Text style={styles.subtitle}>
-          Unlock advanced features and take your poker game to the next level
-        </Text>
+    <View style={styles.container}>
+      {/* Header with back button */}
+      <View style={styles.headerWithNav}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
       </View>
+      
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.header}>
+          <Text style={styles.title}>LiveHand Premium</Text>
+          <Text style={styles.subtitle}>
+            Unlock advanced features and take your poker game to the next level
+          </Text>
+        </View>
+
+      {/* Debug Info - Remove in production */}
+      {__DEV__ && (
+        <View style={{ padding: 16, backgroundColor: '#f0f0f0', margin: 16, borderRadius: 8 }}>
+          <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Debug Info:</Text>
+          <Text>Plans count: {plans.length}</Text>
+          <Text>Is Premium: {isPremium.toString()}</Text>
+          <Text>Loading: {loading.toString()}</Text>
+          {plans.length > 0 && (
+            <Text>Plans: {plans.map(p => p.title).join(', ')}</Text>
+          )}
+        </View>
+      )}
 
       {renderPremiumStatus()}
 
+      {/* Free Features Section - Always show to explain the free tier */}
+      <Card style={styles.freeFeatureCard}>
+        <Text style={styles.freeFeatureTitle}>🆓 What's Always Free</Text>
+        <View style={styles.featureList}>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>✓</Text>
+            <Text style={styles.featureText}>Unlimited manual hand recording</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>✓</Text>
+            <Text style={styles.featureText}>1 free GTO analysis per day</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>✓</Text>
+            <Text style={styles.featureText}>Basic session tracking</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>✓</Text>
+            <Text style={styles.featureText}>Basic statistics</Text>
+          </View>
+        </View>
+      </Card>
+
       {!isPremium && (
         <View style={styles.plansContainer}>
-          <Text style={styles.sectionTitle}>Choose Your Plan</Text>
-          {plans.map(renderSubscriptionPlan)}
+          <Text style={styles.sectionTitle}>🚀 Upgrade to Premium</Text>
+          {plans.length > 0 ? (
+            plans.map(renderSubscriptionPlan)
+          ) : (
+            <Card style={styles.planCard}>
+              <Text style={styles.planTitle}>Premium Plans Loading...</Text>
+              <Text style={styles.planDescription}>
+                If this persists, please check your internet connection and try again.
+              </Text>
+              <TouchableOpacity 
+                style={styles.subscribeButton}
+                onPress={() => {
+                  setLoading(true);
+                  initializeRevenueCat();
+                }}
+              >
+                <Text style={styles.subscribeButtonText}>Retry Loading</Text>
+              </TouchableOpacity>
+            </Card>
+          )}
         </View>
       )}
 
@@ -241,7 +314,8 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
           Subscriptions will be charged to your Apple ID account. Auto-renewal may be turned off by going to Account Settings after purchase.
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -249,6 +323,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  headerWithNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.sm,
+    backgroundColor: theme.colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border || '#E5E7EB',
+  },
+  backButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+  },
+  backButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: theme.font.size.small,
   },
   loadingContainer: {
     flex: 1,
@@ -290,6 +388,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF3E0',
     borderColor: '#FF9800',
     borderWidth: 2,
+  },
+  freeFeatureCard: {
+    margin: theme.spacing.md,
+    padding: theme.spacing.lg,
+    backgroundColor: '#F0F8FF',
+    borderColor: '#4A90E2',
+    borderWidth: 1,
+  },
+  freeFeatureTitle: {
+    fontSize: theme.font.size.subtitle,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.md,
+    textAlign: 'center',
   },
   statusTitle: {
     fontSize: theme.font.size.subtitle,
@@ -414,6 +526,12 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     color: theme.colors.primary,
     fontWeight: '600',
+  },
+  subscribeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: theme.font.size.body,
+    textAlign: 'center',
   },
   disclaimer: {
     fontSize: theme.font.size.small,
