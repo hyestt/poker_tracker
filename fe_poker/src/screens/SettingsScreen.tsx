@@ -317,12 +317,12 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
         {/* Subscription Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💎 Upgrade to PRO</Text>
+          <Text style={styles.sectionTitle}>Upgrade to PRO</Text>
           {isLoading ? (
             <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }}/>
           ) : isPremium ? (
             <View style={styles.menuItem}>
-              <Text style={styles.menuText}>🎉 You are a PRO member</Text>
+              <Text style={styles.menuText}>You are a PRO member</Text>
             </View>
           ) : (
             <>
@@ -335,7 +335,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
                 ))
               )}
               <TouchableOpacity style={styles.menuItem} onPress={handleRestorePurchases}>
-                <Text style={styles.menuText}>🔄 Restore Purchases</Text>
+                <Text style={styles.menuText}>Restore Purchases</Text>
                 <Text style={styles.menuArrow}>›</Text>
               </TouchableOpacity>
             </>
@@ -344,10 +344,10 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
         {/* App Settings Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚙️ App Settings</Text>
+          <Text style={styles.sectionTitle}>App Settings</Text>
 
           <TouchableOpacity style={styles.menuItem} onPress={handleResetPreferences}>
-            <Text style={styles.menuText}>🔄 Reset User Preferences</Text>
+            <Text style={styles.menuText}>Reset User Preferences</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
@@ -356,11 +356,11 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         {/* Debug Section (Development Only) */}
         {__DEV__ && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🧪 Debug & Testing</Text>
+            <Text style={styles.sectionTitle}>Debug & Testing</Text>
 
             <TouchableOpacity style={styles.menuItem} onPress={handleToggleTestPremium}>
               <Text style={styles.menuText}>
-                🔄 Toggle Premium Status (Test Mode)
+                Toggle Premium Status (Test Mode)
               </Text>
               <Text style={[styles.menuArrow, { color: isTestMode ? '#27C46A' : '#FF3B30' }]}>
                 {isTestMode ? 'Premium' : 'Free'}
@@ -369,21 +369,21 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
             <TouchableOpacity style={styles.menuItem} onPress={handleCreateTestHands}>
               <Text style={styles.menuText}>
-                🎯 Create 9 Test Hands
+                Create 9 Test Hands
               </Text>
               <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.menuItem} onPress={handleCreateWelcomeDemo}>
               <Text style={styles.menuText}>
-                🎉 Create Welcome Demo Session
+                Create Welcome Demo Session
               </Text>
               <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>
 
             <View style={styles.debugInfo}>
               <Text style={styles.debugText}>
-                Current Status: {isPremium ? '✅ Premium' : '❌ Free'}
+                Current Status: {isPremium ? 'Premium' : 'Free'}
               </Text>
             </View>
           </View>
@@ -391,15 +391,15 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
         {/* Support Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🛠️ Support</Text>
+          <Text style={styles.sectionTitle}>Support</Text>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Help')}>
-            <Text style={styles.menuText}>❓ Help Center</Text>
+            <Text style={styles.menuText}>Help Center</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Contact')}>
-            <Text style={styles.menuText}>📧 Contact Us</Text>
+            <Text style={styles.menuText}>Contact Us</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
