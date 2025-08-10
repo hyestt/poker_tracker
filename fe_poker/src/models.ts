@@ -6,8 +6,11 @@ export interface Session {
   bigBlind: number;
   currency: string;
   effectiveStack: number;
+  buyIn?: number;
   tableSize: number;
   tag: string;
+  cashOut?: number;
+  cashOutTime?: string;
   createdAt?: string;
   updatedAt?: string;
 }

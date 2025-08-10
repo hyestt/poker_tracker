@@ -44,6 +44,8 @@ interface State {
   checkAndCreateWelcomeData: () => Promise<void>;
   // Tags相關方法
   getAllUsedTags: () => string[];
+  // End session method
+  endSession: (sessionId: string, cashOut: number, cashOutTime: string) => Promise<void>;
 }
 
 // API 調用輔助函數
@@ -757,5 +759,45 @@ export const useSessionStore = create<State>((set, get) => ({
 
     // 返回按字母順序排序的tags
     return Array.from(allTags).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  },
+
+  // ==================== END SESSION ====================
+
+  endSession: async (sessionId: string, cashOut: number, cashOutTime: string) => {
+    const { isLocalMode, sessions } = get();
+
+    try {
+      // 找到要結束的 session
+      const existingSession = sessions.find(s => s.id === sessionId);
+      if (!existingSession) {
+        throw new Error('Session not found');
+      }
+
+      // 更新 session 數據
+      const updatedSession: Session = {
+        ...existingSession,
+        cashOut,
+        cashOutTime,
+      };
+
+      if (isLocalMode) {
+        // 使用本地 SQLite
+        await DatabaseService.initialize();
+        await DatabaseService.updateSession(updatedSession);
+      } else {
+        // 使用 API
+        await apiCall(`${API_BASE_URL}/session?id=${sessionId}`, {
+          method: 'PUT',
+          body: JSON.stringify(updatedSession),
+        });
+      }
+
+      // 重新獲取數據
+      await get().fetchSessions();
+      await get().fetchStats();
+    } catch (error) {
+      console.error('Error ending session:', error);
+      throw error;
+    }
   },
 }));

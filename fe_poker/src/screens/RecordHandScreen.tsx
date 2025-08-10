@@ -409,22 +409,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       await fetchHands();
       await fetchStats();
 
-      // Reset form for recording another hand under the same session
-      setHoleCards('');
-      setBoard('');
-      setPosition('');
-      setDetails('');
-      setNote('');
-      setResult('');
-      setVillains([]);
-      setTags([]);
-
-      // Show success message
-      Alert.alert(
-        'Hand Saved',
-        'Hand recorded successfully. You can record another hand.',
-        [{ text: 'OK', style: 'default' }]
-      );
+      // Navigate back to SessionDetail instead of staying on RecordHand screen
+      navigation.goBack();
     } catch (error) {
       console.error('Failed to save hand:', error);
       Alert.alert('Error', 'Failed to save hand');

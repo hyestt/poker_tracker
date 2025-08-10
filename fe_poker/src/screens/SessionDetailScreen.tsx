@@ -1,15 +1,20 @@
 import React, { useEffect, useState, useCallback, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, SafeAreaView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import RevenueCatService from '../services/RevenueCatService';
+import { Input } from '../components/Input';
+import { CustomDateTimePicker } from '../components/DateTimePicker';
 
 export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { sessionId } = route.params;
-  const { sessions, hands, fetchSessions, fetchHands, deleteHand, toggleFavorite } = useSessionStore();
+  const { sessions, hands, fetchSessions, fetchHands, deleteHand, toggleFavorite, endSession } = useSessionStore();
   const [loading, setLoading] = useState(true);
   const [, setIsPremium] = useState(false);
+  const [showEndSessionModal, setShowEndSessionModal] = useState(false);
+  const [cashOutAmount, setCashOutAmount] = useState('');
+  const [cashOutTime, setCashOutTime] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -53,6 +58,11 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
             style={styles.headerBackButton}
           >
             <Text style={styles.headerBackButtonText}>‹ Back</Text>
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity onPress={handleEndSession} style={styles.headerEndButton}>
+            <Text style={styles.headerEndButtonText}>End</Text>
           </TouchableOpacity>
         ),
       });
@@ -155,6 +165,41 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       'What would you like to do with this hand?',
       actionButtons
     );
+  };
+
+  const handleEndSession = () => {
+    // 設置默認 cash out 時間為當前時間
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    setCashOutTime(formattedDate);
+    setCashOutAmount('');
+    setShowEndSessionModal(true);
+  };
+
+  const handleConfirmEndSession = async () => {
+    // 驗證 cash out 金額
+    if (!cashOutAmount || cashOutAmount.trim() === '') {
+      Alert.alert('Cash Out Amount Required', 'Please enter the cash out amount to end this session.');
+      return;
+    }
+
+    const amount = parseFloat(cashOutAmount);
+    if (isNaN(amount) || amount < 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid cash out amount.');
+      return;
+    }
+
+    try {
+      // 調用 sessionStore 的 endSession 方法
+      await endSession(sessionId, amount, cashOutTime);
+      
+      setShowEndSessionModal(false);
+      // 返回到主 Sessions 頁面
+      navigation.navigate('Sessions');
+    } catch (error) {
+      console.error('Failed to end session:', error);
+      Alert.alert('Error', 'Failed to end session');
+    }
   };
 
 
@@ -347,6 +392,71 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
       >
         <Text style={styles.fabButtonText}>+</Text>
       </TouchableOpacity>
+
+      {/* End Session Modal */}
+      <Modal
+        visible={showEndSessionModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowEndSessionModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.endSessionModal}>
+            <SafeAreaView>
+              <Text style={styles.modalTitle}>End Session</Text>
+              
+              <View style={styles.modalContent}>
+                <Text style={styles.modalSubtitle}>
+                  Please enter your cash out details to end this session.
+                </Text>
+
+                {/* Cash Out Amount */}
+                <View style={styles.inputSection}>
+                  <Text style={styles.inputLabel}>Cash Out Amount ($)</Text>
+                  <Input
+                    value={cashOutAmount}
+                    onChangeText={(value) => {
+                      // 只允許數字和小數點
+                      const numericValue = value.replace(/[^0-9.]/g, '');
+                      // 確保只有一個小數點
+                      const parts = numericValue.split('.');
+                      const validValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue;
+                      setCashOutAmount(validValue);
+                    }}
+                    placeholder="Enter cash out amount"
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                {/* Cash Out Time */}
+                <View style={styles.inputSection}>
+                  <CustomDateTimePicker
+                    title="Time of Cashout"
+                    value={cashOutTime}
+                    onValueChange={setCashOutTime}
+                  />
+                </View>
+              </View>
+
+              {/* Action Buttons */}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowEndSessionModal(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={handleConfirmEndSession}
+                >
+                  <Text style={styles.confirmButtonText}>End Session</Text>
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -562,6 +672,92 @@ const styles = StyleSheet.create({
   headerBackButtonText: {
     color: theme.colors.primary,
     fontSize: theme.font.size.body,
+    fontWeight: '600',
+  },
+  headerEndButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+    marginRight: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerEndButtonText: {
+    color: '#FFFFFF',
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+  },
+  
+  // End Session Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+  },
+  endSessionModal: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: theme.font.size.title,
+    fontWeight: '700',
+    color: theme.colors.text,
+    textAlign: 'center',
+    paddingVertical: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border || '#E5E7EB',
+  },
+  modalContent: {
+    padding: theme.spacing.lg,
+  },
+  modalSubtitle: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.gray,
+    textAlign: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  inputSection: {
+    marginBottom: theme.spacing.md,
+  },
+  inputLabel: {
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.text,
+    fontWeight: '600',
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.button,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    fontSize: theme.font.size.body,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
 });
