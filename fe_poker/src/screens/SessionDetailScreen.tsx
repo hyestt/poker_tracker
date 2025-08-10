@@ -45,6 +45,19 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
   const session = sessions.find(s => s.id === sessionId);
   const sessionHands = hands.filter(hand => hand.sessionId === sessionId);
 
+  // 當 session 數據加載完成後，初始化 cashOut 相關的狀態
+  useEffect(() => {
+    if (session && !loading) {
+      // 如果 session 已經有 cashOut 數據，使用這些數據初始化狀態
+      if (session.cashOut !== undefined && session.cashOut !== null) {
+        setCashOutAmount(session.cashOut.toString());
+      }
+      if (session.cashOutTime) {
+        setCashOutTime(session.cashOutTime);
+      }
+    }
+  }, [session, loading]);
+
   // 動態設置標題和返回按鈕
   useLayoutEffect(() => {
     if (session) {
@@ -168,11 +181,13 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
   };
 
   const handleEndSession = () => {
-    // 設置默認 cash out 時間為當前時間
-    const now = new Date();
-    const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    setCashOutTime(formattedDate);
-    setCashOutAmount('');
+    // 如果 session 有保存的 cashOutTime，優先使用；如果沒有且當前狀態也沒有，才使用當前時間
+    if (!cashOutTime && session && !session.cashOutTime) {
+      const now = new Date();
+      const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      setCashOutTime(formattedDate);
+    }
+    // 不重置 cashOutAmount，保留用户之前的输入或数据库中的值
     setShowEndSessionModal(true);
   };
 
@@ -423,20 +438,24 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
               <View style={styles.modalContent}>
                 {/* Cash Out Amount */}
                 <View style={styles.inputSection}>
-                  <Text style={styles.inputLabel}>Cash Out Amount ($)</Text>
-                  <Input
-                    value={cashOutAmount}
-                    onChangeText={(value) => {
-                      // 只允許數字和小數點
-                      const numericValue = value.replace(/[^0-9.]/g, '');
-                      // 確保只有一個小數點
-                      const parts = numericValue.split('.');
-                      const validValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue;
-                      setCashOutAmount(validValue);
-                    }}
-                    placeholder="Enter cash out amount"
-                    keyboardType="numeric"
-                  />
+                  <View style={styles.horizontalInputRow}>
+                    <Text style={styles.leftLabel}>Cashout</Text>
+                    <View style={styles.rightInputContainer}>
+                      <Input
+                        value={cashOutAmount}
+                        onChangeText={(value) => {
+                          // 只允許數字和小數點
+                          const numericValue = value.replace(/[^0-9.]/g, '');
+                          // 確保只有一個小數點
+                          const parts = numericValue.split('.');
+                          const validValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue;
+                          setCashOutAmount(validValue);
+                        }}
+                        placeholder="Enter amount"
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
                 </View>
 
                 {/* Cash Out Time */}
@@ -764,5 +783,21 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.body,
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  
+  // 水平輸入行樣式
+  horizontalInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  leftLabel: {
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+    color: theme.colors.text,
+    flex: 0.3,
+  },
+  rightInputContainer: {
+    flex: 0.65,
   },
 });

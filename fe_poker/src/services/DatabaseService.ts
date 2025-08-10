@@ -64,6 +64,9 @@ export class DatabaseService {
         big_blind INTEGER,
         currency TEXT,
         effective_stack INTEGER,
+        buy_in INTEGER,
+        cash_out REAL,
+        cash_out_time TEXT,
         table_size INTEGER DEFAULT 6,
         tag TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -119,6 +122,29 @@ export class DatabaseService {
         console.log('Adding tags column to hands table');
         await this.db.executeSql('ALTER TABLE hands ADD COLUMN tags TEXT');
       }
+
+      // 檢查並添加sessions表的新欄位
+      const [sessionResult] = await this.db.executeSql('PRAGMA table_info(sessions)');
+      const sessionColumns = new Set();
+      for (let i = 0; i < sessionResult.rows.length; i++) {
+        const row = sessionResult.rows.item(i);
+        sessionColumns.add(row.name);
+      }
+
+      if (!sessionColumns.has('buy_in')) {
+        console.log('Adding buy_in column to sessions table');
+        await this.db.executeSql('ALTER TABLE sessions ADD COLUMN buy_in INTEGER');
+      }
+
+      if (!sessionColumns.has('cash_out')) {
+        console.log('Adding cash_out column to sessions table');
+        await this.db.executeSql('ALTER TABLE sessions ADD COLUMN cash_out REAL');
+      }
+
+      if (!sessionColumns.has('cash_out_time')) {
+        console.log('Adding cash_out_time column to sessions table');
+        await this.db.executeSql('ALTER TABLE sessions ADD COLUMN cash_out_time TEXT');
+      }
     } catch (error) {
       console.error('Database migration failed:', error);
       // 不拋出錯誤，因為遷移失敗不應該阻止應用運行
@@ -143,6 +169,9 @@ export class DatabaseService {
         bigBlind: row.big_blind || 0,
         currency: row.currency || '',
         effectiveStack: row.effective_stack || 0,
+        buyIn: row.buy_in || undefined,
+        cashOut: row.cash_out || undefined,
+        cashOutTime: row.cash_out_time || undefined,
         tableSize: row.table_size || 6,
         tag: row.tag || '',
         createdAt: row.created_at,
@@ -171,6 +200,9 @@ export class DatabaseService {
       bigBlind: row.big_blind || 0,
       currency: row.currency || '',
       effectiveStack: row.effective_stack || 0,
+      buyIn: row.buy_in || undefined,
+      cashOut: row.cash_out || undefined,
+      cashOutTime: row.cash_out_time || undefined,
       tableSize: row.table_size || 6,
       tag: row.tag || '',
       createdAt: row.created_at,
@@ -182,8 +214,8 @@ export class DatabaseService {
     if (!this.db) {throw new Error('Database not initialized');}
 
     const sql = `
-      INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size, tag)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, buy_in, cash_out, cash_out_time, table_size, tag)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await this.db.executeSql(sql, [
@@ -194,6 +226,9 @@ export class DatabaseService {
       session.bigBlind,
       session.currency,
       session.effectiveStack,
+      session.buyIn || null,
+      session.cashOut || null,
+      session.cashOutTime || null,
       session.tableSize || 6,
       session.tag || '',
     ]);
@@ -205,7 +240,7 @@ export class DatabaseService {
     const sql = `
       UPDATE sessions 
       SET location = ?, date = ?, small_blind = ?, big_blind = ?, currency = ?, 
-          effective_stack = ?, table_size = ?, tag = ?, updated_at = CURRENT_TIMESTAMP
+          effective_stack = ?, buy_in = ?, cash_out = ?, cash_out_time = ?, table_size = ?, tag = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
 
@@ -216,6 +251,9 @@ export class DatabaseService {
       session.bigBlind,
       session.currency,
       session.effectiveStack,
+      session.buyIn || null,
+      session.cashOut || null,
+      session.cashOutTime || null,
       session.tableSize || 6,
       session.tag || '',
       session.id,
@@ -534,8 +572,8 @@ export class DatabaseService {
     await this.db.transaction(async (tx: any) => {
       for (const session of sessions) {
         const sql = `
-          INSERT OR REPLACE INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, table_size, tag)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          INSERT OR REPLACE INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, buy_in, cash_out, cash_out_time, table_size, tag)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         await tx.executeSql(sql, [
@@ -546,6 +584,9 @@ export class DatabaseService {
           session.bigBlind,
           session.currency,
           session.effectiveStack,
+          session.buyIn || null,
+          session.cashOut || null,
+          session.cashOutTime || null,
           session.tableSize || 6,
           session.tag || '',
         ]);
