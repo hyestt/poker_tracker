@@ -409,8 +409,8 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       await fetchHands();
       await fetchStats();
 
-      // Navigate back to SessionDetail instead of staying on RecordHand screen
-      navigation.goBack();
+      // Navigate to SessionDetail page instead of going back
+      navigation.navigate('SessionDetail', { sessionId });
     } catch (error) {
       console.error('Failed to save hand:', error);
       Alert.alert('Error', 'Failed to save hand');
@@ -494,7 +494,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                   • Cards & position are entered below{'\n'}
                   • Focus on betting action{'\n'}
                   • Bet sizes in dollars{'\n'}
-                  Example: {'\n'}Preflop: UTG Bet 15 BTN Raise 45 UTG Call{'\n'} 
+                  Example: {'\n'}Preflop: UTG Bet 15 BTN Raise 45 UTG Call{'\n'}
                             Flop: UTG Check BTN Bet 30 UTG Call{'\n'}
                             Turn: BTN Bet 100 UTG Fold
                 </Text>
