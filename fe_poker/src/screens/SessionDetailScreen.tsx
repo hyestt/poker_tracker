@@ -63,6 +63,49 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
     }
   }, [session, loading]);
 
+  // Validation function for cash out
+  const isValidCashOut = () => {
+    if (!cashOutAmount || cashOutAmount.trim() === '') {
+      return false;
+    }
+    const amount = parseFloat(cashOutAmount);
+    return !isNaN(amount) && amount >= 0;
+  };
+
+  // Handle back navigation with validation
+  const handleBackNavigation = () => {
+    // Check if session has been ended (has cashOut value)
+    if (session && session.cashOut === undefined) {
+      // Session not ended, check if cash out amount is valid
+      if (!isValidCashOut()) {
+        Alert.alert(
+          'Cash Out Required',
+          'Please enter a valid cash out amount (≥ 0) before going back.',
+          [
+            { text: 'OK', style: 'default' }
+          ]
+        );
+        return;
+      }
+    }
+    
+    // Proceed with navigation
+    if (navigation.canGoBack()) {
+      const state = navigation.getState();
+      // Check if SessionsList is in the stack
+      const sessionListIndex = state.routes.findIndex(route => route.name === 'SessionsList');
+      if (sessionListIndex !== -1 && sessionListIndex < state.index) {
+        // Pop to SessionsList
+        navigation.pop(state.index - sessionListIndex);
+      } else {
+        // Navigate to SessionsList
+        navigation.navigate('SessionsList');
+      }
+    } else {
+      navigation.navigate('SessionsList');
+    }
+  };
+
   // 動態設置標題和返回按鈕
   useLayoutEffect(() => {
     if (session) {
@@ -70,23 +113,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
         title: 'Sessions',
         headerLeft: () => (
           <TouchableOpacity
-            onPress={() => {
-              // Use goBack if possible, otherwise navigate to SessionsList
-              if (navigation.canGoBack()) {
-                const state = navigation.getState();
-                // Check if SessionsList is in the stack
-                const sessionListIndex = state.routes.findIndex(route => route.name === 'SessionsList');
-                if (sessionListIndex !== -1 && sessionListIndex < state.index) {
-                  // Pop to SessionsList
-                  navigation.pop(state.index - sessionListIndex);
-                } else {
-                  // Navigate to SessionsList
-                  navigation.navigate('SessionsList');
-                }
-              } else {
-                navigation.navigate('SessionsList');
-              }
-            }}
+            onPress={handleBackNavigation}
             style={styles.headerBackButton}
           >
             <Text style={styles.headerBackButtonText}>‹ Back</Text>
