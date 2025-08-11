@@ -755,7 +755,7 @@ export const useSessionStore = create<State>((set, get) => ({
     const allTags = new Set<string>();
 
     // 添加默認的常用標籤
-    const defaultTags = ['bluff', 'value-bet', 'c-bet', 'fold', 'call', 'raise', 'all-in', 'nuts'];
+    const defaultTags = ['bluff', 'cooler', 'all-in', 'nits'];
     defaultTags.forEach(tag => allTags.add(tag));
 
     hands.forEach(hand => {

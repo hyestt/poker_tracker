@@ -418,14 +418,10 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         </TouchableOpacity>
         <Text style={styles.headerTitle}>GTO Analysis</Text>
         <View style={styles.headerRightSection}>
-          {quotaInfo && (
+          {quotaInfo && !quotaInfo.isPremium && quotaInfo.remainingFree > 0 && (
             <View style={styles.quotaIndicator}>
               <Text style={styles.quotaText}>
-                {quotaInfo.isPremium
-                  ? ''
-                  : quotaInfo.remainingFree > 0
-                    ? `${quotaInfo.remainingFree} free left`
-                    : '0 free left'}
+                {quotaInfo.remainingFree} free left
               </Text>
             </View>
           )}
