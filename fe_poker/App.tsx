@@ -51,10 +51,10 @@ import { AIAnalysisScreen } from './src/screens/AIAnalysisScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SubscriptionScreen } from './src/screens/SubscriptionScreen';
 
-// Import test utility in development
-if (__DEV__) {
-  require('./src/utils/testPremiumModel');
-}
+// Import test utility in development - temporarily disabled to prevent crash
+// if (__DEV__) {
+//   require('./src/utils/testPremiumModel');
+// }
 import { SessionsScreen } from './src/screens/SessionsScreen';
 import { SessionDetailScreen } from './src/screens/SessionDetailScreen';
 import RevenueCatService from './src/services/RevenueCatService';
@@ -168,13 +168,25 @@ const App = () => {
     // 初始化應用服務
     const initializeServices = async () => {
       try {
-        // 順序初始化而不是並行，避免時序問題
+        console.log('Starting app initialization...');
+        
+        // 先初始化 session store
+        console.log('Initializing session store...');
         await initializeSessionStore();
-        await RevenueCatService.initialize();
+        console.log('Session store initialized');
 
-        console.log('Services initialized successfully from App.tsx');
+        // 然後初始化 RevenueCat（如果失敗不影響app運行）
+        try {
+          console.log('Initializing RevenueCat...');
+          await RevenueCatService.initialize();
+          console.log('RevenueCat initialized');
+        } catch (rcError) {
+          console.warn('RevenueCat initialization failed, continuing without premium features:', rcError);
+        }
+
+        console.log('Services initialized successfully');
       } catch (error) {
-        console.error('Failed to initialize services from App.tsx:', error);
+        console.error('Critical initialization failure:', error);
         // 即使初始化失敗，也應繼續運行應用，讓用戶能看到UI
       } finally {
         // 無論成功或失敗，都結束載入狀態
