@@ -8,8 +8,8 @@ import Purchases, {
 
 // RevenueCat API Keys (需要在RevenueCat Dashboard中獲取)
 const REVENUECAT_API_KEY = {
-  ios: 'appl_YOUR_IOS_API_KEY_HERE',
-  android: 'goog_YOUR_ANDROID_API_KEY_HERE',
+  ios: 'appl_BwKUCybSdHvHESLRhDGVjAfAcLC', // 替换为你的iOS API Key
+  android: 'goog_YOUR_ANDROID_API_KEY_HERE', // 替换为你的Android API Key
 };
 
 // 開發環境標誌
@@ -48,16 +48,9 @@ class RevenueCatService {
 
   async initialize(userId?: string): Promise<void> {
     try {
-      // 在開發環境中跳過 RevenueCat 初始化
-      if (IS_DEVELOPMENT) {
-        console.log('🔧 Development mode: Skipping RevenueCat initialization');
-        this.isInitialized = true;
-        return;
-      }
-
       // 根據平台選擇API Key
       const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY.ios : REVENUECAT_API_KEY.android;
-
+      
       // 檢查API Key是否有效
       if (apiKey.includes('YOUR_') || apiKey.includes('_HERE')) {
         console.warn('⚠️ RevenueCat API Key not configured. Running in mock mode.');
@@ -76,18 +69,15 @@ class RevenueCatService {
     } catch (error) {
       console.error('❌ RevenueCat initialization failed:', error);
       // 在開發環境中不拋出錯誤，允許應用繼續運行
-      if (IS_DEVELOPMENT) {
-        console.log('🔧 Development mode: Continuing despite RevenueCat error');
-        this.isInitialized = true;
-        return;
-      }
-      throw error;
+      console.log('🔧 Continuing despite RevenueCat error, using fallback mode');
+      this.isInitialized = true;
+      return;
     }
   }
 
   async getOfferings(): Promise<PurchasesOffering[]> {
-    // 在開發環境中返回空陣列
-    if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
+    // 如果API Key未配置，返回空陣列
+    if (!this.isRealRevenueCatConfigured()) {
       return [];
     }
 
@@ -106,8 +96,8 @@ class RevenueCatService {
 
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     try {
-      // 在開發環境或API Key未配置時返回模擬數據
-      if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
+      // 如果API Key未配置，返回模擬數據
+      if (!this.isRealRevenueCatConfigured()) {
         return this.getMockSubscriptionPlans();
       }
 
@@ -138,9 +128,9 @@ class RevenueCatService {
 
   async purchasePackage(pkg: PurchasesPackage): Promise<CustomerInfo> {
     try {
-      // 在開發環境中模擬購買成功
-      if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
-        console.log('🔧 Development mode: Simulating purchase success');
+      // 如果API Key未配置，模擬購買成功
+      if (!this.isRealRevenueCatConfigured()) {
+        console.log('🔧 Mock mode: Simulating purchase success');
         return this.getMockCustomerInfo(true);
       }
 
@@ -155,9 +145,9 @@ class RevenueCatService {
 
   async restorePurchases(): Promise<CustomerInfo> {
     try {
-      // 在開發環境中模擬恢復購買
-      if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
-        console.log('🔧 Development mode: Simulating restore purchases');
+      // 如果API Key未配置，模擬恢復購買
+      if (!this.isRealRevenueCatConfigured()) {
+        console.log('🔧 Mock mode: Simulating restore purchases');
         return this.getMockCustomerInfo(false);
       }
 
@@ -172,8 +162,8 @@ class RevenueCatService {
 
   async getCustomerInfo(): Promise<CustomerInfo> {
     try {
-      // 在開發環境中返回模擬數據
-      if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
+      // 如果API Key未配置，返回模擬數據
+      if (!this.isRealRevenueCatConfigured()) {
         return this.getMockCustomerInfo(false);
       }
 
@@ -190,8 +180,8 @@ class RevenueCatService {
 
   async isPremiumUser(): Promise<boolean> {
     try {
-      // 在開發環境中，優先檢查測試模式設定
-      if (IS_DEVELOPMENT || !this.isRealRevenueCatConfigured()) {
+      // 如果API Key未配置，檢查測試模式設定
+      if (!this.isRealRevenueCatConfigured()) {
         const testPremiumStatus = await AsyncStorage.getItem(TEST_PREMIUM_KEY);
         return testPremiumStatus === 'true';
       }
@@ -214,14 +204,17 @@ class RevenueCatService {
     try {
       const customerInfo = await this.getCustomerInfo();
       const activeEntitlements = customerInfo.entitlements.active;
+      
+      // 如果有任何激活的entitlement，就认为是premium用户，启用所有功能
+      const hasPremium = Object.keys(activeEntitlements).length > 0;
 
       return {
-        unlimitedSessions: 'unlimited_sessions' in activeEntitlements,
-        aiAnalysis: 'ai_analysis' in activeEntitlements,
-        advancedStats: 'advanced_stats' in activeEntitlements,
-        exportData: 'export_data' in activeEntitlements,
-        cloudSync: 'cloud_sync' in activeEntitlements,
-        customTags: 'custom_tags' in activeEntitlements,
+        unlimitedSessions: hasPremium,
+        aiAnalysis: hasPremium,
+        advancedStats: hasPremium,
+        exportData: hasPremium,
+        cloudSync: hasPremium,
+        customTags: hasPremium,
       };
     } catch (error) {
       console.error('❌ Failed to get premium features:', error);
@@ -288,21 +281,13 @@ class RevenueCatService {
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: 'pro_monthly_mock',
-        title: '月度 PRO 會員',
+        id: 'custom', // 匹配RevenueCat中的package ID
+        title: 'Premium Subscription',
         description: '無限 GTO 分析 + 所有功能',
         price: '$4.99',
         period: '每月',
-        features: this.getFeaturesForPlan('pro_monthly_mock'),
+        features: this.getFeaturesForPlan('custom'),
         isPopular: true,
-      },
-      {
-        id: 'pro_yearly_mock',
-        title: '年度 PRO 會員',
-        description: '無限 GTO 分析 + 所有功能（省17%）',
-        price: '$49.99',
-        period: '每年',
-        features: this.getFeaturesForPlan('pro_yearly_mock'),
       },
     ];
   }
@@ -342,10 +327,10 @@ class RevenueCatService {
     try {
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       const quotaData = await AsyncStorage.getItem('gto_analysis_quota');
-      
+
       if (quotaData) {
         const quota: GTOAnalysisQuota = JSON.parse(quotaData);
-        
+
         // If it's a new day, reset the quota
         if (quota.date !== today) {
           const newQuota: GTOAnalysisQuota = {
@@ -356,7 +341,7 @@ class RevenueCatService {
           await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
           return newQuota;
         }
-        
+
         return quota;
       } else {
         // First time - create new quota
@@ -382,7 +367,7 @@ class RevenueCatService {
   async canUseGTOAnalysis(): Promise<{ canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean }> {
     try {
       const isPremium = await this.isPremiumUser();
-      
+
       // Premium users have unlimited access
       if (isPremium) {
         return {
@@ -418,7 +403,7 @@ class RevenueCatService {
   async useGTOAnalysis(): Promise<boolean> {
     try {
       const { canUse, isPremium } = await this.canUseGTOAnalysis();
-      
+
       if (!canUse) {
         return false;
       }

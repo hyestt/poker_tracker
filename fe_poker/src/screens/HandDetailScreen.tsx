@@ -24,7 +24,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
           const sessionData = await getSession(handData.sessionId);
           setHand(handData);
           setSession(sessionData);
-          
+
           // Check GTO analysis quota
           const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
           setGtoQuotaInfo(quotaStatus);
@@ -176,14 +176,14 @@ Shared from LiveHand`;
             if (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) {
               Alert.alert(
                 'GTO Analysis Limit Reached',
-                gtoQuotaInfo.isPremium 
+                gtoQuotaInfo.isPremium
                   ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
                   : 'You\'ve used your 1 free GTO analysis for today. Upgrade to Premium for unlimited analysis.',
-                gtoQuotaInfo.isPremium 
+                gtoQuotaInfo.isPremium
                   ? [{ text: 'OK' }]
                   : [
                       { text: 'Maybe Later', style: 'cancel' },
-                      { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') }
+                      { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') },
                     ]
               );
             } else {
@@ -192,7 +192,7 @@ Shared from LiveHand`;
           }}
           style={[
             styles.aiAnalysisButton,
-            (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) && styles.aiAnalysisButtonDisabled
+            (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) && styles.aiAnalysisButtonDisabled,
           ]}
         >
           <Text style={styles.aiAnalysisButtonText}>
@@ -687,8 +687,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   boardLabelEmpty: {
-    minHeight: 0,
-    marginBottom: 0,
+    minHeight: 16,
+    marginBottom: 4,
   },
   boardLabelPlaceholder: {
     fontSize: theme.font.size.body,

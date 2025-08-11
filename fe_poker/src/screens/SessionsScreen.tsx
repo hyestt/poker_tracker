@@ -54,7 +54,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   // Calculate session duration
   const getSessionDuration = (session: Session) => {
-    if (!session.date) return '';
+    if (!session.date) {return '';}
 
     const startTime = new Date(session.date).getTime();
     let endTime: number;

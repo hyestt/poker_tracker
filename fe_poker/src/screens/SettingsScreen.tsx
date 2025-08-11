@@ -9,7 +9,7 @@ import { UserPreferencesService } from '../services/UserPreferences';
 import { createTestHands } from '../utils/createTestHands';
 import { WelcomeDemoService } from '../services/WelcomeDemoService';
 
-export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation: _navigation }) => {
+export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const {
     isLocalMode,
     switchToLocalMode,
@@ -41,8 +41,11 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation: _nav
           setOfferings(availableOfferings);
         }
       } catch (error) {
-        Alert.alert('Error', 'Failed to fetch subscription status.');
         console.error('Failed to fetch subscription status:', error);
+        // 在开发环境中不显示错误弹窗，只记录错误
+        if (!__DEV__) {
+          Alert.alert('Error', 'Failed to fetch subscription status.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -326,14 +329,13 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             </View>
           ) : (
             <>
-              {offerings.map((offering) =>
-                offering.availablePackages.map((pkg) => (
-                  <TouchableOpacity key={pkg.identifier} style={styles.menuItem} onPress={() => handlePurchase(pkg)}>
-                    <Text style={styles.menuText}>{`${pkg.product.title} - ${pkg.product.priceString}`}</Text>
-                    <Text style={styles.menuArrow}>›</Text>
-                  </TouchableOpacity>
-                ))
-              )}
+              <TouchableOpacity 
+                style={[styles.menuItem, styles.upgradeMenuItem]} 
+                onPress={() => navigation.navigate('Subscription')}
+              >
+                <Text style={[styles.menuText, styles.upgradeMenuText]}>🚀 View Premium Plans</Text>
+                <Text style={styles.menuArrow}>›</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.menuItem} onPress={handleRestorePurchases}>
                 <Text style={styles.menuText}>Restore Purchases</Text>
                 <Text style={styles.menuArrow}>›</Text>
@@ -454,6 +456,15 @@ const styles = StyleSheet.create({
   menuArrow: {
     fontSize: 18,
     color: theme.colors.gray,
+  },
+  upgradeMenuItem: {
+    backgroundColor: '#F0F8FF',
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.primary,
+  },
+  upgradeMenuText: {
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
   statusSection: {
     margin: 16,

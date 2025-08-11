@@ -5,6 +5,7 @@ export interface UserPreferences {
   lastCurrency: string;
   lastTableSize: string;
   lastBlinds: string;
+  lastBuyIn: string;
   lastTag: string;
   customLocations: string[];
   customCurrencies: string[];
@@ -20,6 +21,7 @@ const defaultPreferences: UserPreferences = {
   lastCurrency: '🇺🇸 USD ($)',
   lastTableSize: '6',
   lastBlinds: '1/2',
+  lastBuyIn: '100',
   lastTag: '',
   customLocations: ['Live Casino', 'Home Game', 'Online', 'Club'],
   customCurrencies: [
@@ -101,6 +103,7 @@ export const UserPreferencesService = {
     currency?: string;
     tableSize?: string;
     blinds?: string;
+    buyIn?: string;
     tag?: string;
   }): Promise<void> {
     try {
@@ -111,6 +114,7 @@ export const UserPreferencesService = {
         ...(choices.currency && { lastCurrency: choices.currency }),
         ...(choices.tableSize && { lastTableSize: choices.tableSize }),
         ...(choices.blinds && { lastBlinds: choices.blinds }),
+        ...(choices.buyIn && { lastBuyIn: choices.buyIn }),
         ...(choices.tag && { lastTag: choices.tag }),
       };
       await this.savePreferences(updated);

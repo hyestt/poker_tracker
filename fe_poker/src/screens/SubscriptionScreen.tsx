@@ -226,32 +226,37 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
     <View style={styles.container}>
       {/* Header with back button */}
       <View style={styles.headerWithNav}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            console.log('Back button pressed');
+            navigation.goBack();
+          }}
+          activeOpacity={0.7}
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
         >
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
       </View>
-      
+
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.header}>
+          <View style={styles.heroIcon}>
+            <Text style={styles.heroIconText}>🚀</Text>
+          </View>
           <Text style={styles.title}>LiveHand Premium</Text>
           <Text style={styles.subtitle}>
             Unlock advanced features and take your poker game to the next level
           </Text>
         </View>
 
-      {/* Debug Info - Remove in production */}
-      {__DEV__ && (
-        <View style={{ padding: 16, backgroundColor: '#f0f0f0', margin: 16, borderRadius: 8 }}>
-          <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Debug Info:</Text>
-          <Text>Plans count: {plans.length}</Text>
-          <Text>Is Premium: {isPremium.toString()}</Text>
-          <Text>Loading: {loading.toString()}</Text>
-          {plans.length > 0 && (
-            <Text>Plans: {plans.map(p => p.title).join(', ')}</Text>
-          )}
+      {/* Debug Info - Only show if no plans loaded */}
+      {__DEV__ && plans.length === 0 && (
+        <View style={styles.debugCard}>
+          <Text style={styles.debugTitle}>🔧 Debug Info</Text>
+          <Text style={styles.debugText}>Plans count: {plans.length}</Text>
+          <Text style={styles.debugText}>Is Premium: {isPremium.toString()}</Text>
+          <Text style={styles.debugText}>Loading: {loading.toString()}</Text>
         </View>
       )}
 
@@ -259,22 +264,33 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
 
       {/* Free Features Section - Always show to explain the free tier */}
       <Card style={styles.freeFeatureCard}>
-        <Text style={styles.freeFeatureTitle}>🆓 What's Always Free</Text>
+        <View style={styles.freeFeatureHeader}>
+          <Text style={styles.freeFeatureIcon}>🎯</Text>
+          <Text style={styles.freeFeatureTitle}>What's Always Free</Text>
+        </View>
         <View style={styles.featureList}>
           <View style={styles.featureItem}>
-            <Text style={styles.featureIcon}>✓</Text>
+            <View style={styles.featureIconContainer}>
+              <Text style={styles.featureIcon}>✓</Text>
+            </View>
             <Text style={styles.featureText}>Unlimited manual hand recording</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.featureIcon}>✓</Text>
+            <View style={styles.featureIconContainer}>
+              <Text style={styles.featureIcon}>✓</Text>
+            </View>
             <Text style={styles.featureText}>1 free GTO analysis per day</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.featureIcon}>✓</Text>
+            <View style={styles.featureIconContainer}>
+              <Text style={styles.featureIcon}>✓</Text>
+            </View>
             <Text style={styles.featureText}>Basic session tracking</Text>
           </View>
           <View style={styles.featureItem}>
-            <Text style={styles.featureIcon}>✓</Text>
+            <View style={styles.featureIconContainer}>
+              <Text style={styles.featureIcon}>✓</Text>
+            </View>
             <Text style={styles.featureText}>Basic statistics</Text>
           </View>
         </View>
@@ -291,7 +307,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
               <Text style={styles.planDescription}>
                 If this persists, please check your internet connection and try again.
               </Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.subscribeButton}
                 onPress={() => {
                   setLoading(true);
@@ -331,17 +347,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.sm,
+    paddingTop: 50, // 更大的top padding for status bar
+    paddingBottom: theme.spacing.md,
     backgroundColor: theme.colors.card,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border || '#E5E7EB',
+    zIndex: 10,
   },
   backButton: {
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.button,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: 25,
+    minWidth: 80,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backButtonText: {
     color: 'white',
@@ -360,8 +381,21 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   header: {
-    padding: theme.spacing.lg,
+    padding: theme.spacing.xl,
     alignItems: 'center',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  },
+  heroIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  heroIconText: {
+    fontSize: 40,
   },
   title: {
     fontSize: theme.font.size.title,
@@ -392,16 +426,34 @@ const styles = StyleSheet.create({
   freeFeatureCard: {
     margin: theme.spacing.md,
     padding: theme.spacing.lg,
-    backgroundColor: '#F0F8FF',
-    borderColor: '#4A90E2',
-    borderWidth: 1,
+    backgroundColor: '#F8FFFE',
+    borderColor: '#10B981',
+    borderWidth: 2,
+    borderRadius: 16,
+  },
+  freeFeatureHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  freeFeatureIcon: {
+    fontSize: 24,
+    marginRight: theme.spacing.sm,
   },
   freeFeatureTitle: {
     fontSize: theme.font.size.subtitle,
     fontWeight: 'bold',
     color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    textAlign: 'center',
+  },
+  featureIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#10B981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.sm,
   },
   statusTitle: {
     fontSize: theme.font.size.subtitle,
@@ -437,23 +489,35 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   planCard: {
-    marginBottom: theme.spacing.md,
-    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    padding: theme.spacing.xl,
     position: 'relative',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   popularPlan: {
     borderColor: theme.colors.primary,
-    borderWidth: 2,
-    backgroundColor: '#F8F9FF',
+    borderWidth: 3,
+    backgroundColor: '#F0F4FF',
+    transform: [{ scale: 1.02 }],
   },
   popularBadge: {
     position: 'absolute',
-    top: -10,
-    right: 20,
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
+    top: -12,
+    right: 24,
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 6,
+    borderRadius: 16,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   popularBadgeText: {
     color: 'white',
@@ -467,9 +531,10 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   planPrice: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontWeight: '800',
     color: theme.colors.primary,
+    textAlign: 'center',
   },
   planPeriod: {
     fontSize: theme.font.size.body,
@@ -491,10 +556,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   featureIcon: {
-    color: '#4CAF50',
-    fontSize: 16,
+    color: 'white',
+    fontSize: 14,
     fontWeight: 'bold',
-    marginRight: theme.spacing.sm,
   },
   featureText: {
     fontSize: theme.font.size.body,
@@ -502,10 +566,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   subscribeButton: {
-    marginTop: theme.spacing.sm,
+    marginTop: theme.spacing.lg,
+    borderRadius: 25,
+    paddingVertical: theme.spacing.md,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   popularButton: {
     backgroundColor: theme.colors.primary,
+    transform: [{ scale: 1.05 }],
   },
   disabledButton: {
     backgroundColor: theme.colors.gray,
@@ -539,5 +611,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: theme.spacing.md,
+  },
+  debugCard: {
+    margin: theme.spacing.md,
+    padding: theme.spacing.md,
+    backgroundColor: '#FFF8E1',
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFA000',
+  },
+  debugTitle: {
+    fontWeight: 'bold',
+    marginBottom: theme.spacing.xs,
+    color: '#F57C00',
+  },
+  debugText: {
+    fontSize: theme.font.size.small,
+    color: '#BF360C',
+    marginBottom: 4,
   },
 });
