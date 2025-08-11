@@ -486,17 +486,19 @@ const styles = StyleSheet.create({
   ctaButton: {
     backgroundColor: '#FF6B35',
     marginHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingVertical: theme.spacing.md + 2, // 增加垂直內邊距
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing.sm,
-    height: 48,
+    minHeight: 52, // 改用 minHeight 並增加到 52px
   },
   ctaButtonText: {
     color: 'white',
     fontSize: theme.font.size.body,
     fontWeight: 'bold',
+    textAlign: 'center', // 確保文字居中
+    lineHeight: theme.font.size.body + 2, // 設定行高避免文字被切
   },
   footer: {
     flexDirection: 'row',
