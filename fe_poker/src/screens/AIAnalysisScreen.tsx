@@ -417,18 +417,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>GTO Analysis</Text>
-        <View style={styles.headerRightSection}>
-          {quotaInfo && !quotaInfo.isPremium && quotaInfo.remainingFree > 0 && (
-            <View style={styles.quotaIndicator}>
-              <Text style={styles.quotaText}>
-                {quotaInfo.remainingFree} free left
-              </Text>
-            </View>
-          )}
-          <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeButton}>
-            <Text style={styles.reanalyzeButtonText}>Re-analyze</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeButton}>
+          <Text style={styles.reanalyzeButtonText}>Re-analyze</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Content */}
