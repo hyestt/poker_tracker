@@ -10,24 +10,24 @@ export const initializeMonitoring = (dsn?: string) => {
   try {
     // 1. 初始化 Sentry 監控
     monitor.init(dsn);
-    
+
     // 2. 初始化 Store 監控
     const store = useSessionStore;
     storeMonitor.init(store);
-    
+
     // 3. 設置基本上下文
     monitor.safeSetContext('app', {
       version: require('../../package.json').version || 'unknown',
       platform: 'react-native',
       environment: __DEV__ ? 'development' : 'production',
     });
-    
+
     // 4. 記錄監控系統啟動
     monitor.safeTrack('monitoring_system_initialized', {
       sentryStatus: monitor.getStatus(),
       storeStatus: storeMonitor.getStatus(),
     });
-    
+
     console.log('📊 Monitoring system initialized safely');
     return true;
   } catch (error) {

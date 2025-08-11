@@ -6,26 +6,46 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import { Session } from '../models';
 
 export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  console.log('➕ [NewSessionScreen] Component mounted');
   const { addSession, fetchHands, fetchStats } = useSessionStore();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (session: Session) => {
+    console.log('📝 [NewSessionScreen] Session form submitted:', {
+      id: session.id,
+      location: session.location,
+      smallBlind: session.smallBlind,
+      bigBlind: session.bigBlind,
+      date: session.date,
+    });
+
     if (isLoading) {
+      console.warn('⚠️ [NewSessionScreen] Submit blocked - already loading');
       return; // 防止重複提交
     }
 
+    console.log('🔄 [NewSessionScreen] Starting session creation process');
     setIsLoading(true);
 
     try {
-      console.log('Creating session with ID:', session.id);
+      console.log('💾 [NewSessionScreen] Adding session to store/database');
       await addSession(session);
+
+      console.log('📊 [NewSessionScreen] Refreshing hands data');
       await fetchHands();
+
+      console.log('📊 [NewSessionScreen] Refreshing stats data');
       await fetchStats();
+
+      console.log('🎯 [NewSessionScreen] Navigating to RecordHand screen with sessionId:', session.id);
       navigation.navigate('RecordHand', { sessionId: session.id });
+
+      console.log('✅ [NewSessionScreen] Session creation completed successfully');
     } catch (error) {
-      console.error('Failed to create session:', error);
+      console.error('❌ [NewSessionScreen] Session creation failed:', error);
       Alert.alert('Error', 'Failed to create session');
     } finally {
+      console.log('🔄 [NewSessionScreen] Session creation process ended, setting loading to false');
       setIsLoading(false);
     }
   };

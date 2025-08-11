@@ -82,13 +82,13 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
           'Cash Out Required',
           'Please enter a valid cash out amount (≥ 0) before going back.',
           [
-            { text: 'OK', style: 'default' }
+            { text: 'OK', style: 'default' },
           ]
         );
         return;
       }
     }
-    
+
     // Proceed with navigation
     if (navigation.canGoBack()) {
       const state = navigation.getState();

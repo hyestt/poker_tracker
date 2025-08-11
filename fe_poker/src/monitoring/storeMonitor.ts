@@ -40,7 +40,7 @@ class StoreMonitor {
       });
 
       this.isInitialized = true;
-      
+
       safeMonitor(() => {
         monitor.safeTrack('store_monitor_initialized', {
           initialSessionCount: this.previousState?.sessions?.length || 0,
@@ -67,13 +67,13 @@ class StoreMonitor {
     try {
       // 檢測會話變化
       this.trackSessionChanges(newState);
-      
+
       // 檢測手牌變化
       this.trackHandChanges(newState);
-      
+
       // 檢測模式變化
       this.trackModeChanges(newState);
-      
+
       // 檢測統計變化
       this.trackStatsChanges(newState);
 
@@ -91,7 +91,7 @@ class StoreMonitor {
   }
 
   private trackSessionChanges(newState: StoreState) {
-    if (!this.previousState) return;
+    if (!this.previousState) {return;}
 
     const prevCount = this.previousState.sessions?.length || 0;
     const newCount = newState.sessions?.length || 0;
@@ -115,7 +115,7 @@ class StoreMonitor {
   }
 
   private trackHandChanges(newState: StoreState) {
-    if (!this.previousState) return;
+    if (!this.previousState) {return;}
 
     const prevCount = this.previousState.hands?.length || 0;
     const newCount = newState.hands?.length || 0;
@@ -139,7 +139,7 @@ class StoreMonitor {
   }
 
   private trackModeChanges(newState: StoreState) {
-    if (!this.previousState) return;
+    if (!this.previousState) {return;}
 
     const prevMode = this.previousState.isLocalMode;
     const newMode = newState.isLocalMode;
@@ -158,7 +158,7 @@ class StoreMonitor {
   }
 
   private trackStatsChanges(newState: StoreState) {
-    if (!this.previousState || !this.previousState.stats || !newState.stats) return;
+    if (!this.previousState || !this.previousState.stats || !newState.stats) {return;}
 
     try {
       const prevProfit = this.previousState.stats.totalProfit || 0;

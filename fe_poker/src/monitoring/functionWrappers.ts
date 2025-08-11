@@ -16,18 +16,18 @@ export function withMonitoring<T extends (...args: any[]) => any>(
 ): T {
   return ((...args: any[]) => {
     const startTime = options.trackTiming ? Date.now() : 0;
-    
+
     // 記錄函數調用（不影響執行）
     try {
       const trackingData: Record<string, any> = {
         function: functionName,
       };
-      
+
       if (options.trackArgs) {
         trackingData.argsCount = args.length;
         // 不記錄實際參數內容，避免敏感資訊洩露
       }
-      
+
       monitor.safeTrack(`function_called:${functionName}`, trackingData);
       debugLog(`Function called: ${functionName}`, trackingData);
     } catch (monitoringError) {
@@ -38,7 +38,7 @@ export function withMonitoring<T extends (...args: any[]) => any>(
     try {
       // 執行原始函數 - 完全不修改任何行為
       const result = originalFunction(...args);
-      
+
       // 如果是 Promise，監控其結果
       if (result instanceof Promise) {
         // 創建新的 Promise 包裝原始結果，但不改變結果
@@ -50,25 +50,25 @@ export function withMonitoring<T extends (...args: any[]) => any>(
                 function: functionName,
                 timing: options.trackTiming ? Date.now() - startTime : undefined,
               };
-              
+
               if (options.trackResult && promiseResult !== undefined) {
                 successData.hasResult = true;
                 // 不記錄實際結果內容，避免敏感資訊
               }
-              
+
               monitor.safeTrack(`function_success:${functionName}`, successData);
               debugLog(`Function succeeded: ${functionName}`, successData);
             } catch (monitoringError) {
               debugLog('Monitoring function success failed', monitoringError);
             }
-            
+
             // 回傳原始結果 - 完全不修改
             return promiseResult;
           })
           .catch((error) => {
             try {
               // 記錄錯誤但不改變錯誤處理
-              monitor.safeCapture(error, { 
+              monitor.safeCapture(error, {
                 function: functionName,
                 timing: options.trackTiming ? Date.now() - startTime : undefined,
               });
@@ -76,7 +76,7 @@ export function withMonitoring<T extends (...args: any[]) => any>(
             } catch (monitoringError) {
               debugLog('Monitoring function error failed', monitoringError);
             }
-            
+
             // 重新拋出原始錯誤 - 不改變錯誤處理
             throw error;
           });
@@ -87,24 +87,24 @@ export function withMonitoring<T extends (...args: any[]) => any>(
             function: functionName,
             timing: options.trackTiming ? Date.now() - startTime : undefined,
           };
-          
+
           if (options.trackResult && result !== undefined) {
             successData.hasResult = true;
           }
-          
+
           monitor.safeTrack(`function_success:${functionName}`, successData);
           debugLog(`Function succeeded: ${functionName}`, successData);
         } catch (monitoringError) {
           debugLog('Monitoring function success failed', monitoringError);
         }
-        
+
         // 回傳原始結果 - 完全不修改
         return result;
       }
     } catch (error) {
       try {
         // 記錄錯誤但不影響錯誤傳播
-        monitor.safeCapture(error as Error, { 
+        monitor.safeCapture(error as Error, {
           function: functionName,
           timing: options.trackTiming ? Date.now() - startTime : undefined,
         });
@@ -112,7 +112,7 @@ export function withMonitoring<T extends (...args: any[]) => any>(
       } catch (monitoringError) {
         debugLog('Monitoring function error failed', monitoringError);
       }
-      
+
       // 重新拋出原始錯誤 - 不改變錯誤處理
       throw error;
     }
@@ -149,10 +149,10 @@ export function withAPIMonitoring<T extends (...args: any[]) => Promise<any>>(
 ): T {
   return ((...args: any[]) => {
     const transaction = monitor.safeStartTransaction(`api_call_${apiName}`, 'http');
-    
+
     try {
       const result = originalFunction(...args);
-      
+
       if (result instanceof Promise) {
         return result
           .then((response) => {

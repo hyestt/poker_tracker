@@ -10,6 +10,7 @@ import { createTestHands } from '../utils/createTestHands';
 import { WelcomeDemoService } from '../services/WelcomeDemoService';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  console.log('⚙️ [SettingsScreen] Component mounted');
   const {
     isLocalMode,
     switchToLocalMode,
@@ -19,6 +20,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     fetchHands,
     fetchStats,
   } = useSessionStore();
+  console.log('⚙️ [SettingsScreen] Current mode - isLocalMode:', isLocalMode);
 
   const [isPremium, setIsPremium] = useState(false);
   const [offerings, setOfferings] = useState<PurchasesOffering[]>([]);
@@ -26,27 +28,39 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [isTestMode, setIsTestMode] = useState(false);
 
   useEffect(() => {
+    console.log('💎 [SettingsScreen] useEffect - checking subscription status');
     const checkSubscription = async () => {
       try {
+        console.log('🔄 [SettingsScreen] Starting subscription check');
         setIsLoading(true);
+
+        console.log('💎 [SettingsScreen] Checking premium user status');
         const premiumStatus = await RevenueCatService.isPremiumUser();
+        console.log('💎 [SettingsScreen] Premium status:', premiumStatus);
         setIsPremium(premiumStatus);
 
         // 檢查測試模式狀態
+        console.log('🧪 [SettingsScreen] Checking test mode status');
         const testStatus = await RevenueCatService.getTestPremiumStatus();
+        console.log('🧪 [SettingsScreen] Test mode status:', testStatus);
         setIsTestMode(testStatus);
 
         if (!premiumStatus) {
+          console.log('🛍️ [SettingsScreen] User is not premium, fetching offerings');
           const availableOfferings = await RevenueCatService.getOfferings();
+          console.log('🛍️ [SettingsScreen] Available offerings:', availableOfferings.length);
           setOfferings(availableOfferings);
+        } else {
+          console.log('✨ [SettingsScreen] User is premium, no need to fetch offerings');
         }
       } catch (error) {
-        console.error('Failed to fetch subscription status:', error);
+        console.error('❌ [SettingsScreen] Failed to fetch subscription status:', error);
         // 在开发环境中不显示错误弹窗，只记录错误
         if (!__DEV__) {
           Alert.alert('Error', 'Failed to fetch subscription status.');
         }
       } finally {
+        console.log('🔄 [SettingsScreen] Subscription check completed, setting loading to false');
         setIsLoading(false);
       }
     };
@@ -55,9 +69,12 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   }, []);
 
   const handlePurchase = async (pkg: PurchasesPackage) => {
+    console.log('🛍️ [SettingsScreen] Purchase initiated for package:', pkg.identifier);
     try {
       setIsLoading(true);
+      console.log('💳 [SettingsScreen] Processing purchase...');
       await RevenueCatService.purchasePackage(pkg);
+      console.log('✅ [SettingsScreen] Purchase completed successfully');
       const customerInfo = await RevenueCatService.getCustomerInfo();
       if (customerInfo.entitlements.active.pro) {
         setIsPremium(true);
@@ -329,8 +346,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             </View>
           ) : (
             <>
-              <TouchableOpacity 
-                style={[styles.menuItem, styles.upgradeMenuItem]} 
+              <TouchableOpacity
+                style={[styles.menuItem, styles.upgradeMenuItem]}
                 onPress={() => navigation.navigate('Subscription')}
               >
                 <Text style={[styles.menuText, styles.upgradeMenuText]}>🚀 View Premium Plans</Text>

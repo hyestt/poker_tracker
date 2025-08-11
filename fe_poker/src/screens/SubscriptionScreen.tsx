@@ -33,7 +33,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       console.log('🔄 Initializing RevenueCat...');
       await revenueCatService.initialize();
       console.log('✅ RevenueCat initialized');
-      
+
       // Check if we can get offerings
       try {
         const offerings = await revenueCatService.getOfferings();
@@ -44,7 +44,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       } catch (offerError) {
         console.error('❌ Failed to get offerings:', offerError);
       }
-      
+
       await loadSubscriptionData();
       console.log('✅ Subscription data loaded');
     } catch (error: any) {
@@ -112,7 +112,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       }
 
       console.error('❌ Purchase error details:', error);
-      
+
       // Show detailed error information for debugging
       Alert.alert(
         'Purchase Error',

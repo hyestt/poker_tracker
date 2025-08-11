@@ -14,6 +14,7 @@ import { Hand, Villain } from '../models';
 
 export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { sessionId } = route.params;
+  console.log('🃏 [RecordHandScreen] Component mounted for session:', sessionId);
   const [holeCards, setHoleCards] = useState('');
   const [board, setBoard] = useState('');
   const [position, setPosition] = useState('');
@@ -51,7 +52,10 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
   const handleCardSelect = (selectedCards: string[]) => {
     const cardsString = selectedCards.join(' ');
+    console.log('🃏 [RecordHandScreen] Cards selected:', cardsString);
+
     if (selectedVillainIndex !== null && selectedVillainIndex < villains.length) {
+      console.log('👤 [RecordHandScreen] Updating villain', selectedVillainIndex, 'cards:', cardsString);
       // Update villain cards
       const updatedVillains = [...villains];
       updatedVillains[selectedVillainIndex] = {
@@ -60,6 +64,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       };
       setVillains(updatedVillains);
     } else {
+      console.log('🦸 [RecordHandScreen] Updating hero cards:', cardsString);
       // Update hero cards
       setHoleCards(cardsString);
     }
@@ -370,8 +375,19 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   const handleSave = async () => {
+    console.log('💾 [RecordHandScreen] Save button pressed - validating hand data');
+    console.log('💾 [RecordHandScreen] Current hand data:', {
+      holeCards,
+      position,
+      board,
+      result,
+      villains: villains.length,
+      details: details?.length || 0,
+    });
+
     // 驗證 Hero 的 hole cards 和 position 都不為空白
     if (!holeCards || holeCards.trim() === '') {
+      console.warn('⚠️ [RecordHandScreen] Validation failed - missing hole cards');
       Alert.alert(
         'Cannot Save',
         'Please select Hero\'s hole cards to save hand record',
@@ -381,6 +397,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
 
     if (!position || position.trim() === '') {
+      console.warn('⚠️ [RecordHandScreen] Validation failed - missing position');
       Alert.alert(
         'Cannot Save',
         'Please select Hero\'s position to save hand record',
@@ -389,6 +406,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       return;
     }
 
+    console.log('✅ [RecordHandScreen] Validation passed, creating hand object');
     const hand: Hand = {
       id: Date.now().toString(),
       sessionId,
@@ -403,15 +421,19 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       favorite: false,
       tags,
     };
+    console.log('🃏 [RecordHandScreen] Hand object created with ID:', hand.id);
 
     try {
+      console.log('💾 [RecordHandScreen] Saving hand to store/database');
       await addHand(hand);
+      console.log('✅ [RecordHandScreen] Hand saved successfully');
       // fetchHands 和 fetchStats 已經在 addHand 中被調用了
 
+      console.log('🎯 [RecordHandScreen] Navigating to SessionDetail with sessionId:', sessionId);
       // Navigate to SessionDetail page instead of going back
       navigation.navigate('SessionDetail', { sessionId });
     } catch (error) {
-      console.error('Failed to save hand:', error);
+      console.error('❌ [RecordHandScreen] Failed to save hand:', error);
       Alert.alert('Error', 'Failed to save hand');
     }
   };

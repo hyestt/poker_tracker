@@ -21,7 +21,7 @@ class SentryMonitor {
 
       // 如果沒有提供 DSN，使用測試模式
       const sentryDsn = dsn || 'YOUR_SENTRY_DSN_HERE';
-      
+
       if (!dsn || dsn === 'YOUR_SENTRY_DSN_HERE') {
         debugLog('No valid Sentry DSN provided, running in test mode');
         this.isEnabled = false;
@@ -150,14 +150,14 @@ class SentryMonitor {
 
       // 使用簡化的 breadcrumb 記錄代替複雜的 transaction
       const startTime = Date.now();
-      
-      this.safeTrack(`transaction_start:${name}`, { 
+
+      this.safeTrack(`transaction_start:${name}`, {
         operation: operation || 'function',
-        startTime 
+        startTime,
       });
 
       debugLog(`Transaction started: ${name}`, { operation });
-      
+
       return {
         setData: (data: Record<string, any>) => {
           this.safeTrack(`transaction_data:${name}`, data);
@@ -167,9 +167,9 @@ class SentryMonitor {
         },
         finish: () => {
           const duration = Date.now() - startTime;
-          this.safeTrack(`transaction_finish:${name}`, { 
+          this.safeTrack(`transaction_finish:${name}`, {
             duration,
-            operation: operation || 'function' 
+            operation: operation || 'function',
           });
         },
       };
