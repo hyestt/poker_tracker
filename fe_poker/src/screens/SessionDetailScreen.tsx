@@ -71,7 +71,21 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
         headerLeft: () => (
           <TouchableOpacity
             onPress={() => {
-              navigation.goBack();
+              // Use goBack if possible, otherwise navigate to SessionsList
+              if (navigation.canGoBack()) {
+                const state = navigation.getState();
+                // Check if SessionsList is in the stack
+                const sessionListIndex = state.routes.findIndex(route => route.name === 'SessionsList');
+                if (sessionListIndex !== -1 && sessionListIndex < state.index) {
+                  // Pop to SessionsList
+                  navigation.pop(state.index - sessionListIndex);
+                } else {
+                  // Navigate to SessionsList
+                  navigation.navigate('SessionsList');
+                }
+              } else {
+                navigation.navigate('SessionsList');
+              }
             }}
             style={styles.headerBackButton}
           >
