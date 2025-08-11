@@ -33,6 +33,18 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       console.log('🔄 Initializing RevenueCat...');
       await revenueCatService.initialize();
       console.log('✅ RevenueCat initialized');
+      
+      // Check if we can get offerings
+      try {
+        const offerings = await revenueCatService.getOfferings();
+        console.log('📦 Available offerings:', offerings.length);
+        if (offerings.length === 0) {
+          console.warn('⚠️ No offerings found - products may not be configured');
+        }
+      } catch (offerError) {
+        console.error('❌ Failed to get offerings:', offerError);
+      }
+      
       await loadSubscriptionData();
       console.log('✅ Subscription data loaded');
     } catch (error: any) {
@@ -99,33 +111,28 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         return;
       }
 
-      // Check for RevenueCat configuration issues
-      if (error.message && (error.message.includes('configuration') || error.message.includes('Package not found'))) {
-        Alert.alert(
-          'Development Mode',
-          'This app is in development mode. Premium features will be unlocked for testing purposes.',
-          [
-            {
-              text: 'Activate Premium',
-              onPress: async () => {
-                await revenueCatService.setTestPremiumStatus(true);
-                _setIsPremium(true);
-                Alert.alert(
-                  'Premium Activated!',
-                  'All premium features are now available for testing.',
-                  [{ text: 'OK', onPress: () => loadSubscriptionData() }],
-                );
-              },
+      console.error('❌ Purchase error details:', error);
+      
+      // Show detailed error information for debugging
+      Alert.alert(
+        'Purchase Error',
+        `Error: ${error.message || 'Unknown error'}\n\nThis might be due to:\n• RevenueCat products not configured\n• App Store Connect products not set up\n• Network connectivity issues`,
+        [
+          {
+            text: 'Test Mode (Activate Premium)',
+            onPress: async () => {
+              await revenueCatService.setTestPremiumStatus(true);
+              _setIsPremium(true);
+              Alert.alert(
+                'Premium Activated (Test Mode)!',
+                'All premium features are now available for testing.',
+                [{ text: 'OK', onPress: () => loadSubscriptionData() }],
+              );
             },
-            { text: 'Cancel', style: 'cancel' },
-          ]
-        );
-      } else {
-        Alert.alert(
-          'Purchase Failed',
-          'Unable to complete the purchase. Please check your internet connection and try again.'
-        );
-      }
+          },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
     } finally {
       setPurchasing(null);
     }
@@ -244,7 +251,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       <TouchableOpacity
         style={styles.ctaButton}
         onPress={() => handlePurchase({
-          id: 'custom',
+          id: 'com.glen.livehand.premium',
           title: 'LiveHand Premium',
           description: 'All premium features unlocked',
           price: '$4.99/month',

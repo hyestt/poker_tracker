@@ -289,7 +289,7 @@ class RevenueCatService {
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: 'custom', // 匹配RevenueCat的package ID
+        id: 'com.glen.livehand.premium', // 匹配App Store Connect的Product ID
         title: 'LiveHand Premium',
         description: 'All premium features unlocked',
         price: '$4.99',
