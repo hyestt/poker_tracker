@@ -30,15 +30,20 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
     loadData();
   }, [fetchSessions, fetchHands]);
 
-  // 每次進入頁面時檢查訂閱狀態
+  // 每次進入頁面時檢查訂閱狀態並刷新數據
   useFocusEffect(
     useCallback(() => {
-      const checkSubscription = async () => {
+      const checkSubscriptionAndRefreshData = async () => {
+        console.log('🔄 SessionDetailScreen useFocusEffect triggered');
         const premium = await RevenueCatService.isPremiumUser();
         setIsPremium(premium);
+        // 刷新 hands 數據以確保顯示最新的 hands
+        console.log('🔄 About to call fetchHands from SessionDetail useFocusEffect');
+        await fetchHands();
+        console.log('✅ fetchHands completed from SessionDetail useFocusEffect');
       };
-      checkSubscription();
-    }, [])
+      checkSubscriptionAndRefreshData();
+    }, [fetchHands])
   );
 
 
@@ -208,11 +213,11 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
     if (session && session.date && cashOutTime) {
       const sessionStartTime = new Date(session.date).getTime();
       const cashOutDateTime = new Date(cashOutTime.replace(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/, '$1-$2-$3T$4:$5')).getTime();
-      
+
       if (cashOutDateTime < sessionStartTime) {
         Alert.alert(
-          'Invalid Time', 
-          'Cash out time cannot be earlier than session start time.\n\nSession started: ' + 
+          'Invalid Time',
+          'Cash out time cannot be earlier than session start time.\n\nSession started: ' +
           session.date + '\nCash out time: ' + cashOutTime
         );
         return;
@@ -784,7 +789,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  
+
   // 水平輸入行樣式
   horizontalInputRow: {
     flexDirection: 'row',

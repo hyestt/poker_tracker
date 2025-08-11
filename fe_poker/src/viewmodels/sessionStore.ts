@@ -295,12 +295,15 @@ export const useSessionStore = create<State>((set, get) => ({
 
   fetchHands: async () => {
     const { isLocalMode } = get();
+    console.log('📥 fetchHands called, isLocalMode:', isLocalMode);
 
     try {
       if (isLocalMode) {
         // 使用本地 SQLite
         await DatabaseService.initialize();
         const hands = await DatabaseService.getAllHands();
+        console.log('📊 Fetched hands from DB:', hands.length, 'hands');
+        console.log('📊 Latest hands:', hands.slice(0, 3).map(h => ({ id: h.id, result: h.result, createdAt: h.createdAt, updatedAt: h.updatedAt })));
         set({ hands });
         await AsyncStorage.setItem('poker_hands', JSON.stringify(hands));
       } else {
@@ -340,6 +343,7 @@ export const useSessionStore = create<State>((set, get) => ({
 
   addHand: async (hand: Hand) => {
     const { isLocalMode } = get();
+    console.log('➕ addHand called with:', { id: hand.id, result: hand.result, sessionId: hand.sessionId });
 
     try {
       // 確保有 ID
@@ -355,20 +359,27 @@ export const useSessionStore = create<State>((set, get) => ({
         villains: hand.villains || [],
       };
 
+      console.log('💾 About to save hand:', { id: handData.id, result: handData.result, isLocalMode });
+
       if (isLocalMode) {
         // 使用本地 SQLite
         await DatabaseService.initialize();
         await DatabaseService.insertHand(handData);
+        console.log('✅ Hand saved to local DB');
       } else {
         // 使用 API
         await apiCall(`${API_BASE_URL}/hands`, {
           method: 'POST',
           body: JSON.stringify(handData),
         });
+        console.log('✅ Hand saved to API');
       }
 
+      console.log('🔄 About to refresh hands data after addHand');
       await get().fetchHands();
+      console.log('🔄 About to refresh stats after addHand');
       await get().fetchStats();
+      console.log('✅ addHand completed successfully');
     } catch (error) {
       console.error('Error adding hand:', error);
       throw error;
@@ -523,13 +534,13 @@ export const useSessionStore = create<State>((set, get) => ({
         return response?.analysis || 'Analysis completed';
       } catch (apiError) {
         console.warn('API analysis failed:', apiError);
-        
+
         // 如果API失敗，但手牌已有分析結果，則返回現有分析
         if (hand.analysis && hand.analysis.trim()) {
           console.log('✅ Returning existing analysis from database');
           return hand.analysis;
         }
-        
+
         // 拋出更友好的錯誤訊息
         const errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
         throw new Error(`Analysis failed: ${errorMessage}. Please check if the backend server is running and properly configured.`);

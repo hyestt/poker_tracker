@@ -406,8 +406,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
     try {
       await addHand(hand);
-      await fetchHands();
-      await fetchStats();
+      // fetchHands 和 fetchStats 已經在 addHand 中被調用了
 
       // Navigate to SessionDetail page instead of going back
       navigation.navigate('SessionDetail', { sessionId });

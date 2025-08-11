@@ -106,22 +106,36 @@ export class DatabaseService {
     if (!this.db) {throw new Error('Database not initialized');}
 
     try {
-      // 檢查是否需要添加tags列
-      const [result] = await this.db.executeSql('PRAGMA table_info(hands)');
-      let hasTagsColumn = false;
-
-      for (let i = 0; i < result.rows.length; i++) {
-        const row = result.rows.item(i);
-        if (row.name === 'tags') {
-          hasTagsColumn = true;
-          break;
-        }
+      // 檢查並添加hands表的缺失欄位
+      const [handsResult] = await this.db.executeSql('PRAGMA table_info(hands)');
+      const handsColumns = new Set();
+      for (let i = 0; i < handsResult.rows.length; i++) {
+        const row = handsResult.rows.item(i);
+        handsColumns.add(row.name);
       }
 
-      if (!hasTagsColumn) {
+      if (!handsColumns.has('tags')) {
         console.log('Adding tags column to hands table');
         await this.db.executeSql('ALTER TABLE hands ADD COLUMN tags TEXT');
       }
+
+      if (!handsColumns.has('created_at')) {
+        console.log('Adding created_at column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP');
+      }
+
+      if (!handsColumns.has('updated_at')) {
+        console.log('Adding updated_at column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP');
+      }
+
+      // 為現有記錄設定時間戳值（如果為 NULL）
+      console.log('Updating NULL timestamps in hands table');
+      await this.db.executeSql(`
+        UPDATE hands 
+        SET created_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP 
+        WHERE created_at IS NULL OR updated_at IS NULL
+      `);
 
       // 檢查並添加sessions表的新欄位
       const [sessionResult] = await this.db.executeSql('PRAGMA table_info(sessions)');
@@ -275,7 +289,7 @@ export class DatabaseService {
   static async getAllHands(): Promise<Hand[]> {
     if (!this.db) {throw new Error('Database not initialized');}
 
-    const [results] = await this.db.executeSql('SELECT * FROM hands ORDER BY date DESC');
+    const [results] = await this.db.executeSql('SELECT * FROM hands ORDER BY updated_at DESC, created_at DESC');
     const hands: Hand[] = [];
 
     for (let i = 0; i < results.rows.length; i++) {
@@ -380,10 +394,13 @@ export class DatabaseService {
   static async insertHand(hand: Hand): Promise<void> {
     if (!this.db) {throw new Error('Database not initialized');}
 
+    console.log('🗃️ DatabaseService.insertHand called with:', { id: hand.id, result: hand.result, sessionId: hand.sessionId });
+
     const sql = `
       INSERT INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, 
-                        hole_cards, position, is_favorite, tag, board, note, villains, tags)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        hole_cards, position, is_favorite, tag, board, note, villains, tags,
+                        created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `;
 
     // 序列化 villains 和 tags
@@ -407,6 +424,8 @@ export class DatabaseService {
       villainsJson,
       tagsJson,
     ]);
+
+    console.log('✅ DatabaseService.insertHand completed successfully');
   }
 
   static async updateHand(hand: Hand): Promise<void> {
@@ -452,7 +471,7 @@ export class DatabaseService {
   static async getHandsBySession(sessionId: string): Promise<Hand[]> {
     if (!this.db) {throw new Error('Database not initialized');}
 
-    const [results] = await this.db.executeSql('SELECT * FROM hands WHERE session_id = ? ORDER BY date DESC', [sessionId]);
+    const [results] = await this.db.executeSql('SELECT * FROM hands WHERE session_id = ? ORDER BY updated_at DESC, created_at DESC', [sessionId]);
     const hands: Hand[] = [];
 
     for (let i = 0; i < results.rows.length; i++) {
@@ -601,8 +620,10 @@ export class DatabaseService {
       for (const hand of hands) {
         const sql = `
           INSERT OR REPLACE INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, 
-                                      hole_cards, position, is_favorite, tag, board, note, villains)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      hole_cards, position, is_favorite, tag, board, note, villains,
+                                      created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+                  COALESCE(?, CURRENT_TIMESTAMP), CURRENT_TIMESTAMP)
         `;
 
         const villainsJson = JSON.stringify(hand.villains || []);
@@ -622,6 +643,7 @@ export class DatabaseService {
           hand.board || '',
           hand.note || '',
           villainsJson,
+          hand.createdAt || null, // 用於 COALESCE
         ]);
       }
     });

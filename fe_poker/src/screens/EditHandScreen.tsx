@@ -433,14 +433,13 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
     try {
       await updateHand(hand);
-      await fetchHands();
-      await fetchStats();
+      // fetchHands 和 fetchStats 已經在 updateHand 中被調用了
       navigation.goBack();
     } catch (error) {
       console.error('Failed to update hand:', error);
       Alert.alert('Error', 'Failed to update hand');
     }
-  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, tags, updateHand, fetchHands, fetchStats, navigation]);
+  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, tags, updateHand, navigation]);
 
   const handleSaveRef = useRef(handleSave);
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
@@ -22,6 +22,7 @@ const sortOptions = [
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { sessions, hands, fetchSessions, fetchHands, deleteHand, analyzeHand, toggleFavorite } = useSessionStore();
+  const isFocused = useIsFocused();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -60,16 +61,29 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     fetchHands();
   }, []);
 
-  // 每次進入頁面時檢查訂閱狀態
+  // 每次進入頁面時檢查訂閱狀態和刷新數據
   useFocusEffect(
     useCallback(() => {
-      const checkSubscription = async () => {
+      const checkSubscriptionAndRefreshData = async () => {
+        console.log('🔄 HomeScreen useFocusEffect triggered');
         const premium = await RevenueCatService.isPremiumUser();
         setIsPremium(premium);
+        // 重新獲取最新的 hands 數據
+        console.log('🔄 About to call fetchHands from useFocusEffect');
+        await fetchHands();
+        console.log('✅ fetchHands completed from useFocusEffect');
       };
-      checkSubscription();
-    }, [])
+      checkSubscriptionAndRefreshData();
+    }, [fetchHands])
   );
+
+  // 監聽 isFocused 變化，確保每次頁面獲得焦點時都刷新數據
+  useEffect(() => {
+    if (isFocused) {
+      console.log('📱 HomeScreen gained focus, refreshing hands data');
+      fetchHands();
+    }
+  }, [isFocused, fetchHands]);
 
   // Filter and sort hands
   const getFilteredHands = () => {
@@ -169,7 +183,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       let comparison = 0;
       switch (selectedSort) {
         case 'date':
-          comparison = new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
+          comparison = new Date(a.updatedAt || a.createdAt || a.date || '').getTime() - new Date(b.updatedAt || b.createdAt || b.date || '').getTime();
           break;
         case 'amount':
           comparison = a.result - b.result;
