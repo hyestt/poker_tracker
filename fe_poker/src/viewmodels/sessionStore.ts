@@ -98,7 +98,7 @@ export const useSessionStore = create<State>((set, get) => ({
     try {
       // 監控：應用初始化開始
       monitor.safeTrack('app_initialization_started');
-      
+
       // 檢查儲存的模式設定，預設使用本地模式
       const savedMode = await AsyncStorage.getItem('poker_storage_mode');
       if (savedMode === 'api') {
@@ -110,8 +110,8 @@ export const useSessionStore = create<State>((set, get) => ({
       }
 
       // 監控：記錄初始化模式
-      monitor.safeTrack('app_mode_initialized', { 
-        mode: savedMode === 'api' ? 'api' : 'local' 
+      monitor.safeTrack('app_mode_initialized', {
+        mode: savedMode === 'api' ? 'api' : 'local',
       });
 
       // 檢查是否首次啟動並創建歡迎範例數據
@@ -121,14 +121,14 @@ export const useSessionStore = create<State>((set, get) => ({
       await get().fetchSessions();
       await get().fetchHands();
       await get().fetchStats();
-      
+
       // 監控：應用初始化成功
       monitor.safeTrack('app_initialization_completed');
     } catch (error) {
       console.error('初始化失敗:', error);
       // 監控：記錄初始化錯誤但不影響錯誤處理
       monitor.safeCapture(error as Error, { operation: 'app_initialization' });
-      
+
       // 如果初始化失敗，確保使用本地模式
       set({ isLocalMode: true });
       await get().fetchSessions();
@@ -145,14 +145,14 @@ export const useSessionStore = create<State>((set, get) => ({
     try {
       // 監控：開始獲取會話數據
       monitor.safeTrack('fetch_sessions_started', { mode: isLocalMode ? 'local' : 'api' });
-      
+
       if (isLocalMode) {
         // 使用本地 SQLite
         await DatabaseService.initialize();
         const sessions = await DatabaseService.getAllSessions();
         set({ sessions });
         await AsyncStorage.setItem('poker_sessions', JSON.stringify(sessions));
-        
+
         // 監控：記錄本地獲取成功
         monitor.safeTrack('fetch_sessions_success_local', { count: sessions.length });
       } else {
@@ -175,24 +175,24 @@ export const useSessionStore = create<State>((set, get) => ({
 
         set({ sessions });
         await AsyncStorage.setItem('poker_sessions', JSON.stringify(sessions));
-        
+
         // 監控：記錄 API 獲取成功
         monitor.safeTrack('fetch_sessions_success_api', { count: sessions.length });
       }
     } catch (error) {
       console.error('Error fetching sessions:', error);
       // 監控：記錄獲取失敗但不影響錯誤處理
-      monitor.safeCapture(error as Error, { 
-        operation: 'fetch_sessions', 
-        mode: isLocalMode ? 'local' : 'api' 
+      monitor.safeCapture(error as Error, {
+        operation: 'fetch_sessions',
+        mode: isLocalMode ? 'local' : 'api',
       });
-      
+
       const cached = await AsyncStorage.getItem('poker_sessions');
       if (cached) {
         set({ sessions: JSON.parse(cached) });
         // 監控：記錄回退到快取數據
-        monitor.safeTrack('fetch_sessions_fallback_to_cache', { 
-          hasCachedData: true 
+        monitor.safeTrack('fetch_sessions_fallback_to_cache', {
+          hasCachedData: true,
         });
       }
     }
@@ -203,11 +203,11 @@ export const useSessionStore = create<State>((set, get) => ({
 
     try {
       // 監控：開始添加會話
-      monitor.safeTrack('add_session_started', { 
+      monitor.safeTrack('add_session_started', {
         mode: isLocalMode ? 'local' : 'api',
-        location: session.location || 'unknown' 
+        location: session.location || 'unknown',
       });
-      
+
       // 確保有 ID
       if (!session.id) {
         session.id = generateUUID();
@@ -233,18 +233,18 @@ export const useSessionStore = create<State>((set, get) => ({
       }
 
       await get().fetchSessions();
-      
+
       // 監控：添加會話成功
-      monitor.safeTrack('add_session_success', { 
+      monitor.safeTrack('add_session_success', {
         mode: isLocalMode ? 'local' : 'api',
-        sessionId: sessionData.id 
+        sessionId: sessionData.id,
       });
     } catch (error) {
       console.error('Error adding session:', error);
       // 監控：記錄添加會話錯誤但不影響錯誤處理
-      monitor.safeCapture(error as Error, { 
-        operation: 'add_session', 
-        mode: isLocalMode ? 'local' : 'api' 
+      monitor.safeCapture(error as Error, {
+        operation: 'add_session',
+        mode: isLocalMode ? 'local' : 'api',
       });
       throw error;
     }

@@ -169,7 +169,7 @@ const App = () => {
     const initializeServices = async () => {
       try {
         console.log('Starting app initialization...');
-        
+
         // 先初始化 session store
         console.log('Initializing session store...');
         await initializeSessionStore();

@@ -6,8 +6,10 @@ import { Session } from '../models';
 import { theme } from '../theme';
 
 export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  console.log('📋 [SessionsScreen] Component mounted');
   const { sessions, hands, fetchSessions, fetchHands, deleteSession } = useSessionStore();
   const [loading, setLoading] = useState(true);
+  console.log('📋 [SessionsScreen] Initial data - sessions:', sessions.length, 'hands:', hands.length);
   const insets = useSafeAreaInsets();
 
   // Filter states
@@ -32,19 +34,23 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => {
+    console.log('📋 [SessionsScreen] useEffect - loading session data');
     const loadData = async () => {
       try {
         // 如果數據已經存在，跳過載入直接顯示
         if (sessions.length > 0) {
-          console.log('Sessions data already available, skipping load');
+          console.log('📋 [SessionsScreen] Sessions data already available, skipping load');
           setLoading(false);
           return;
         }
 
+        console.log('🔄 [SessionsScreen] Loading sessions and hands data...');
         await Promise.all([fetchSessions(), fetchHands()]);
+        console.log('✅ [SessionsScreen] Data loaded successfully - sessions:', sessions.length, 'hands:', hands.length);
       } catch (error) {
-        console.error('Error loading sessions data:', error);
+        console.error('❌ [SessionsScreen] Error loading sessions data:', error);
       } finally {
+        console.log('🔄 [SessionsScreen] Data loading completed, setting loading to false');
         setLoading(false);
       }
     };

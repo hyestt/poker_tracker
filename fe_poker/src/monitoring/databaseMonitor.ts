@@ -147,10 +147,10 @@ class DatabaseMonitor {
 
   // 手動記錄資料庫事件（不影響業務邏輯）
   trackDatabaseEvent(
-    operation: string, 
-    data?: { 
-      recordCount?: number; 
-      tableName?: string; 
+    operation: string,
+    data?: {
+      recordCount?: number;
+      tableName?: string;
       success?: boolean;
       error?: string;
     }
@@ -175,17 +175,17 @@ class DatabaseMonitor {
         timestamp: Date.now(),
       });
 
-      debugLog(`Database error in ${operation}`, { 
-        error: error.message, 
-        context 
+      debugLog(`Database error in ${operation}`, {
+        error: error.message,
+        context,
       });
     });
   }
 
   // 記錄資料庫性能指標
   trackDatabasePerformance(
-    operation: string, 
-    duration: number, 
+    operation: string,
+    duration: number,
     recordCount?: number
   ) {
     safeMonitor(() => {
@@ -197,9 +197,9 @@ class DatabaseMonitor {
       });
 
       if (duration > 1000) { // 超過1秒的操作
-        debugLog(`Slow database operation: ${operation}`, { 
-          duration, 
-          recordCount 
+        debugLog(`Slow database operation: ${operation}`, {
+          duration,
+          recordCount,
         });
       }
     });

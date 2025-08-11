@@ -10,16 +10,27 @@ interface Props {
   disabled?: boolean;
 }
 
-export const Button: React.FC<Props> = ({ title, onPress, style, textStyle, disabled }) => (
-  <TouchableOpacity
-    style={[styles.button, style, disabled && styles.disabled]}
-    onPress={onPress}
-    activeOpacity={0.8}
-    disabled={disabled}
-  >
-    <Text style={[styles.text, textStyle]}>{title}</Text>
-  </TouchableOpacity>
-);
+export const Button: React.FC<Props> = ({ title, onPress, style, textStyle, disabled }) => {
+  const handlePress = () => {
+    console.log('🔲 [Button] Button pressed:', title);
+    if (disabled) {
+      console.warn('⚠️ [Button] Button press blocked - button is disabled:', title);
+      return;
+    }
+    onPress();
+  };
+
+  return (
+    <TouchableOpacity
+      style={[styles.button, style, disabled && styles.disabled]}
+      onPress={handlePress}
+      activeOpacity={0.8}
+      disabled={disabled}
+    >
+      <Text style={[styles.text, textStyle]}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   button: {

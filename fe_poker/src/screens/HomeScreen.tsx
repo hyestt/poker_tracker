@@ -21,8 +21,10 @@ const sortOptions = [
 ];
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  console.log('🏠 [HomeScreen] Component mounted');
   const { sessions, hands, fetchSessions, fetchHands, deleteHand, analyzeHand, toggleFavorite } = useSessionStore();
   const isFocused = useIsFocused();
+  console.log('🏠 [HomeScreen] Initial state - sessions:', sessions.length, 'hands:', hands.length);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -57,6 +59,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   );
 
   useEffect(() => {
+    console.log('🏠 [HomeScreen] Initial useEffect - fetching sessions and hands');
     fetchSessions();
     fetchHands();
   }, []);
@@ -200,6 +203,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const filteredHands = getFilteredHands();
 
   const handleDelete = (id: string) => {
+    console.log('🗑️ [HomeScreen] Delete hand requested:', id);
     Alert.alert(
       'Delete Record',
       'Are you sure you want to delete this hand record?',
@@ -207,17 +211,28 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {
           text: 'Cancel',
           style: 'cancel',
+          onPress: () => console.log('🗑️ [HomeScreen] Delete cancelled by user'),
         },
-        { text: 'Delete', onPress: () => deleteHand(id) },
+        {
+          text: 'Delete',
+          onPress: () => {
+            console.log('🗑️ [HomeScreen] Delete confirmed, executing deleteHand:', id);
+            deleteHand(id);
+          },
+        },
       ]
     );
   };
 
   const handleAnalyze = async (id: string) => {
+    console.log('🤖 [HomeScreen] AI Analysis requested for hand:', id);
     try {
+      console.log('🤖 [HomeScreen] Starting AI analysis...');
       const analysis = await analyzeHand(id);
+      console.log('🤖 [HomeScreen] AI Analysis completed successfully, length:', analysis?.length || 0);
       Alert.alert('AI Analysis Result', analysis, [{ text: 'OK' }]);
     } catch (error) {
+      console.error('🤖 [HomeScreen] AI Analysis failed:', error);
       Alert.alert('Analysis Failed', error instanceof Error ? error.message : 'Unknown error');
     }
   };
@@ -237,10 +252,15 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   const handleAddButtonPress = async () => {
+    console.log('➕ [HomeScreen] Add button pressed, current hands count:', hands.length);
     try {
       // 檢查手牌數量限制（免費用戶最多10手牌）
+      console.log('💎 [HomeScreen] Checking premium status...');
       const premium = await RevenueCatService.isPremiumUser();
+      console.log('💎 [HomeScreen] Premium status:', premium);
+
       if (!premium && hands.length >= 10) {
+        console.warn('⚠️ [HomeScreen] Free user limit reached - 10 hands max');
         Alert.alert(
           'Upgrade Required',
           'You have reached the free limit of 10 hands. Please upgrade to Premium to add more hands.',

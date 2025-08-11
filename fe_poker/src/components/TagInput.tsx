@@ -101,14 +101,14 @@ export const TagInput: React.FC<TagInputProps> = ({
 
   const togglePopularTag = (tag: string) => {
     console.log(`[TagInput] togglePopularTag called with tag: ${tag}`);
-    console.log(`[TagInput] Current tags:`, tags);
+    console.log('[TagInput] Current tags:', tags);
     console.log(`[TagInput] isAtMaxTags: ${isAtMaxTags}`);
-    
+
     // 清除隱藏timeout，防止建議在點擊時消失
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);
       hideTimeoutRef.current = null;
-      console.log(`[TagInput] Cleared hide timeout`);
+      console.log('[TagInput] Cleared hide timeout');
     }
 
     if (tags.includes(tag)) {
@@ -122,12 +122,12 @@ export const TagInput: React.FC<TagInputProps> = ({
       console.log(`[TagInput] Adding tag ${tag} to tags`);
       const newTags = [...tags, tag];
       onTagsChange(newTags);
-      console.log(`[TagInput] New tags:`, newTags);
-      
+      console.log('[TagInput] New tags:', newTags);
+
       // 不立即隱藏建議，讓用戶可以繼續選擇更多標籤
       // 只有在達到最大標籤數時才隱藏建議
       if (tags.length + 1 >= maxTags) {
-        console.log(`[TagInput] Reached max tags, hiding suggestions`);
+        console.log('[TagInput] Reached max tags, hiding suggestions');
         setShowSuggestions(false);
       }
     } else {
@@ -196,8 +196,8 @@ export const TagInput: React.FC<TagInputProps> = ({
           {suggestions.length > 0 && !isAtMaxTags && (
             <View style={styles.suggestionSection}>
               <Text style={styles.suggestionSectionTitle}>Suggestions</Text>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 keyboardShouldPersistTaps="always"
                 nestedScrollEnabled={true}
@@ -226,8 +226,8 @@ export const TagInput: React.FC<TagInputProps> = ({
           {!inputValue.trim() && popularTags.length > 0 && (
             <View style={styles.suggestionSection}>
               <Text style={styles.suggestionSectionTitle}>Popular Tags</Text>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 keyboardShouldPersistTaps="always"
                 nestedScrollEnabled={true}
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.primary,
     minHeight: 32, // 確保最小觸控目標高度
-    minWidth: 44, // 確保最小觸控目標寬度  
+    minWidth: 44, // 確保最小觸控目標寬度
     alignItems: 'center',
     justifyContent: 'center',
   },
