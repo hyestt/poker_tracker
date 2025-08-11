@@ -15,6 +15,9 @@ const REVENUECAT_API_KEY = {
 // 開發環境標誌
 const IS_DEVELOPMENT = __DEV__;
 
+// 強制使用沙盒測試模式（設置為false來使用真實的RevenueCat配置）
+const FORCE_SANDBOX_MODE = false;
+
 // 測試模式儲存 key
 const TEST_PREMIUM_KEY = 'test_premium_status';
 
@@ -50,7 +53,7 @@ class RevenueCatService {
     try {
       // 根據平台選擇API Key
       const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY.ios : REVENUECAT_API_KEY.android;
-      
+
       // 檢查API Key是否有效
       if (apiKey.includes('YOUR_') || apiKey.includes('_HERE')) {
         console.warn('⚠️ RevenueCat API Key not configured. Running in mock mode.');
@@ -204,7 +207,7 @@ class RevenueCatService {
     try {
       const customerInfo = await this.getCustomerInfo();
       const activeEntitlements = customerInfo.entitlements.active;
-      
+
       // 如果有任何激活的entitlement，就认为是premium用户，启用所有功能
       const hasPremium = Object.keys(activeEntitlements).length > 0;
 
@@ -278,15 +281,20 @@ class RevenueCatService {
     return !apiKey.includes('YOUR_') && !apiKey.includes('_HERE');
   }
 
+  private shouldUseSandboxMode(): boolean {
+    // 在開發模式或強制沙盒模式下使用模擬數據
+    return IS_DEVELOPMENT || FORCE_SANDBOX_MODE || !this.isRealRevenueCatConfigured();
+  }
+
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: 'custom', // 匹配RevenueCat中的package ID
-        title: 'Premium Subscription',
-        description: '無限 GTO 分析 + 所有功能',
+        id: 'custom', // 匹配RevenueCat的package ID
+        title: 'LiveHand Premium',
+        description: 'All premium features unlocked',
         price: '$4.99',
-        period: '每月',
-        features: this.getFeaturesForPlan('custom'),
+        period: 'Month',
+        features: this.getFeaturesForPlan('premium'),
         isPopular: true,
       },
     ];
