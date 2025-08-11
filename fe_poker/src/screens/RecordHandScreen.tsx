@@ -449,7 +449,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
         ref={scrollViewRef}
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled={true}
       >
