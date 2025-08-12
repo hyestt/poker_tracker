@@ -125,9 +125,9 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         smallBlind: smallBlindValue,
         bigBlind: bigBlindValue,
         currency: formData.currency,
-        effectiveStack: parseInt(formData.effectiveStack) || 0,
-        buyIn: parseInt(formData.buyIn) || 0,
-        tableSize: parseInt(formData.tableSize) || 6,
+        effectiveStack: parseInt(formData.buyIn, 10) || 100,
+        buyIn: parseInt(formData.buyIn, 10) || 0,
+        tableSize: parseInt(formData.tableSize, 10) || 6,
         tag: formData.tag,
       };
 
@@ -250,19 +250,6 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         />
       </Card>
 
-      <Card style={styles.section}>
-        <View style={styles.horizontalContainer}>
-          <Text style={styles.fieldTitle}>Effective Stack</Text>
-          <View style={styles.inputContainer}>
-            <Input
-              value={formData.effectiveStack}
-              onChangeText={(value) => updateNumericField('effectiveStack', value)}
-              placeholder="Starting stack amount"
-              keyboardType="numeric"
-            />
-          </View>
-        </View>
-      </Card>
 
       <Card style={styles.section}>
         <View style={styles.horizontalContainer}>
