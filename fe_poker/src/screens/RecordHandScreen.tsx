@@ -147,12 +147,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     selectionRef.current = selection;
   }, [selection]);
 
-  // 新增：當useCustomKeyboard為true時，自動顯示鍵盤
-  useEffect(() => {
-    if (useCustomKeyboard) {
-      setShowCustomKeyboard(true);
-    }
-  }, []);
+  // Poker Keyboard 預設為隱藏，只在用戶主動點擊時顯示
 
   const handleQuickInsert = (text: string) => {
     const { start, end } = selection;
