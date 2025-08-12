@@ -15,21 +15,35 @@ Result: {{RESULT}}
 Please provide your analysis in {{LANGUAGE}} language following this format:
 
 ---
-
 **Summary**
 Overall: ⭐⭐
 
 End with 1-2 sentences explaining overall performance, streets that deviated from GTO, and improvement suggestions.
 Be strict in your evaluation.
+Important: When giving the GTO Recommendation, always include the suggested action frequency breakdown for this spot in percentage format, covering:
+1. Bet % for each common sizing (check, 33% pot, 50% pot, 75% pot, 100% pot, Overbet)
+2. Ensure the total sums to 100%.
+3. Provide the most likely high-frequency sizing first.
+
 ---
 
 ## Preflop  
 **Player Action:** 
 Describe Hero's action, position, and amount  
 **GTO Recommendation:** 
-Is this action high frequency? What are the recommended actions and sizing frequencies? Use 1-2 short sentences
+What are the recommended actions and sizing frequencies? Use 1-2 short sentences
+Example: 
+| Action       | Frequency |
+|--------------|-----------|
+| **Check**    | **90%**   |
+| **Bet 33%**  | **10%**   |
+| **Bet 50%**  | **0%**   |
+| **Bet 75%**  | **0%**   |
+| **Bet 100%**  | **0%**   |
+| **Bet overbet%**  | **0%**   |
+
 **Rating & Summary:** 
-⭐⭐⭐⭐⭐ Comments  
+⭐⭐⭐⭐⭐ Comments
 
 ## Flop  
 **Player Action:** 
