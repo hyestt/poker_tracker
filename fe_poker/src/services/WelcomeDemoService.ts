@@ -75,7 +75,7 @@ export class WelcomeDemoService {
       currency: 'USD',
       effectiveStack: 200,
       buyIn: 200,
-      cashOut: 100,
+      cashOut: 205,
       cashOutTime: '2025-08-08T20:30:00.000Z',
       tableSize: 6,
       tag: 'demo',

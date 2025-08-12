@@ -312,12 +312,12 @@ Shared from LiveHand`;
               <Text style={styles.infoValue}>${session.bigBlind}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Effective Stack:</Text>
-              <Text style={styles.infoValue}>${session.effectiveStack}</Text>
+              <Text style={styles.infoLabel}>Buy-In:</Text>
+              <Text style={styles.infoValue}>${session.buyIn}</Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Table Size:</Text>
-              <Text style={styles.infoValue}>{session.tableSize || 6} players</Text>
+              <Text style={styles.infoValue}>{session.tableSize || 6}</Text>
             </View>
           </View>
         </View>

@@ -64,6 +64,25 @@ export const SessionForm: React.FC<SessionFormProps> = ({
     loadPreferencesAndInitialize();
   }, []);
 
+  // 格式化日期的函數，與 DateTimePicker 保持一致
+  const formatDateForDisplay = (dateString: string): string => {
+    if (!dateString) {return '';}
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {return dateString;} // 如果解析失敗，返回原始字符串
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}/${month}/${day} ${hours}:${minutes}`;
+    } catch {
+      return dateString; // 如果發生錯誤，返回原始字符串
+    }
+  };
+
   const loadPreferencesAndInitialize = async () => {
     const prefs = await UserPreferencesService.getPreferences();
     setPreferences(prefs);
@@ -72,7 +91,7 @@ export const SessionForm: React.FC<SessionFormProps> = ({
       // 編輯模式 - 載入現有 session 資料
       setFormData({
         location: initialSession.location || '',
-        date: initialSession.date || '',
+        date: formatDateForDisplay(initialSession.date || ''),
         blinds: `${initialSession.smallBlind || 0}/${initialSession.bigBlind || 0}`,
         currency: initialSession.currency || '',
         effectiveStack: initialSession.effectiveStack?.toString() || '',
@@ -236,15 +255,13 @@ export const SessionForm: React.FC<SessionFormProps> = ({
       <Card style={styles.section}>
         <CustomPicker
           title="Table Size"
-          options={preferences.customTableSizes.map(size => `${size} Players`)}
-          value={formData.tableSize ? `${formData.tableSize} Players` : ''}
+          options={preferences.customTableSizes}
+          value={formData.tableSize}
           onValueChange={(value) => {
-            const sizeOnly = value.replace(' Players', '');
-            updateFormData('tableSize', sizeOnly);
+            updateFormData('tableSize', value);
           }}
           onOptionsChange={(newOptions) => {
-            const sizesOnly = newOptions.map(option => option.replace(' Players', ''));
-            updateTableSizeOptions(sizesOnly);
+            updateTableSizeOptions(newOptions);
           }}
           placeholder="Select table size"
         />

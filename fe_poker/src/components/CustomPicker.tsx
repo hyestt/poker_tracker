@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, Alert, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, Alert, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { theme } from '../theme';
 
 interface CustomPickerProps {
@@ -11,6 +11,7 @@ interface CustomPickerProps {
   allowCustom?: boolean;
   allowDelete?: boolean;
   title?: string;
+  formatNewOption?: (value: string) => string;
 }
 
 export const CustomPicker: React.FC<CustomPickerProps> = ({
@@ -22,6 +23,7 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
   allowCustom = true,
   allowDelete = true,
   title,
+  formatNewOption,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [customValue, setCustomValue] = useState('');
@@ -55,15 +57,18 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
   };
 
   const handleAddCustom = () => {
-    if (customValue.trim() && !options.includes(customValue.trim())) {
-      const newOptions = [...options, customValue.trim()];
-      onOptionsChange(newOptions);
-      onValueChange(customValue.trim());
-      setCustomValue('');
-      setShowCustomInput(false);
-      setIsVisible(false);
-    } else if (options.includes(customValue.trim())) {
-      Alert.alert('Error', 'This option already exists');
+    if (customValue.trim()) {
+      const formattedValue = formatNewOption ? formatNewOption(customValue.trim()) : customValue.trim();
+      if (!options.includes(formattedValue)) {
+        const newOptions = [...options, formattedValue];
+        onOptionsChange(newOptions);
+        onValueChange(formattedValue);
+        setCustomValue('');
+        setShowCustomInput(false);
+        setIsVisible(false);
+      } else {
+        Alert.alert('Error', 'This option already exists');
+      }
     } else {
       Alert.alert('Error', 'Please enter a valid option');
     }
@@ -115,25 +120,106 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
           animationType="fade"
           onRequestClose={() => setIsVisible(false)}
         >
-          <TouchableOpacity
-            style={styles.overlay}
-            activeOpacity={1}
-            onPress={() => setIsVisible(false)}
+          <KeyboardAvoidingView
+            style={styles.keyboardAvoidingView}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             <TouchableOpacity
-              style={styles.modal}
+              style={styles.overlay}
               activeOpacity={1}
-              onPress={(e) => e.stopPropagation()}
+              onPress={() => setIsVisible(false)}
             >
-              <Text style={styles.modalTitle}>Select {title}</Text>
+              <TouchableOpacity
+                style={styles.modal}
+                activeOpacity={1}
+                onPress={(e) => e.stopPropagation()}
+              >
+                <Text style={styles.modalTitle}>Select {title}</Text>
+
+                <FlatList
+                  data={options}
+                  keyExtractor={(item) => item}
+                  renderItem={renderOption}
+                  style={styles.optionsList}
+                  showsVerticalScrollIndicator={false}
+                  ItemSeparatorComponent={() => <View style={{ height: theme.spacing.xs }} />}
+                />
+
+                {allowCustom && (
+                  <View style={styles.customSection}>
+                    {!showCustomInput ? (
+                      <TouchableOpacity
+                        style={styles.addCustomButton}
+                        onPress={() => setShowCustomInput(true)}
+                      >
+                        <Text style={styles.addCustomText}>+ Add Custom Option</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.customInputContainer}>
+                        <TextInput
+                          style={styles.customInput}
+                          value={customValue}
+                          onChangeText={setCustomValue}
+                          placeholder="Enter custom option"
+                          placeholderTextColor={theme.colors.gray}
+                          autoFocus
+                        />
+                        <View style={styles.customButtonsRow}>
+                          <TouchableOpacity
+                            style={styles.customButton}
+                            onPress={() => {
+                              setShowCustomInput(false);
+                              setCustomValue('');
+                            }}
+                          >
+                            <Text style={styles.cancelText}>Cancel</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.customButton, styles.addButton]}
+                            onPress={handleAddCustom}
+                          >
+                            <Text style={styles.addText}>Add</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </Modal>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <PickerComponent />
+
+      <Modal
+        visible={isVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity
+            style={styles.overlay}
+            onPress={() => setIsVisible(false)}
+          >
+            <View style={styles.modal}>
+              <Text style={styles.modalTitle}>Select Option</Text>
 
               <FlatList
                 data={options}
-                keyExtractor={(item) => item}
                 renderItem={renderOption}
+                keyExtractor={(item, index) => `${item}-${index}`}
                 style={styles.optionsList}
                 showsVerticalScrollIndicator={false}
-                ItemSeparatorComponent={() => <View style={{ height: theme.spacing.xs }} />}
               />
 
               {allowCustom && (
@@ -176,80 +262,9 @@ export const CustomPicker: React.FC<CustomPickerProps> = ({
                   )}
                 </View>
               )}
-            </TouchableOpacity>
+            </View>
           </TouchableOpacity>
-        </Modal>
-      </View>
-    );
-  }
-
-  return (
-    <View>
-      <PickerComponent />
-
-      <Modal
-        visible={isVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.overlay}
-          onPress={() => setIsVisible(false)}
-        >
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Select Option</Text>
-
-            <FlatList
-              data={options}
-              renderItem={renderOption}
-              keyExtractor={(item, index) => `${item}-${index}`}
-              style={styles.optionsList}
-              showsVerticalScrollIndicator={false}
-            />
-
-            {allowCustom && (
-              <View style={styles.customSection}>
-                {!showCustomInput ? (
-                  <TouchableOpacity
-                    style={styles.addCustomButton}
-                    onPress={() => setShowCustomInput(true)}
-                  >
-                    <Text style={styles.addCustomText}>+ Add Custom Option</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.customInputContainer}>
-                    <TextInput
-                      style={styles.customInput}
-                      value={customValue}
-                      onChangeText={setCustomValue}
-                      placeholder="Enter custom option"
-                      placeholderTextColor={theme.colors.gray}
-                      autoFocus
-                    />
-                    <View style={styles.customButtonsRow}>
-                      <TouchableOpacity
-                        style={styles.customButton}
-                        onPress={() => {
-                          setShowCustomInput(false);
-                          setCustomValue('');
-                        }}
-                      >
-                        <Text style={styles.cancelText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.customButton, styles.addButton]}
-                        onPress={handleAddCustom}
-                      >
-                        <Text style={styles.addText}>Add</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -295,6 +310,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.gray,
     marginLeft: theme.spacing.sm,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   overlay: {
     flex: 1,

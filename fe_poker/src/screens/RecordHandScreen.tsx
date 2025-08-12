@@ -136,7 +136,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     const currentText = details;
     const currentSelection = selection;
     const insertPosition = currentSelection.start || currentText.length;
-    
+
     const newText = currentText.slice(0, insertPosition) + text + currentText.slice(insertPosition);
     setDetails(newText);
 
@@ -156,7 +156,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const handleInsertExample = (caseNumber: number) => {
     try {
       let exampleText = '';
-      
+
       if (caseNumber === 1) {
         exampleText = `Preflop: UTG Bet 15 BTN Raise 45 UTG Call
 Flop: UTG Check BTN Bet 30 UTG Call
@@ -167,20 +167,20 @@ Flop: HJ Check BTN Bet 20 HJ Call
 Turn: HJ Check BTN Check
 River: HJ Check BTN Check`;
       }
-      
+
       // 直接替換內容，不添加空行分隔
       const textToInsert = exampleText;
-      
+
       // 直接設置文字，避免複雜的 selection 操作
       setDetails(textToInsert);
-      
+
       // 聚焦到輸入框
       setTimeout(() => {
         if (detailsInputRef.current) {
           detailsInputRef.current.focus();
         }
       }, 100);
-      
+
       // 摺疊範例區域讓用戶專注於編輯
       setShowExample(false);
     } catch (error) {
@@ -571,14 +571,14 @@ River: HJ Check BTN Check`;
                   • Bet sizes in dollars{'\n'}
                 </Text>
                 <View style={styles.exampleButtonsContainer}>
-                  <TouchableOpacity 
-                    style={[styles.insertExampleButton, styles.exampleButton]} 
+                  <TouchableOpacity
+                    style={[styles.insertExampleButton, styles.exampleButton]}
                     onPress={() => handleInsertExample(1)}
                   >
                     <Text style={styles.insertExampleButtonText}>⚡ example 1</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.insertExampleButton, styles.exampleButton]} 
+                  <TouchableOpacity
+                    style={[styles.insertExampleButton, styles.exampleButton]}
                     onPress={() => handleInsertExample(2)}
                   >
                     <Text style={styles.insertExampleButtonText}>⚡ example 2</Text>

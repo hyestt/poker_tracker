@@ -1,115 +1,232 @@
-# CLAUDE.md
+# Development Guidelines
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Philosophy
 
-## Development Commands
+### Core Beliefs
+- **Incremental progress over big bangs** - Small changes that compile and pass tests
+- **Learning from existing code** - Study and plan before implementing
+- **Pragmatic over dogmatic** - Adapt to project reality
+- **Clear intent over clever code** - Be boring and obvious
 
-### Frontend (React Native)
-```bash
-# Install dependencies
-cd fe_poker && npm install
+### Simplicity Means
+- Single responsibility per function/class
+- Avoid premature abstractions
+- No clever tricks - choose the boring solution
+- If you need to explain it, it's too complex
 
-# Start Metro bundler
-npm start
+---
 
-# Run on platforms
-npm run android
-npm run ios  # Requires: bundle install && bundle exec pod install
+## Process
 
-# Development
-npm run lint
-npm test
+### 1. Planning & Staging
+Break complex work into 3–5 stages. Document in `IMPLEMENTATION_PLAN.md`:
+
+```markdown
+## Stage N: [Name]
+**Goal**: [Specific deliverable]  
+**Success Criteria**: [Testable outcomes]  
+**Tests**: [Specific test cases]  
+**Status**: [Not Started|In Progress|Complete]
 ```
+- Update status as you progress
+- Remove file when all stages are done
 
-### Backend (Go)
-```bash
-# Start server
-cd be_poker && go run main.go
+---
 
-# Build binary
-go build -o poker_tracker_backend
+### 2. Implementation Flow
+1. **Understand** – Study existing patterns in codebase  
+2. **Test** – Write test first (red)  
+3. **Implement** – Minimal code to pass (green)  
+4. **Refactor** – Clean up with tests passing  
+5. **Commit** – With clear message linking to plan
 
-# Environment setup
-export OPENAI_API_KEY="your-api-key"  # Required for AI analysis features
-```
+---
 
-### Root Commands (delegates to fe_poker)
-```bash
-npm run ios
-npm run android
-npm start
-npm run lint
-npm test
-```
+### 3. When Stuck (After 3 Attempts)
+**CRITICAL**: Maximum 3 attempts per issue, then STOP.
 
-## Architecture Overview
+1. **Document what failed**:  
+   - What you tried  
+   - Specific error messages  
+   - Why you think it failed  
+2. **Research alternatives**:  
+   - Find 2–3 similar implementations  
+   - Note different approaches used  
+3. **Question fundamentals**:  
+   - Is this the right abstraction level?  
+   - Can this be split into smaller problems?  
+   - Is there a simpler approach entirely?  
+4. **Try different angle**:  
+   - Different library/framework feature?  
+   - Different architectural pattern?  
+   - Remove abstraction instead of adding?  
 
-### Frontend Architecture (MVVM Pattern)
-- **Models**: `fe_poker/src/models.ts` - Data structures (Session, Hand, Stats, Villain)
-- **ViewModels**: `fe_poker/src/viewmodels/sessionStore.ts` - Zustand store managing all state and business logic
-- **Views**: `fe_poker/src/screens/` - Screen components (Home, NewSession, RecordHand, History, etc.)
-- **Components**: `fe_poker/src/components/` - Reusable UI components
-- **Services**: Database abstraction, API calls, RevenueCat integration
+---
 
-### Backend Architecture (Go RESTful API)
-- **Entry**: `be_poker/main.go` - Server startup, environment checking, port management
-- **Routes**: `be_poker/routes/` - API route definitions
-- **Handlers**: `be_poker/handlers/` - Request processing logic (sessions, hands, stats)
-- **Models**: `be_poker/models/` - Go data structures
-- **Services**: OpenAI integration for hand analysis, prompt management
-- **Database**: `be_poker/db/` - SQLite database abstraction
+## Technical Standards
 
-### Core Features
-1. **Session Management**: Create/edit poker sessions with location, blinds, stakes
-2. **Hand Recording**: Track individual hands with hole cards, board, results
-3. **AI Analysis**: OpenAI-powered hand analysis with strategic insights
-4. **Statistics**: Comprehensive P&L tracking, win rates, venue analysis
-5. **Dual Mode**: Local SQLite storage + optional API backend sync
+### Architecture Principles
+- **Composition over inheritance** – Use dependency injection  
+- **Interfaces over singletons** – Enable testing and flexibility  
+- **Explicit over implicit** – Clear data flow and dependencies  
+- **Test-driven when possible** – Never disable tests, fix them
 
-### Technology Stack
-- **Frontend**: React Native 0.80, React 19.1.0, TypeScript, Zustand (state), React Navigation
-- **Backend**: Go 1.21, SQLite, OpenAI API (go-openai v1.32.5)
-- **Mobile**: iOS/Android with native dependencies (date picker, purchases, gesture handling)
-- **Testing**: Jest, React Native Testing Library
+---
 
-## Key Implementation Details
+### Code Quality
+**Every commit must**:
+- Compile successfully
+- Pass all existing tests
+- Include tests for new functionality
+- Follow project formatting/linting
 
-### State Management
-- Single Zustand store (`sessionStore.ts`) manages all application state
-- Supports both local SQLite mode and API backend mode
-- Automatic fallback to local mode if backend unavailable
+**Before committing**:
+- Run formatters/linters
+- Self-review changes
+- Ensure commit message explains *why*
 
-### Data Flow
-- ViewModels call DatabaseService or API endpoints
-- UI components subscribe to store state changes
-- Navigation handled via React Navigation stack/tabs
+---
 
-### Mobile-Specific Features
-- RevenueCat integration for premium subscriptions
-- Native date picker for session timestamps  
-- Gesture handling for card selection interfaces
-- SQLite storage for offline functionality
+### Error Handling
+- Fail fast with descriptive messages
+- Include context for debugging
+- Handle errors at appropriate level
+- Never silently swallow exceptions
 
-### AI Analysis Integration
-- Backend requires `OPENAI_API_KEY` environment variable
-- Uses GPT-4o-mini for cost-effective hand analysis
-- Analysis stored in database and cached in frontend
+---
 
-## Development Notes
+## Decision Framework
+When multiple valid approaches exist, choose based on:
 
-### Environment Setup
-- Backend checks for OpenAI API key on startup
-- Server automatically attempts to kill existing processes on port 8080
-- Frontend supports hot reloading via Metro bundler
+1. **Testability** – Can I easily test this?  
+2. **Readability** – Will someone understand this in 6 months?  
+3. **Consistency** – Does this match project patterns?  
+4. **Simplicity** – Is this the simplest solution that works?  
+5. **Reversibility** – How hard to change later?  
 
-### Database Structure
-- SQLite database with sessions, hands, and analysis tables
-- UUIDs for all entity identifiers
-- Supports both local and remote database modes
+---
 
-### iOS Setup Requirements
-For iOS development, run these commands in `fe_poker/` directory:
-```bash
-bundle install
-bundle exec pod install
-```
+## Project Integration
+
+### Learning the Codebase
+- Find 3 similar features/components
+- Identify common patterns and conventions
+- Use same libraries/utilities when possible
+- Follow existing test patterns
+
+### Tooling
+- Use project's existing build system
+- Use project's test framework
+- Use project's formatter/linter settings
+- Don't introduce new tools without strong justification
+
+---
+
+## Quality Gates
+
+### Definition of Done
+- [ ] Tests written and passing
+- [ ] Code follows project conventions
+- [ ] No linter/formatter warnings
+- [ ] Commit messages are clear
+- [ ] Implementation matches plan
+- [ ] No TODOs without issue numbers
+
+### Test Guidelines
+- Test behavior, not implementation
+- One assertion per test when possible
+- Clear test names describing scenario
+- Use existing test utilities/helpers
+- Tests should be deterministic
+
+---
+
+## Important Reminders
+
+**NEVER**:
+- Use `--no-verify` to bypass commit hooks
+- Disable tests instead of fixing them
+- Commit code that doesn't compile
+- Make assumptions – verify with existing code
+
+**ALWAYS**:
+- Commit working code incrementally
+- Update plan documentation as you go
+- Learn from existing implementations
+- Stop after 3 failed attempts and reassess
+
+---
+
+## Development Partnership
+
+We build production code together.  
+I handle implementation details while you guide architecture and catch complexity early.
+
+---
+
+## Core Workflow: Research → Plan → Implement → Validate
+**Start every feature with:**  
+"Let me research the codebase and create a plan before implementing."
+
+1. **Research** – Understand existing patterns and architecture  
+2. **Plan** – Propose approach and verify with you  
+3. **Implement** – Build with tests and error handling  
+4. **Validate** – ALWAYS run formatters, linters, and tests after implementation  
+5. **TDD** – Follow test-driven development principles for new features
+
+---
+
+## Code Organization
+- Keep functions small and focused:
+  - If you need comments to explain sections, split into functions
+  - Group related functionality into clear packages
+  - Prefer many small files over few large ones
+
+---
+
+## Architecture Principles
+- Always develop in a feature branch
+- Delete old code completely – no deprecation needed
+- No versioned names (`processV2`, `handleNew`, `ClientOld`)
+- No migration code unless explicitly requested
+- No "removed code" comments – just delete it
+
+**Prefer explicit over implicit**:
+- Clear function names over clever abstractions
+- Obvious data flow over hidden magic
+- Direct dependencies over service locators
+
+---
+
+## Maximize Efficiency
+- **Parallel operations** – Run multiple searches, reads, and greps in single messages
+- **Multiple agents** – Split complex tasks (tests vs. implementation)
+- **Batch similar work** – Group related file edits together
+
+---
+
+
+## Required Patterns (for Go Development Standards)
+- **Concrete types** – Not `interface{}` or `any` (interfaces hide bugs)  
+- **Channels** – For synchronization, not `time.Sleep()`  
+- **Early returns** – Reduce nesting  
+- **Delete old code** – No versioned functions  
+- **Error wrapping** – `fmt.Errorf("context: %w", err)`  
+- **Table tests** – For complex logic  
+- **Godoc** – All exported symbols
+
+---
+
+**Security**:
+- Validate all inputs  
+- Use `crypto/rand` for randomness  
+- Use prepared SQL statements
+
+**Performance**:
+- Measure before optimizing. No guessing.
+
+---
+
+## Progress Tracking
+- **TodoWrite** for task management
+- **Clear naming** in all code
