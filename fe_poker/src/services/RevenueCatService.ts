@@ -187,22 +187,34 @@ class RevenueCatService {
 
   async isPremiumUser(): Promise<boolean> {
     try {
-      // 如果API Key未配置，檢查測試模式設定
+      console.log('💎 [RevenueCat] Checking premium user status...');
+      
+      // 優先檢查測試模式設定（不論API Key是否配置）
+      const testPremiumStatus = await AsyncStorage.getItem(TEST_PREMIUM_KEY);
+      if (testPremiumStatus !== null) {
+        const isTestPremium = testPremiumStatus === 'true';
+        console.log(`🧪 [RevenueCat] Using test premium status: ${isTestPremium}`);
+        return isTestPremium;
+      }
+
+      // 如果API Key未配置，返回false
       if (!this.isRealRevenueCatConfigured()) {
-        const testPremiumStatus = await AsyncStorage.getItem(TEST_PREMIUM_KEY);
-        return testPremiumStatus === 'true';
+        console.log('🔧 [RevenueCat] API Key not configured, returning false');
+        return false;
       }
 
       // 確保服務已初始化
       if (!this.isInitialized) {
-        console.warn('⚠️ RevenueCat not initialized yet, returning false for premium status');
+        console.warn('⚠️ [RevenueCat] Not initialized yet, returning false for premium status');
         return false;
       }
 
       const customerInfo = await this.getCustomerInfo();
-      return Object.keys(customerInfo.entitlements.active).length > 0;
+      const isPremium = Object.keys(customerInfo.entitlements.active).length > 0;
+      console.log(`💎 [RevenueCat] Real premium status: ${isPremium}`);
+      return isPremium;
     } catch (error) {
-      console.error('❌ Failed to check premium status:', error);
+      console.error('❌ [RevenueCat] Failed to check premium status:', error);
       return false;
     }
   }
@@ -282,7 +294,9 @@ class RevenueCatService {
 
   private isRealRevenueCatConfigured(): boolean {
     const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY.ios : REVENUECAT_API_KEY.android;
-    return !apiKey.includes('YOUR_') && !apiKey.includes('_HERE');
+    const isConfigured = !apiKey.includes('YOUR_') && !apiKey.includes('_HERE');
+    console.log(`🔧 [RevenueCat] API Key check - Platform: ${Platform.OS}, Key: ${apiKey.substring(0, 10)}..., Configured: ${isConfigured}`);
+    return isConfigured;
   }
 
   private shouldUseSandboxMode(): boolean {

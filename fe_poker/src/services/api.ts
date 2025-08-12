@@ -60,7 +60,7 @@ class ApiService {
       });
       if (!response.ok) {throw new Error(`API錯誤: ${response.status}`);}
     } catch (error) {
-      this.handleError(error);
+      return this.handleError(error);
     }
   }
 
