@@ -114,19 +114,50 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   const handleTextInsert = (text: string) => {
-    // Get current cursor position
-    const input = detailsInputRef.current;
-    if (input) {
-      // Insert text at cursor position
-      const currentText = details;
-      const selectionStart = input.props.selection?.start || currentText.length;
-      const newText = currentText.slice(0, selectionStart) + text + currentText.slice(selectionStart);
-      setDetails(newText);
+    // Insert text at current cursor position or end of text
+    const currentText = details;
+    const currentSelection = selection;
+    const insertPosition = currentSelection.start || currentText.length;
+    
+    const newText = currentText.slice(0, insertPosition) + text + currentText.slice(insertPosition);
+    setDetails(newText);
 
-      // Move cursor to after inserted text
+    // Update selection to after inserted text
+    const newPosition = insertPosition + text.length;
+    setSelection({ start: newPosition, end: newPosition });
+
+    // Focus the input and set cursor position
+    if (detailsInputRef.current) {
+      detailsInputRef.current.focus();
       setTimeout(() => {
-        input.setSelection?.(selectionStart + text.length, selectionStart + text.length);
+        detailsInputRef.current?.setSelection(newPosition, newPosition);
       }, 10);
+    }
+  };
+
+  const handleInsertExample = () => {
+    try {
+      const exampleText = `Preflop: UTG Bet 15 BTN Raise 45 UTG Call
+Flop: UTG Check BTN Bet 30 UTG Call
+Turn: BTN Bet 100 UTG Fold`;
+      
+      // 如果輸入框有內容，在前面加上空行分隔
+      const textToInsert = details.trim() ? '\n\n' + exampleText : exampleText;
+      
+      // 直接設置文字，避免複雜的 selection 操作
+      setDetails(textToInsert);
+      
+      // 聚焦到輸入框
+      setTimeout(() => {
+        if (detailsInputRef.current) {
+          detailsInputRef.current.focus();
+        }
+      }, 100);
+      
+      // 摺疊範例區域讓用戶專注於編輯
+      setShowExample(false);
+    } catch (error) {
+      console.error('Error inserting example:', error);
     }
   };
 
@@ -510,10 +541,18 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
                   • Cards & position are entered below{'\n'}
                   • Focus on betting action{'\n'}
                   • Bet sizes in dollars{'\n'}
-                  Example: {'\n'}Preflop: UTG Bet 15 BTN Raise 45 UTG Call{'\n'}
-                            Flop: UTG Check BTN Bet 30 UTG Call{'\n'}
-                            Turn: BTN Bet 100 UTG Fold
+                  Example format:
                 </Text>
+                <View style={styles.exampleCodeContainer}>
+                  <Text style={styles.exampleCode}>
+                    Preflop: UTG Bet 15 BTN Raise 45 UTG Call{'\n'}
+                    Flop: UTG Check BTN Bet 30 UTG Call{'\n'}
+                    Turn: BTN Bet 100 UTG Fold
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.insertExampleButton} onPress={handleInsertExample}>
+                  <Text style={styles.insertExampleButtonText}>⚡ 插入範例</Text>
+                </TouchableOpacity>
               </View>
             )}
 
@@ -1132,7 +1171,38 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     color: theme.colors.text,
     lineHeight: 18,
-    fontStyle: 'italic',
+  },
+  exampleCodeContainer: {
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.input,
+    padding: theme.spacing.sm,
+    marginVertical: theme.spacing.xs,
+    borderWidth: 1,
+    borderColor: theme.colors.border || theme.colors.gray,
+  },
+  exampleCode: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.text,
+    lineHeight: 18,
+    fontFamily: 'monospace',
+  },
+  insertExampleButton: {
+    backgroundColor: theme.colors.profit,
+    borderRadius: theme.radius.button,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+    alignItems: 'center',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  insertExampleButtonText: {
+    fontSize: theme.font.size.small,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   detailsInput: {
     backgroundColor: theme.colors.inputBg,
