@@ -9,6 +9,7 @@ import { VillainInput } from '../components/VillainInput';
 import { TagInput } from '../components/TagInput';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
+import { UserPreferencesService } from '../services/UserPreferences';
 import { Hand, Villain } from '../models';
 
 export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
@@ -27,7 +28,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [showBoardKeyboard, setShowBoardKeyboard] = useState(false);
   const [showQuickKeyboard, setShowQuickKeyboard] = useState(false);
   const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
-  const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
+  const [useCustomKeyboard, setUseCustomKeyboard] = useState(false);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
   const noteInputRef = useRef<TextInput>(null);
@@ -55,6 +56,19 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
     }, 100);
   };
   const { updateHand, getHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
+
+  // Load poker keyboard preference on component mount
+  useEffect(() => {
+    const loadPokerKeyboardPreference = async () => {
+      try {
+        const preferences = await UserPreferencesService.getPreferences();
+        setUseCustomKeyboard(preferences.pokerKeyboardEnabled);
+      } catch (error) {
+        console.error('Failed to load poker keyboard preference:', error);
+      }
+    };
+    loadPokerKeyboardPreference();
+  }, []);
 
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
@@ -513,8 +527,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
                   value={useCustomKeyboard}
-                  onValueChange={(value) => {
+                  onValueChange={async (value) => {
                     setUseCustomKeyboard(value);
+                    // Save preference immediately
+                    await UserPreferencesService.updatePokerKeyboardPreference(value);
                     if (value) {
                       setShowCustomKeyboard(true); // 開啟Poker鍵盤時立即顯示它
                     } else {

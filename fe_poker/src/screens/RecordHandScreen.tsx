@@ -9,6 +9,7 @@ import { VillainInput } from '../components/VillainInput';
 import { TagInput } from '../components/TagInput';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
+import { UserPreferencesService } from '../services/UserPreferences';
 import { Hand, Villain } from '../models';
 
 
@@ -25,13 +26,30 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [showBoardKeyboard, setShowBoardKeyboard] = useState(false);
   const [showQuickKeyboard, setShowQuickKeyboard] = useState(false);
   const [showCustomKeyboard, setShowCustomKeyboard] = useState(false);
-  const [useCustomKeyboard, setUseCustomKeyboard] = useState(true);
+  const [useCustomKeyboard, setUseCustomKeyboard] = useState(false);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const [showExample, setShowExample] = useState(false);
   const detailsInputRef = useRef<TextInput>(null);
   const noteInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const { addHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
+
+  // Load poker keyboard preference on component mount
+  useEffect(() => {
+    const loadPokerKeyboardPreference = async () => {
+      try {
+        const preferences = await UserPreferencesService.getPreferences();
+        setUseCustomKeyboard(preferences.pokerKeyboardEnabled);
+        if (preferences.pokerKeyboardEnabled) {
+          // Only auto-show if preference is enabled
+          // setShowCustomKeyboard(true); // Commented out - let user control when to show
+        }
+      } catch (error) {
+        console.error('Failed to load poker keyboard preference:', error);
+      }
+    };
+    loadPokerKeyboardPreference();
+  }, []);
 
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
@@ -518,8 +536,10 @@ River: HJ Check BTN Check`;
                 <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
                   value={useCustomKeyboard}
-                  onValueChange={(value) => {
+                  onValueChange={async (value) => {
                     setUseCustomKeyboard(value);
+                    // Save preference immediately
+                    await UserPreferencesService.updatePokerKeyboardPreference(value);
                     if (value) {
                       setShowCustomKeyboard(true); // 開啟Poker鍵盤時立即顯示它
                     } else {
@@ -539,7 +559,7 @@ River: HJ Check BTN Check`;
               onPress={() => setShowExample(!showExample)}
             >
               <Text style={styles.exampleToggleText}>
-                💡 example {showExample ? '▼' : '▶'}
+                💡 hint {showExample ? '▼' : '▶'}
               </Text>
             </TouchableOpacity>
 

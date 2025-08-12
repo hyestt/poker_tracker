@@ -7,6 +7,7 @@ export interface UserPreferences {
   lastBlinds: string;
   lastBuyIn: string;
   lastTag: string;
+  pokerKeyboardEnabled: boolean;
   customLocations: string[];
   customCurrencies: string[];
   customTableSizes: string[];
@@ -23,6 +24,7 @@ const defaultPreferences: UserPreferences = {
   lastBlinds: '1/2',
   lastBuyIn: '100',
   lastTag: '',
+  pokerKeyboardEnabled: true,
   customLocations: ['Live Casino', 'Home Game', 'Online', 'Club'],
   customCurrencies: [
     '🇺🇸 USD ($)',
@@ -120,6 +122,19 @@ export const UserPreferencesService = {
       await this.savePreferences(updated);
     } catch (error) {
       console.error('Failed to update last choices:', error);
+    }
+  },
+
+  async updatePokerKeyboardPreference(enabled: boolean): Promise<void> {
+    try {
+      const current = await this.getPreferences();
+      const updated = {
+        ...current,
+        pokerKeyboardEnabled: enabled,
+      };
+      await this.savePreferences(updated);
+    } catch (error) {
+      console.error('Failed to update poker keyboard preference:', error);
     }
   },
 
