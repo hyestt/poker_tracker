@@ -135,11 +135,20 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
   };
 
-  const handleInsertExample = () => {
+  const handleInsertExample = (caseNumber: number) => {
     try {
-      const exampleText = `Preflop: UTG Bet 15 BTN Raise 45 UTG Call
+      let exampleText = '';
+      
+      if (caseNumber === 1) {
+        exampleText = `Preflop: UTG Bet 15 BTN Raise 45 UTG Call
 Flop: UTG Check BTN Bet 30 UTG Call
 Turn: BTN Bet 100 UTG Fold`;
+      } else if (caseNumber === 2) {
+        exampleText = `Preflop: HJ Call 2 BTN Raise 10 HJ Call
+Flop: HJ Check BTN Bet 20 HJ Call
+Turn: HJ Check BTN Check
+River: HJ Check BTN Check`;
+      }
       
       // 如果輸入框有內容，在前面加上空行分隔
       const textToInsert = details.trim() ? '\n\n' + exampleText : exampleText;
@@ -530,7 +539,7 @@ Turn: BTN Bet 100 UTG Fold`;
               onPress={() => setShowExample(!showExample)}
             >
               <Text style={styles.exampleToggleText}>
-                💡 Add hand details for better AI analysis {showExample ? '▼' : '▶'}
+                💡 example {showExample ? '▼' : '▶'}
               </Text>
             </TouchableOpacity>
 
@@ -538,7 +547,6 @@ Turn: BTN Bet 100 UTG Fold`;
               <View style={styles.exampleContainer}>
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
-                  • Cards & position are entered below{'\n'}
                   • Focus on betting action{'\n'}
                   • Bet sizes in dollars{'\n'}
                   Example format:
@@ -550,9 +558,20 @@ Turn: BTN Bet 100 UTG Fold`;
                     Turn: BTN Bet 100 UTG Fold
                   </Text>
                 </View>
-                <TouchableOpacity style={styles.insertExampleButton} onPress={handleInsertExample}>
-                  <Text style={styles.insertExampleButtonText}>⚡ 插入範例</Text>
-                </TouchableOpacity>
+                <View style={styles.exampleButtonsContainer}>
+                  <TouchableOpacity 
+                    style={[styles.insertExampleButton, styles.exampleButton]} 
+                    onPress={() => handleInsertExample(1)}
+                  >
+                    <Text style={styles.insertExampleButtonText}>⚡ example 1</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.insertExampleButton, styles.exampleButton]} 
+                    onPress={() => handleInsertExample(2)}
+                  >
+                    <Text style={styles.insertExampleButtonText}>⚡ example 2</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -1186,18 +1205,25 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontFamily: 'monospace',
   },
+  exampleButtonsContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+  },
   insertExampleButton: {
     backgroundColor: theme.colors.profit,
     borderRadius: theme.radius.button,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
-    marginTop: theme.spacing.xs,
     alignItems: 'center',
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
+  },
+  exampleButton: {
+    flex: 1,
   },
   insertExampleButtonText: {
     fontSize: theme.font.size.small,
