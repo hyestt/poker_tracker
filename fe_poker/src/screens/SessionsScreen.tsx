@@ -377,6 +377,12 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                 {/* Left: Session Info */}
                 <View style={styles.leftSection}>
                   <View style={styles.sessionInfoRow}>
+                    {session.tag && (
+                      <View style={[
+                        styles.sessionColorDot,
+                        { backgroundColor: getTagColor(session.tag) },
+                      ]} />
+                    )}
                     <Text style={styles.sessionLocation}>
                       {session.location || 'Untitled Session'}
                     </Text>
@@ -675,6 +681,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
+  },
+  sessionColorDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: theme.spacing.xs,
   },
   sessionLocation: {
     fontSize: theme.font.size.body,
