@@ -331,24 +331,56 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
 
     const now = new Date();
-    const handDate = new Date(dateStr);
+    let handDate;
+    
+    // Handle different date formats from SQLite
+    if (dateStr.includes('T') && dateStr.includes('Z')) {
+      // ISO format: "2025-06-06T00:22:48.342Z"
+      handDate = new Date(dateStr);
+    } else if (dateStr.includes('T') && !dateStr.includes('Z')) {
+      // ISO format without Z: "2025-06-06T00:22:48.342"
+      handDate = new Date(dateStr + 'Z'); // Assume UTC
+    } else if (dateStr.includes(' ')) {
+      // SQLite DATETIME format: "2025-08-12 07:22:50"
+      // Treat as UTC by appending 'Z' after converting to ISO format
+      const isoString = dateStr.replace(' ', 'T') + 'Z';
+      handDate = new Date(isoString);
+    } else {
+      // Fallback to standard Date parsing
+      handDate = new Date(dateStr);
+    }
 
     // Check if the date is valid
     if (isNaN(handDate.getTime())) {
+      console.warn('Invalid date format:', dateStr);
       return 'Invalid date';
     }
 
-    const diffMs = now.getTime() - handDate.getTime();
+    const diffMs = Math.abs(now.getTime() - handDate.getTime());
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
+    // Debug log for all cases to troubleshoot
+    console.log('getTimeAgo calculation:', {
+      dateStr,
+      now: now.toISOString(),
+      handDate: handDate.toISOString(),
+      diffMs,
+      diffMins,
+      diffHours,
+      diffDays,
+      result: diffMins < 60 ? `${diffMins} minutes ago` : 
+              diffHours < 24 ? `${diffHours} h ago` : 
+              `${diffDays} d ago`
+    });
+
     if (diffMins < 60) {
       return `${diffMins} minutes ago`;
     } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      return `${diffHours} h ago`;
     } else {
-      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      return `${diffDays} d ago`;
     }
   };
 
@@ -531,7 +563,20 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
 
         {filteredHands.map((hand) => {
-          const timeAgo = getTimeAgo(hand.date || '');
+          const timeString = hand.updatedAt || hand.createdAt || hand.date || '';
+          // Debug: log the actual time string being passed
+          if (hand.id.includes('cc92448d') || hand.position === 'BTN') {
+            console.log('DEBUG TIME:', {
+              handId: hand.id.substring(0, 8),
+              position: hand.position,
+              updatedAt: hand.updatedAt,
+              createdAt: hand.createdAt,
+              date: hand.date,
+              timeString,
+              now: new Date().toISOString()
+            });
+          }
+          const timeAgo = getTimeAgo(timeString);
           const bbAmount = getBBAmount(hand.result, hand.sessionId);
 
           // Debug favorite status

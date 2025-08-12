@@ -428,6 +428,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       return;
     }
 
+    const now = new Date().toISOString();
     const hand: Hand = {
       id: handId,
       sessionId,
@@ -437,7 +438,8 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       details,
       note,
       result: parseFloat(result) || 0,
-      date: new Date().toISOString(),
+      date: now,
+      updatedAt: now,
       villains: villains,
       favorite,
       tags,

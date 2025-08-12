@@ -460,6 +460,7 @@ River: HJ Check BTN Check`;
     }
 
     console.log('✅ [RecordHandScreen] Validation passed, creating hand object');
+    const now = new Date().toISOString();
     const hand: Hand = {
       id: Date.now().toString(),
       sessionId,
@@ -469,7 +470,9 @@ River: HJ Check BTN Check`;
       details,
       note,
       result: parseFloat(result) || 0,
-      date: new Date().toISOString(),
+      date: now,
+      createdAt: now,
+      updatedAt: now,
       villains,
       favorite: false,
       tags,

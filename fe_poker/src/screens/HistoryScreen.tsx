@@ -22,6 +22,50 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
   const getSession = (id: string) => sessions.find(s => s.id === id);
 
+  const getTimeAgo = (dateStr: string) => {
+    if (!dateStr || dateStr.trim() === '') {
+      return 'Unknown date';
+    }
+
+    const now = new Date();
+    let handDate;
+    
+    // Handle different date formats from SQLite
+    if (dateStr.includes('T') && dateStr.includes('Z')) {
+      // ISO format: "2025-06-06T00:22:48.342Z"
+      handDate = new Date(dateStr);
+    } else if (dateStr.includes('T') && !dateStr.includes('Z')) {
+      // ISO format without Z: "2025-06-06T00:22:48.342"
+      handDate = new Date(dateStr + 'Z'); // Assume UTC
+    } else if (dateStr.includes(' ')) {
+      // SQLite DATETIME format: "2025-08-12 07:22:50"
+      // Treat as UTC by appending 'Z' after converting to ISO format
+      const isoString = dateStr.replace(' ', 'T') + 'Z';
+      handDate = new Date(isoString);
+    } else {
+      // Fallback to standard Date parsing
+      handDate = new Date(dateStr);
+    }
+
+    if (isNaN(handDate.getTime())) {
+      console.warn('Invalid date format:', dateStr);
+      return 'Invalid date';
+    }
+
+    const diffMs = Math.abs(now.getTime() - handDate.getTime());
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 60) {
+      return `${diffMins} minutes ago`;
+    } else if (diffHours < 24) {
+      return `${diffHours} h ago`;
+    } else {
+      return `${diffDays} d ago`;
+    }
+  };
+
   const handleDelete = (id: string) => {
     Alert.alert(
       'Delete Record',
@@ -38,8 +82,8 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
   const sortedHands = [...hands].sort((a, b) => {
     if (sortKey === 'date') {
-      const dateA = a.date || '';
-      const dateB = b.date || '';
+      const dateA = a.updatedAt || a.createdAt || a.date || '';
+      const dateB = b.updatedAt || b.createdAt || b.date || '';
       return dateB.localeCompare(dateA);
     }
     if (sortKey === 'amount') {return b.result - a.result;}
@@ -70,7 +114,7 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 <Text style={{color: hand.result >= 0 ? theme.colors.profit : theme.colors.loss, fontWeight: 'bold', fontSize: theme.font.size.body}}>
                   {hand.result >= 0 ? '+' : ''}{hand.result}
                 </Text>
-                <Text style={styles.date}>{session?.location} / {hand.date?.slice(0, 16) || 'No date'}</Text>
+                <Text style={styles.date}>{session?.location} / {getTimeAgo(hand.updatedAt || hand.createdAt || hand.date || '')}</Text>
               </View>
 
               {/* Hero Section */}
