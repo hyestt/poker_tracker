@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking } from 'react-native';
 import { theme } from '../theme';
 import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -108,6 +108,21 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   const handleMenuPress = (item: string) => {
     Alert.alert('Feature in Development', `${item} feature coming soon`);
+  };
+
+  const handleJoinDiscord = async () => {
+    const discordUrl = 'https://discord.gg/MH74zefx';
+    try {
+      const supported = await Linking.canOpenURL(discordUrl);
+      if (supported) {
+        await Linking.openURL(discordUrl);
+      } else {
+        Alert.alert('Error', 'Unable to open Discord link. Please check if Discord is installed or try again later.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open Discord link. Please try again later.');
+      console.error('Failed to open Discord link:', error);
+    }
   };
 
   const handleDatabaseTest = async () => {
@@ -417,7 +432,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Contact')}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleJoinDiscord}>
             <Text style={styles.menuText}>Contact Us</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
