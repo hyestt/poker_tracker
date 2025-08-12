@@ -93,6 +93,10 @@ class RevenueCatService {
       return offerings.all ? Object.values(offerings.all) : [];
     } catch (error) {
       console.error('❌ Failed to get offerings:', error);
+      // In development, return empty array instead of throwing
+      if (__DEV__) {
+        return [];
+      }
       throw error;
     }
   }

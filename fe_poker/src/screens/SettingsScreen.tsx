@@ -34,6 +34,10 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         console.log('🔄 [SettingsScreen] Starting subscription check');
         setIsLoading(true);
 
+        // Initialize RevenueCat if needed
+        console.log('🔧 [SettingsScreen] Ensuring RevenueCat is initialized');
+        await RevenueCatService.initialize();
+
         console.log('💎 [SettingsScreen] Checking premium user status');
         const premiumStatus = await RevenueCatService.isPremiumUser();
         console.log('💎 [SettingsScreen] Premium status:', premiumStatus);
@@ -55,7 +59,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         }
       } catch (error) {
         console.error('❌ [SettingsScreen] Failed to fetch subscription status:', error);
-        // 在开发环境中不显示错误弹窗，只记录错误
+        // 在开发环境中或RevenueCat未配置时不显示错误弹窗
         if (!__DEV__) {
           Alert.alert('Error', 'Failed to fetch subscription status.');
         }

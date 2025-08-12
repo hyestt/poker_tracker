@@ -549,16 +549,14 @@ export const useSessionStore = create<State>((set, get) => ({
         throw new Error('Hand not found');
       }
 
-      // 確保手牌有必要的分析數據，並轉換為後端期望的格式
+      // 確保手牌有必要的分析數據，並轉換為後端期望的格式（移除 result 和 id）
       const handForAnalysis = {
-        id: hand.id,
         sessionId: hand.sessionId,
         holeCards: hand.holeCards || null,
         board: hand.board || null,
         position: hand.position || null,
         details: hand.details || `${hand.holeCards || 'Unknown cards'} in ${hand.position || 'unknown'} position`,
         note: hand.note || null,
-        result: hand.result || 0,
         date: hand.date || new Date().toISOString(),
         tag: hand.tag || '',
         villains: hand.villains || [],

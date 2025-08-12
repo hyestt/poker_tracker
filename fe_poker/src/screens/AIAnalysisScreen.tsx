@@ -149,14 +149,12 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   // 真正的AI分析功能
   const performRealAIAnalysis = async (handData: Hand): Promise<string> => {
     try {
-      // 確保必要欄位不為空
+      // 確保必要欄位不為空，移除 result 和 id
       const handPayload = {
-        id: handData.id || 'unknown',
         position: handData.position || '',
         holeCards: handData.holeCards || '',
         board: handData.board || '',
         details: handData.details || '',
-        result: handData.result || 0,
         villains: handData.villains || [],
       };
 
