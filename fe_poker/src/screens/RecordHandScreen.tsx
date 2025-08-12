@@ -150,8 +150,8 @@ Turn: HJ Check BTN Check
 River: HJ Check BTN Check`;
       }
       
-      // 如果輸入框有內容，在前面加上空行分隔
-      const textToInsert = details.trim() ? '\n\n' + exampleText : exampleText;
+      // 直接替換內容，不添加空行分隔
+      const textToInsert = exampleText;
       
       // 直接設置文字，避免複雜的 selection 操作
       setDetails(textToInsert);
@@ -549,15 +549,7 @@ River: HJ Check BTN Check`;
                 <Text style={styles.exampleText}>
                   • Focus on betting action{'\n'}
                   • Bet sizes in dollars{'\n'}
-                  Example format:
                 </Text>
-                <View style={styles.exampleCodeContainer}>
-                  <Text style={styles.exampleCode}>
-                    Preflop: UTG Bet 15 BTN Raise 45 UTG Call{'\n'}
-                    Flop: UTG Check BTN Bet 30 UTG Call{'\n'}
-                    Turn: BTN Bet 100 UTG Fold
-                  </Text>
-                </View>
                 <View style={styles.exampleButtonsContainer}>
                   <TouchableOpacity 
                     style={[styles.insertExampleButton, styles.exampleButton]} 
