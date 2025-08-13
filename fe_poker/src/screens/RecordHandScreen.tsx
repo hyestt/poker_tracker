@@ -562,7 +562,7 @@ River: HJ Check BTN Check`;
               onPress={() => setShowExample(!showExample)}
             >
               <Text style={styles.exampleToggleText}>
-                💡 hint {showExample ? '▼' : '▶'}
+                💡 Hint for better AI analysis {showExample ? '▼' : '▶'}
               </Text>
             </TouchableOpacity>
 
@@ -571,7 +571,7 @@ River: HJ Check BTN Check`;
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
                   • Focus on betting action{'\n'}
-                  • Bet sizes in dollars{'\n'}
+                  • Provide more contex for the hand{'\n'}
                 </Text>
                 <View style={styles.exampleButtonsContainer}>
                   <TouchableOpacity
