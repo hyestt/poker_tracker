@@ -1,12 +1,7 @@
 You are a professional Texas holdem poker GTO coach. 
-
-<<<<<<< HEAD
-Hand Details: {{HAND_DETAILS}}
-=======
 Analyze the following poker hand:
 
 {{HAND_DETAILS}}
->>>>>>> simplify-gto-analysis
 
 CRITICAL: All monetary amounts in the hand details are ACTUAL CURRENCY AMOUNTS, not big blind multiples. 
 (e.g., if Big Blind is 2 and you see "20", that equals 10BB)
@@ -24,24 +19,23 @@ Important: When giving the GTO Recommendation, always include the suggested acti
 2. Ensure the total sums to 100%.
 3. Provide the most likely high-frequency sizing first.
 
-<<<<<<< HEAD
 mention the hero hand, villain hands (if applicable), and board cards (Flop, Turn, River)
 
-CRITICAL: For the Preflop stage, please present GTO action frequencies using only the following three options (summing to 100%):
+IMPORTANT: For all stages (Preflop, Flop, Turn, River), when providing action frequencies, you **MUST** use the exact markdown table format below, with these exact action names and columns, and the total frequency summing to 100%. Do not deviate from this format or add/remove any options.
+
+Preflop action frequency table (sum 100%):
 | Check | Freq |
 | Raise | Freq |
-| Fold | Freq |
+| Fold  | Freq |
 
-For the Flop, Turn, and River stages, please present GTO action frequencies using only the following options (summing to 100%):
-| Check | Freq |
-| Bet 33% | Freq |
-| Bet 50% | Freq |
-| Bet 75% | Freq |
+Flop, Turn, River action frequency table (sum 100%):
+| Check    | Freq |
+| Bet 33%  | Freq |
+| Bet 50%  | Freq |
+| Bet 75%  | Freq |
 | Bet 100% | Freq |
-| Fold | Freq |
-=======
----
->>>>>>> simplify-gto-analysis
+| Fold     | Freq |
+
 
 ## Preflop  
 **Player Action:** 
@@ -57,6 +51,7 @@ What are the recommended actions and sizing frequencies? Use 1-2 short sentences
 Also describe the Flop card
 ...  
 **GTO Recommendation:** 
+Please present the action frequencies in the **exact markdown table format** described above.
 ...  
 **Rating & Summary:** 
 ...

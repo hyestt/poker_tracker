@@ -146,42 +146,18 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
   };
 
-  // 生成完整的手牌歷史文本（類似 Share 功能）
-  const generateHandHistoryText = (handData: Hand): string => {
-    // 需要獲取 session 訊息，但我們現在沒有它。我們將使用手牌中可用的信息
-    const villainText = handData.villains?.map((v, i) =>
-      `Villain ${i + 1}: ${v.position || 'Unknown'} - ${v.holeCards || 'Unknown'}`
-    ).join('\n') || 'No villains';
-
-    return `Poker Hand Details
-
-Hero: ${handData.position || 'Unknown'} - ${handData.holeCards || 'Unknown'}
-Board: ${handData.board || 'No flop shown'}
-
-Villains:
-${villainText}
-
-Hand Details:
-${handData.details || 'No details'}
-
-Note:
-${handData.note || 'No note'}
-
-Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
-  };
-
   // 真正的AI分析功能
   const performRealAIAnalysis = async (handData: Hand): Promise<string> => {
     try {
-      // 生成完整的手牌歷史文本
-      const handHistoryText = generateHandHistoryText(handData);
-      
-      const requestPayload = {
-        handDetails: handHistoryText,
-        language: 'English', // 預設為英文，可以從設定中獲取
+      const handPayload = {
+        position: handData.position || '',
+        holeCards: handData.holeCards || '',
+        board: handData.board || '',
+        details: handData.details || '',
+        villains: handData.villains || [],
       };
 
-      console.log('Sending AI analysis request:', requestPayload);
+      console.log('Sending AI analysis request:', handPayload);
 
       const API_URL = 'https://poker-production-12db.up.railway.app';
       const response = await fetch(`${API_URL}/analyze`, {
@@ -189,7 +165,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestPayload),
+        body: JSON.stringify({ hand: handPayload }),
       });
 
       console.log('API response status:', response.status);
@@ -197,7 +173,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API error response:', errorText);
-        console.error('Request details:', JSON.stringify(requestPayload, null, 2));
+        console.error('Request details:', JSON.stringify({ hand: handPayload }, null, 2));
 
         // 顯示具體錯誤而不是回退到模擬
         Alert.alert('API Error', `Server returned ${response.status}: ${errorText}`);
@@ -382,7 +358,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>GTO is analyzing your hand...</Text>
-        <Text style={styles.loadingSubText}>This may take a few moments</Text>
+        <Text style={styles.loadingSubText}>This may take a few seconds</Text>
       </View>
     );
   }
