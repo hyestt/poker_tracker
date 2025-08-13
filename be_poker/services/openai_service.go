@@ -24,6 +24,23 @@ func NewOpenAIService() *OpenAIService {
 	return &OpenAIService{client: client}
 }
 
+// convertUnicodeSuitsToLetters converts Unicode suit symbols to letter-based suits
+// ♠ → S, ♥ → H, ♦ → D, ♣ → C
+func convertUnicodeSuitsToLetters(cardString string) string {
+	if cardString == "" {
+		return ""
+	}
+	
+	// Simple replacement for basic cases
+	result := cardString
+	result = strings.ReplaceAll(result, "♠", "S")
+	result = strings.ReplaceAll(result, "♥", "H") 
+	result = strings.ReplaceAll(result, "♦", "D")
+	result = strings.ReplaceAll(result, "♣", "C")
+	
+	return result
+}
+
 // parseBoard 解析 board 字串，分割成 flop/turn/river
 func parseBoard(board string) (flop, turn, river string) {
 	if len(board) < 6 { // 至少需要3張牌(flop)，每張2字符
@@ -64,22 +81,27 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position str
 		return "", fmt.Errorf("OpenAI service not available: API key not set")
 	}
 
+	// 轉換 Unicode 花色符號到字母格式 (♠→S, ♥→H, ♦→D, ♣→C)
+	convertedBoard := convertUnicodeSuitsToLetters(board)
+	convertedHoleCards := convertUnicodeSuitsToLetters(holeCards)
+
 	// 解析並格式化 board
 	var flop, turn, river string
-	if board != "" {
-		flop, turn, river = parseBoard(board)
+	if convertedBoard != "" {
+		flop, turn, river = parseBoard(convertedBoard)
 	}
 
 	// 格式化 hero hole cards
-	formattedHeroCards := formatHoleCards(holeCards)
+	formattedHeroCards := formatHoleCards(convertedHoleCards)
 
-	// 格式化 villain hole cards
+	// 格式化 villain hole cards (也需要轉換 Unicode 花色)
 	formattedVillains := make([]models.Villain, len(villains))
 	for i, villain := range villains {
+		convertedVillainCards := convertUnicodeSuitsToLetters(villain.HoleCards)
 		formattedVillains[i] = models.Villain{
 			ID:        villain.ID,
 			Position:  villain.Position,
-			HoleCards: formatHoleCards(villain.HoleCards),
+			HoleCards: formatHoleCards(convertedVillainCards),
 		}
 	}
 
