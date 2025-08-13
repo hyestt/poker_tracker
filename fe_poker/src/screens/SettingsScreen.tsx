@@ -426,7 +426,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
           <Text style={styles.sectionTitle}>App Settings</Text>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => setShowLanguageModal(true)}>
-            <Text style={styles.menuText}>Language / 語言</Text>
+            <Text style={styles.menuText}>GTO Analysis Language</Text>
             <View style={styles.languageDisplay}>
               <Text style={styles.languageText}>{getCurrentLanguageLabel()}</Text>
               <Text style={styles.menuArrow}>›</Text>
