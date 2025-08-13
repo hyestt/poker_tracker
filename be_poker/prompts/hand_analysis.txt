@@ -25,13 +25,13 @@ IMPORTANT:
 CRITICAL: You MUST output GTO action frequencies ONLY in the exact Markdown table format shown below, with no extra words inside the table.  
 Frequencies must sum to 100%, and list the highest frequency action first. If your table is not in this exact format, the answer is incorrect.
 
-Preflop action frequency table (sum 100%):
+Preflop GTO suggested frequency:
 | Check   | Freq |
 | Raise 3X| Freq |
 | Raise 5X| Freq |
 | Fold    | Freq |
 
-Flop, Turn, River action frequency table (sum 100%):
+Postflop GTO suggested frequency:
 | Check    | Freq |
 | Bet 33%  | Freq |
 | Bet 50%  | Freq |
