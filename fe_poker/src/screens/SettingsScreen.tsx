@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking, Modal } from 'react-native';
 import { theme } from '../theme';
 import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -26,6 +26,26 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [offerings, setOfferings] = useState<PurchasesOffering[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isTestMode, setIsTestMode] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('English');
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  const languageOptions = [
+    { label: '繁體中文', value: 'Traditional Chinese' },
+    { label: '简体中文', value: 'Simplified Chinese' },
+    { label: 'English', value: 'English' }
+  ];
+
+  useEffect(() => {
+    const loadUserLanguage = async () => {
+      try {
+        const preferences = await UserPreferencesService.getPreferences();
+        setCurrentLanguage(preferences.language);
+      } catch (error) {
+        console.error('Failed to load language preference:', error);
+      }
+    };
+    loadUserLanguage();
+  }, []);
 
   useEffect(() => {
     console.log('💎 [SettingsScreen] useEffect - checking subscription status');
@@ -296,6 +316,23 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
     );
   };
 
+  const handleLanguageSelect = async (language: string) => {
+    try {
+      await UserPreferencesService.updateLanguage(language);
+      setCurrentLanguage(language);
+      setShowLanguageModal(false);
+      Alert.alert('Success', 'Language updated successfully');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update language setting');
+      console.error('Failed to update language:', error);
+    }
+  };
+
+  const getCurrentLanguageLabel = () => {
+    const option = languageOptions.find(opt => opt.value === currentLanguage);
+    return option ? option.label : currentLanguage;
+  };
+
   const handleCreateWelcomeDemo = async () => {
     try {
       setIsLoading(true);
@@ -384,6 +421,14 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App Settings</Text>
 
+          <TouchableOpacity style={styles.menuItem} onPress={() => setShowLanguageModal(true)}>
+            <Text style={styles.menuText}>Language / 語言</Text>
+            <View style={styles.languageDisplay}>
+              <Text style={styles.languageText}>{getCurrentLanguageLabel()}</Text>
+              <Text style={styles.menuArrow}>›</Text>
+            </View>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem} onPress={handleResetPreferences}>
             <Text style={styles.menuText}>Reset User Preferences</Text>
             <Text style={styles.menuArrow}>›</Text>
@@ -445,6 +490,50 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
 
       </ScrollView>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLanguageModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Language / 選擇語言</Text>
+            
+            {languageOptions.map((option, index) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.languageOption,
+                  currentLanguage === option.value && styles.selectedLanguageOption,
+                  index === languageOptions.length - 1 && { borderBottomWidth: 0 }
+                ]}
+                onPress={() => handleLanguageSelect(option.value)}
+              >
+                <Text style={[
+                  styles.languageOptionText,
+                  currentLanguage === option.value && styles.selectedLanguageOptionText
+                ]}>
+                  {option.label}
+                </Text>
+                {currentLanguage === option.value && (
+                  <Text style={styles.checkmark}>✓</Text>
+                )}
+              </TouchableOpacity>
+            ))}
+            
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowLanguageModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel / 取消</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 };
@@ -530,6 +619,73 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     color: theme.colors.text,
     textAlign: 'center',
+    fontWeight: '500',
+  },
+  languageDisplay: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  languageText: {
+    fontSize: 14,
+    color: theme.colors.gray,
+    marginRight: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 12,
+    padding: 0,
+    margin: 20,
+    minWidth: 280,
+    maxWidth: 320,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.colors.text,
+    padding: 20,
+    textAlign: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  selectedLanguageOption: {
+    backgroundColor: theme.colors.inputBg,
+  },
+  languageOptionText: {
+    fontSize: 16,
+    color: theme.colors.text,
+  },
+  selectedLanguageOptionText: {
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  checkmark: {
+    fontSize: 18,
+    color: theme.colors.primary,
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    padding: 16,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: theme.colors.gray,
     fontWeight: '500',
   },
 });

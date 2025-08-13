@@ -4,11 +4,6 @@ Session Information:
 - Small Blind: {{SMALL_BLIND}}
 - Big Blind: {{BIG_BLIND}}
 
-CRITICAL: All monetary amounts in the hand details are ACTUAL CURRENCY AMOUNTS, not big blind multiples. 
-For example, if you see "20" in the action, it means 20 in actual currency, not 20BB.
-To convert to big blinds: Amount ÷ {{BIG_BLIND}} = BB
-(e.g., if Big Blind is 2 and you see "20", that equals 10BB)
-
 Hero Information:
 - Position: {{HERO_POSITION}}
 - Hole Cards: {{HERO_HAND}}
@@ -22,6 +17,11 @@ Board:
 - River: {{RIVER}}
 
 Hand Action Details: {{HAND_DETAILS}}
+
+CRITICAL: All monetary amounts in the hand details are ACTUAL CURRENCY AMOUNTS, not big blind multiples. 
+For example, if you see "20" in the action, it means 20 in actual currency, not 20BB.
+To convert to big blinds: Amount ÷ {{BIG_BLIND}} = BB
+(e.g., if Big Blind is 2 and you see "20", that equals 10BB)
 
 Please provide your analysis in {{LANGUAGE}} language following this format:
 
@@ -74,4 +74,4 @@ Also describe the Turn card
 Also describe the River card
 ...(if applicable)
 
-CRITICAL REQUIREMENT: Your ENTIRE response must be written in english. 
+CRITICAL REQUIREMENT: Your ENTIRE response must be written in {{LANGUAGE}}. 

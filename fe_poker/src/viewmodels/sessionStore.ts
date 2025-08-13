@@ -567,9 +567,16 @@ export const useSessionStore = create<State>((set, get) => ({
 
       // AI Analysis 始終使用後端 API 進行分析
       try {
+        // 獲取用戶語言偏好
+        const { UserPreferencesService } = await import('../services/UserPreferences');
+        const preferences = await UserPreferencesService.getPreferences();
+        
         const response = await apiCall(`${API_BASE_URL}/analyze`, {
           method: 'POST',
-          body: JSON.stringify({ hand: handForAnalysis }),
+          body: JSON.stringify({ 
+            hand: handForAnalysis,
+            language: preferences.language 
+          }),
         });
 
         // ⚠️ 重要：分析結果始終保存到本地 SQLite，不論任何模式

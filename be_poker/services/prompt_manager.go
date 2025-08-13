@@ -19,7 +19,7 @@ func NewPromptManager() *PromptManager {
 }
 
 // 讀取prompt文件並替換變數
-func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int, smallBlind int, bigBlind int, heroPosition string, heroHand string, flop string, turn string, river string, villains []models.Villain) (string, error) {
+func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int, smallBlind int, bigBlind int, heroPosition string, heroHand string, flop string, turn string, river string, villains []models.Villain, language string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "hand_analysis.txt")
 
 	// 讀取prompt文件
@@ -52,7 +52,12 @@ func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int, s
 	prompt = strings.ReplaceAll(prompt, "{{TURN}}", turn)
 	prompt = strings.ReplaceAll(prompt, "{{RIVER}}", river)
 	prompt = strings.ReplaceAll(prompt, "{{VILLAINS}}", villainsText.String())
-	prompt = strings.ReplaceAll(prompt, "{{LANGUAGE}}", "Traditional Chinese")
+	
+	// 使用傳入的語言設定，如果為空則使用預設值
+	if language == "" {
+		language = "English"
+	}
+	prompt = strings.ReplaceAll(prompt, "{{LANGUAGE}}", language)
 
 	return prompt, nil
 }

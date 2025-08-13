@@ -297,7 +297,8 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Hand models.Hand `json:"hand"`
+		Hand     models.Hand `json:"hand"`
+		Language string      `json:"language,omitempty"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -339,7 +340,14 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	var smallBlind, bigBlind int = 1, 2
 	log.Printf("ℹ️ Using default blinds (1/2) for analysis - frontend manages session data")
 
-	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains, smallBlind, bigBlind)
+	// 獲取語言設定，如果沒有則使用預設值
+	language := request.Language
+	if language == "" {
+		language = "English"
+	}
+	log.Printf("ℹ️ Using language: %s for analysis", language)
+	
+	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains, smallBlind, bigBlind, language)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return
