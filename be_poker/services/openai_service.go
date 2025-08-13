@@ -19,7 +19,7 @@ func NewOpenAIService() *OpenAIService {
 	if apiKey == "" {
 		return nil
 	}
-	
+
 	client := openai.NewClient(apiKey)
 	return &OpenAIService{client: client}
 }
@@ -29,7 +29,7 @@ func parseBoard(board string) (flop, turn, river string) {
 	if len(board) < 6 { // 至少需要3張牌(flop)，每張2字符
 		return "", "", ""
 	}
-	
+
 	// 每張牌2字符，如 "AH"
 	cards := make([]string, 0, 5)
 	for i := 0; i < len(board); i += 2 {
@@ -37,7 +37,7 @@ func parseBoard(board string) (flop, turn, river string) {
 			cards = append(cards, board[i:i+2])
 		}
 	}
-	
+
 	if len(cards) >= 3 {
 		flop = strings.Join(cards[0:3], " ") // "AH 7S 2D"
 	}
@@ -47,13 +47,13 @@ func parseBoard(board string) (flop, turn, river string) {
 	if len(cards) >= 5 {
 		river = cards[4] // "KS"
 	}
-	
+
 	return flop, turn, river
 }
 
 // formatHoleCards 格式化底牌，確保空格分隔格式
 func formatHoleCards(holeCards string) string {
-	if len(holeCards) == 4 { // 如 "AHKS" 
+	if len(holeCards) == 4 { // 如 "AHKS"
 		return holeCards[0:2] + " " + holeCards[2:4] // "AH KS"
 	}
 	return holeCards // 已經是正確格式或空字串
@@ -64,42 +64,28 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position str
 		return "", fmt.Errorf("OpenAI service not available: API key not set")
 	}
 
-	// 組合完整的手牌信息
-	var fullHandDetails strings.Builder
-	fullHandDetails.WriteString(fmt.Sprintf("Session Blinds: %d/%d\n", smallBlind, bigBlind))
-	fullHandDetails.WriteString(fmt.Sprintf("Hero Position: %s\n", position))
-	fullHandDetails.WriteString(fmt.Sprintf("Hero Hole Cards: %s\n", formatHoleCards(holeCards)))
-	
 	// 解析並格式化 board
+	var flop, turn, river string
 	if board != "" {
-		flop, turn, river := parseBoard(board)
-		
-		if flop != "" {
-			fullHandDetails.WriteString(fmt.Sprintf("Flop: %s\n", flop))
-		}
-		if turn != "" {
-			fullHandDetails.WriteString(fmt.Sprintf("Turn: %s\n", turn))
-		}
-		if river != "" {
-			fullHandDetails.WriteString(fmt.Sprintf("River: %s\n", river))
+		flop, turn, river = parseBoard(board)
+	}
+
+	// 格式化 hero hole cards
+	formattedHeroCards := formatHoleCards(holeCards)
+
+	// 格式化 villain hole cards
+	formattedVillains := make([]models.Villain, len(villains))
+	for i, villain := range villains {
+		formattedVillains[i] = models.Villain{
+			ID:        villain.ID,
+			Position:  villain.Position,
+			HoleCards: formatHoleCards(villain.HoleCards),
 		}
 	}
-	
-	// 添加 Villain 資訊
-	if len(villains) > 0 {
-		fullHandDetails.WriteString("\nVillains:\n")
-		for i, villain := range villains {
-			villainCards := formatHoleCards(villain.HoleCards)
-			fullHandDetails.WriteString(fmt.Sprintf("Villain %d - Position: %s, Hole Cards: %s\n", 
-				i+1, villain.Position, villainCards))
-		}
-	}
-	
-	fullHandDetails.WriteString(fmt.Sprintf("\nHand Action Details: %s", handDetails))
-	
+
 	// 使用prompt管理器獲取prompt
 	promptManager := NewPromptManager()
-	prompt, err := promptManager.GetHandAnalysisPrompt(fullHandDetails.String(), result, smallBlind, bigBlind)
+	prompt, err := promptManager.GetHandAnalysisPrompt(handDetails, result, smallBlind, bigBlind, position, formattedHeroCards, flop, turn, river, formattedVillains)
 	if err != nil {
 		// 錯誤處理：記錄錯誤並使用fallback prompt
 		fmt.Printf("Error reading prompt file: %v\n", err)
@@ -111,7 +97,7 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position str
 	resp, err := s.client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT5oMini,
+			Model: openai.GPT4o,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
@@ -132,4 +118,4 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, result int, position str
 	}
 
 	return resp.Choices[0].Message.Content, nil
-} 
+}
