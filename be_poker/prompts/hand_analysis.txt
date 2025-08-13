@@ -26,10 +26,10 @@ CRITICAL: You MUST output GTO action frequencies ONLY in the exact Markdown tabl
 Frequencies must sum to 100%, and list the highest frequency action first. If your table is not in this exact format, the answer is incorrect.
 
 Preflop GTO suggested frequency:
-| Check   | Freq |
-| Raise 3X| Freq |
-| Raise 5X| Freq |
-| Fold    | Freq |
+| Check    | Freq |
+| Raise 3X | Freq |
+| Raise 5X | Freq |
+| Fold     | Freq |
 
 Postflop GTO suggested frequency:
 | Check    | Freq |
