@@ -11,7 +11,7 @@ func enableCORS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	
+
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -83,11 +83,11 @@ func RegisterRoutes() {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		response := map[string]interface{}{
-			"status": "healthy",
+			"status":  "healthy",
 			"service": "poker-tracker-backend",
 			"features": map[string]bool{
 				"ai_analysis": true,
-				"database": false, // Will be updated based on actual DB status
+				"database":    false, // Will be updated based on actual DB status
 			},
 		}
 		json.NewEncoder(w).Encode(response)
@@ -127,4 +127,4 @@ func RegisterRoutes() {
 		}
 		handlers.GetStats(w, r)
 	})
-} 
+}

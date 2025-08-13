@@ -7,15 +7,15 @@ import (
 
 func TestSessionJSON(t *testing.T) {
 	session := Session{
-		ID:            "test-id",
-		Location:      "Test Casino",
-		Date:          "2024-01-01",
-		SmallBlind:    1,
-		BigBlind:      2,
-		Currency:      "USD",
+		ID:             "test-id",
+		Location:       "Test Casino",
+		Date:           "2024-01-01",
+		SmallBlind:     1,
+		BigBlind:       2,
+		Currency:       "USD",
 		EffectiveStack: 200,
-		TableSize:     9,
-		Tag:           "tournament",
+		TableSize:      9,
+		Tag:            "tournament",
 	}
 
 	// Test JSON marshaling

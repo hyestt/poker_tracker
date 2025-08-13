@@ -3,9 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq" // PostgreSQL driver
 	"log"
 	"os"
-	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 var DB *sql.DB
@@ -17,7 +17,7 @@ func InitDB() error {
 		log.Printf("⚠️ DATABASE_URL not set - running in API-only mode (analysis features still available)")
 		return nil
 	}
-	
+
 	log.Printf("🗄️  Using PostgreSQL database from Railway")
 
 	var err error
@@ -31,7 +31,7 @@ func InitDB() error {
 	}
 
 	log.Println("✅ Database connected successfully")
-	
+
 	// 檢查數據表是否存在，不存在則自動創建
 	if err = ensureTablesExist(); err != nil {
 		return fmt.Errorf("failed to ensure tables exist: %v", err)
@@ -43,36 +43,36 @@ func InitDB() error {
 // 確保數據表存在
 func ensureTablesExist() error {
 	log.Println("🔍 Checking database schema...")
-	
+
 	// 檢查sessions表是否存在 (PostgreSQL語法)
 	var sessionsExists int
 	err := DB.QueryRow(`SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'sessions'`).Scan(&sessionsExists)
 	if err != nil {
 		return fmt.Errorf("failed to check sessions table: %v", err)
 	}
-	
+
 	// 檢查hands表是否存在 (PostgreSQL語法)
 	var handsExists int
 	err = DB.QueryRow(`SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'hands'`).Scan(&handsExists)
 	if err != nil {
 		return fmt.Errorf("failed to check hands table: %v", err)
 	}
-	
+
 	// 如果表不存在，創建它們
 	if sessionsExists == 0 || handsExists == 0 {
 		log.Println("⚠️ Database schema incomplete, creating tables...")
-		
+
 		// 先刪除現有表格（如果存在）以確保乾淨的狀態
 		_, err = DB.Exec(`DROP TABLE IF EXISTS hands CASCADE`)
 		if err != nil {
 			return fmt.Errorf("failed to drop hands table: %v", err)
 		}
-		
+
 		_, err = DB.Exec(`DROP TABLE IF EXISTS sessions CASCADE`)
 		if err != nil {
 			return fmt.Errorf("failed to drop sessions table: %v", err)
 		}
-		
+
 		// 創建sessions表（PostgreSQL語法）
 		_, err = DB.Exec(`
 			CREATE TABLE sessions (
@@ -89,11 +89,11 @@ func ensureTablesExist() error {
 				updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 			)
 		`)
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to create sessions table: %v", err)
 		}
-		
+
 		// 創建hands表（PostgreSQL語法）
 		_, err = DB.Exec(`
 			CREATE TABLE hands (
@@ -116,11 +116,11 @@ func ensureTablesExist() error {
 				FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
 			)
 		`)
-		
+
 		if err != nil {
 			return fmt.Errorf("failed to create hands table: %v", err)
 		}
-		
+
 		// 創建索引
 		indexes := []string{
 			`CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(date)`,
@@ -129,7 +129,7 @@ func ensureTablesExist() error {
 			`CREATE INDEX IF NOT EXISTS idx_hands_result_amount ON hands(result_amount)`,
 			`CREATE INDEX IF NOT EXISTS idx_hands_is_favorite ON hands(is_favorite)`,
 		}
-		
+
 		for _, indexSQL := range indexes {
 			_, err = DB.Exec(indexSQL)
 			if err != nil {
@@ -137,11 +137,11 @@ func ensureTablesExist() error {
 				// 繼續執行，索引錯誤不應該阻止應用啟動
 			}
 		}
-		
+
 		log.Println("✅ Database schema created successfully")
 	} else {
 		log.Println("✅ Database schema is up to date")
 	}
-	
+
 	return nil
 }

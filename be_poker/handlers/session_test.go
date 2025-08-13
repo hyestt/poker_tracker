@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"poker_tracker_backend/models"
+	"testing"
 )
 
 func TestCreateSessionValidation(t *testing.T) {
@@ -23,13 +23,13 @@ func TestCreateSessionValidation(t *testing.T) {
 		{
 			name: "Valid session data",
 			requestBody: models.Session{
-				Location:      "Test Casino",
-				Date:          "2024-01-01",
-				SmallBlind:    1,
-				BigBlind:      2,
-				Currency:      "USD",
+				Location:       "Test Casino",
+				Date:           "2024-01-01",
+				SmallBlind:     1,
+				BigBlind:       2,
+				Currency:       "USD",
 				EffectiveStack: 200,
-				TableSize:     9,
+				TableSize:      9,
 			},
 			expectedStatus: http.StatusInternalServerError, // DB not initialized in test
 		},

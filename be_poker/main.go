@@ -65,7 +65,7 @@ func stopExistingServer() {
 	// 停止 go run main.go 進程
 	cmd := exec.Command("pkill", "-f", "go run main.go")
 	cmd.Run()
-	
+
 	// 也停止任何佔用 8080 端口的進程
 	cmd2 := exec.Command("sh", "-c", "lsof -ti:8080 | xargs kill -9 2>/dev/null")
 	cmd2.Run()
@@ -76,19 +76,19 @@ func printStartupInfo() {
 	if port == "" {
 		port = "8080"
 	}
-	
+
 	fmt.Println("🚀 Server Configuration:")
 	fmt.Printf("   📍 Port: %s\n", port)
 	fmt.Println("   🗄️  Database: SQLite (Local)")
 	fmt.Println("   📁 Database File: poker_tracker.db")
-	
+
 	// 只在本地開發時顯示本地地址
 	if port == "8080" {
 		fmt.Println("   📍 Local: http://localhost:8080")
 		fmt.Println("   📍 Network: http://192.168.1.28:8080")
 	}
 	fmt.Println()
-	
+
 	fmt.Println("📱 API Endpoints:")
 	fmt.Println("   GET  /hands     - List hands")
 	fmt.Println("   POST /hands     - Create hand")
@@ -96,17 +96,17 @@ func printStartupInfo() {
 	fmt.Println("   GET  /sessions  - List sessions")
 	fmt.Println("   GET  /stats     - Statistics")
 	fmt.Println()
-	
+
 	fmt.Println("💡 Frontend Connection:")
 	fmt.Println("   Make sure your React Native app points to:")
 	fmt.Println("   http://192.168.1.28:8080")
 	fmt.Println()
-	
+
 	fmt.Println("💰 Cost Info:")
 	fmt.Println("   AI Analysis: ~$0.0003-0.0008 per request")
 	fmt.Println("   Model: GPT-4o-mini")
 	fmt.Println()
-	
+
 	fmt.Println("🎉 Server ready! Happy poker tracking! 🃏")
 	fmt.Println("=====================================")
 }
@@ -114,7 +114,7 @@ func printStartupInfo() {
 func main() {
 	// 環境檢查
 	checkEnvironment()
-	
+
 	// 初始化資料庫（可選）
 	fmt.Println("🗄️  Initializing database connection...")
 	if err := db.InitDB(); err != nil {
@@ -124,27 +124,27 @@ func main() {
 		fmt.Println("✅ Database ready")
 	}
 	fmt.Println()
-	
+
 	// 註冊路由
 	fmt.Println("🛣️  Registering routes...")
 	routes.RegisterRoutes()
 	fmt.Println("✅ Routes registered")
 	fmt.Println()
-	
+
 	// 顯示啟動信息
 	printStartupInfo()
-	
+
 	// 啟動服務器
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	
+
 	fmt.Printf("🔄 Starting HTTP server on port %s...\n", port)
 	fmt.Println()
-	
+
 	// 使用 log.Fatal 來捕獲啟動錯誤
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatalf("❌ Server failed to start: %v", err)
 	}
-} 
+}

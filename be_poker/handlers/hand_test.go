@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 	"poker_tracker_backend/models"
+	"testing"
 )
 
 func TestCreateHandValidation(t *testing.T) {

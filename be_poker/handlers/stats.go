@@ -15,7 +15,7 @@ func GetStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer handsRows.Close()
-	
+
 	sessionsRows, err := db.DB.Query(`SELECT id, COALESCE(location, ''), COALESCE(small_blind, 0), COALESCE(big_blind, 0) FROM sessions`)
 	if err != nil {
 		http.Error(w, "Error querying sessions: "+err.Error(), http.StatusInternalServerError)
@@ -71,20 +71,20 @@ func GetStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stats := models.Stats{
-		TotalProfit:    totalProfit,
-		TotalSessions:  sessionCount,
-		WinRate:        winRate,
-		AvgSession:     avgSession,
-		ByStakes:       byStakes,
-		ByLocation:     byLocation,
+		TotalProfit:   totalProfit,
+		TotalSessions: sessionCount,
+		WinRate:       winRate,
+		AvgSession:    avgSession,
+		ByStakes:      byStakes,
+		ByLocation:    byLocation,
 	}
-	
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	json.NewEncoder(w).Encode(stats)
 }
 
 func itoa(i int) string {
 	return fmt.Sprintf("%d", i)
-} 
+}
