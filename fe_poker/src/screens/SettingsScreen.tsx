@@ -321,7 +321,6 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
       await UserPreferencesService.updateLanguage(language);
       setCurrentLanguage(language);
       setShowLanguageModal(false);
-      Alert.alert('Success', 'Language updated successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to update language setting');
       console.error('Failed to update language:', error);
