@@ -8,12 +8,9 @@ CRITICAL: All monetary amounts in the hand details are ACTUAL CURRENCY AMOUNTS, 
 
 Please provide your analysis in {{LANGUAGE}} language following this format:
 
----
+--- Here's are the format rule
 Important: End with 1-2 sentences explaining overall performance, streets that deviated from GTO, and improvement suggestions.
 Must give an overall rating (⭐) and summary 
-
-**Summary**
-Overall: ⭐ (1 to 5 ⭐)
 
 Important: When giving the GTO Recommendation, always include the suggested action frequency breakdown for this spot in percentage format, covering:
 1. Bet % for each common sizing (check, 33% pot, 50% pot, 75% pot, 100% pot, Overbet)
@@ -43,6 +40,12 @@ Flop, Turn, River GTO suggested frequency:
 - Bet 100%: Freq
 - Fold: Freq
 
+CRITICAL REQUIREMENT: Your ENTIRE response below must be written in {{LANGUAGE}}. 
+---------------------------
+
+**Summary**
+Overall: ⭐ (1 to 5 ⭐) and summary
+
 ## Preflop  
 **Player Action:** 
 Describe Hero's action, position, and amount 
@@ -69,5 +72,3 @@ Also describe the Turn card
 ## River  
 Also describe the River card
 ...(if applicable)
-
-CRITICAL REQUIREMENT: Your ENTIRE response must be written in {{LANGUAGE}}. 
