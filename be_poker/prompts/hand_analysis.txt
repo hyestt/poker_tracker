@@ -32,7 +32,7 @@ Preflop GTO suggested frequency:
 - Raise 5X: Freq
 - Fold: Freq
 
-Flop, Turn, River GTO suggested frequency:
+Flop, Turn, River GTO suggested frequency: (CRITICAL: use this format below unless there's no card)
 - Check: Freq
 - Bet 33%: Freq
 - Bet 50%: Freq
