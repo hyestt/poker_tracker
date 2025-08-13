@@ -27,7 +27,7 @@ Describe this in 1 short sentence before giving the action frequency table.
 
 
 IMPORTANT: 
-Frequencies must sum to 100%, and list the highest frequency action first. 
+Frequencies must sum to 100%, and list the highest frequency action first. Must follow the format or it's a fault
 
 Preflop GTO suggested frequency:
 - Check: Freq
