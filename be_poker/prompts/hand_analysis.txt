@@ -21,12 +21,15 @@ Important: When giving the GTO Recommendation, always include the suggested acti
 
 mention the hero hand, villain hands (if applicable), and board cards (Flop, Turn, River)
 
-IMPORTANT: For all stages (Preflop, Flop, Turn, River), when providing action frequencies, you **MUST** use the exact markdown table format below, with these exact action names and columns, and the total frequency summing to 100%. Do not deviate from this format or add/remove any options.
+IMPORTANT: 
+CRITICAL: You MUST output GTO action frequencies ONLY in the exact Markdown table format shown below, with no extra words inside the table.  
+Frequencies must sum to 100%, and list the highest frequency action first. If your table is not in this exact format, the answer is incorrect.
 
 Preflop action frequency table (sum 100%):
-| Check | Freq |
-| Raise | Freq |
-| Fold  | Freq |
+| Check   | Freq |
+| Raise 3X| Freq |
+| Raise 5X| Freq |
+| Fold    | Freq |
 
 Flop, Turn, River action frequency table (sum 100%):
 | Check    | Freq |
