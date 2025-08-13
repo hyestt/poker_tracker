@@ -499,7 +499,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Language / 選擇語言</Text>
+            <Text style={styles.modalTitle}>Select Language</Text>
             
             {languageOptions.map((option, index) => (
               <TouchableOpacity
@@ -527,7 +527,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
               style={styles.cancelButton}
               onPress={() => setShowLanguageModal(false)}
             >
-              <Text style={styles.cancelButtonText}>Cancel / 取消</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
