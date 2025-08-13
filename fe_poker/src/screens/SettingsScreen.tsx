@@ -30,9 +30,9 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const languageOptions = [
+    { label: 'English', value: 'English' },
     { label: '繁體中文', value: 'Traditional Chinese' },
     { label: '简体中文', value: 'Simplified Chinese' },
-    { label: 'English', value: 'English' },
     { label: '한국어', value: 'Korean' },
     { label: 'Español', value: 'Spanish' },
     { label: '日本語', value: 'Japanese' },
