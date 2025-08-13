@@ -9,11 +9,12 @@ CRITICAL: All monetary amounts in the hand details are ACTUAL CURRENCY AMOUNTS, 
 Please provide your analysis in {{LANGUAGE}} language following this format:
 
 ---
+Important: End with 1-2 sentences explaining overall performance, streets that deviated from GTO, and improvement suggestions.
+Must give an overall rating (⭐) and summary 
+
 **Summary**
 Overall: ⭐ (1 to 5 ⭐)
 
-End with 1-2 sentences explaining overall performance, streets that deviated from GTO, and improvement suggestions.
-Be careful in your evaluation.
 Important: When giving the GTO Recommendation, always include the suggested action frequency breakdown for this spot in percentage format, covering:
 1. Bet % for each common sizing (check, 33% pot, 50% pot, 75% pot, 100% pot, Overbet)
 2. Ensure the total sums to 100%.
@@ -22,8 +23,7 @@ Important: When giving the GTO Recommendation, always include the suggested acti
 mention the hero hand, villain hands (if applicable), and board cards (Flop, Turn, River)
 
 IMPORTANT: 
-CRITICAL: You MUST output GTO action frequencies ONLY in the exact Markdown table format shown below, with no extra words inside the table.  
-Frequencies must sum to 100%, and list the highest frequency action first. If your table is not in this exact format, the answer is incorrect.
+Frequencies must sum to 100%, and list the highest frequency action first. 
 
 Preflop GTO suggested frequency:
 | Check    | Freq |
@@ -31,7 +31,7 @@ Preflop GTO suggested frequency:
 | Raise 5X | Freq |
 | Fold     | Freq |
 
-Postflop GTO suggested frequency:
+Flop, Turn, River GTO suggested frequency:
 | Check    | Freq |
 | Bet 33%  | Freq |
 | Bet 50%  | Freq |
