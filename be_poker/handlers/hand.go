@@ -297,8 +297,8 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var request struct {
-		Hand     models.Hand `json:"hand"`
-		Language string      `json:"language,omitempty"`
+		HandDetails string `json:"handDetails"`
+		Language    string `json:"language,omitempty"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -306,10 +306,8 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hand := request.Hand
-
 	// 確保手牌資料完整
-	if hand.Details == "" {
+	if request.HandDetails == "" {
 		http.Error(w, "Hand details are required for analysis", http.StatusBadRequest)
 		return
 	}
@@ -321,25 +319,6 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 調用 OpenAI API 進行分析
-	position := ""
-	holeCards := ""
-	board := ""
-
-	if hand.Position != nil {
-		position = *hand.Position
-	}
-	if hand.HoleCards != nil {
-		holeCards = *hand.HoleCards
-	}
-	if hand.Board != nil {
-		board = *hand.Board
-	}
-
-	// 使用預設盲注值進行分析（前端管理所有session資料）
-	var smallBlind, bigBlind int = 1, 2
-	log.Printf("ℹ️ Using default blinds (1/2) for analysis - frontend manages session data")
-
 	// 獲取語言設定，如果沒有則使用預設值
 	language := request.Language
 	if language == "" {
@@ -347,7 +326,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("ℹ️ Using language: %s for analysis", language)
 	
-	analysis, err := openaiService.AnalyzeHand(hand.Details, hand.Result, position, holeCards, board, hand.Villains, smallBlind, bigBlind, language)
+	analysis, err := openaiService.AnalyzeHand(request.HandDetails, language)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return

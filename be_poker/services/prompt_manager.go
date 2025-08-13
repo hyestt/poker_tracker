@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"poker_tracker_backend/models"
 	"strings"
 )
 
@@ -19,7 +18,7 @@ func NewPromptManager() *PromptManager {
 }
 
 // 讀取prompt文件並替換變數
-func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int, smallBlind int, bigBlind int, heroPosition string, heroHand string, flop string, turn string, river string, villains []models.Villain, language string) (string, error) {
+func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, language string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "hand_analysis.txt")
 
 	// 讀取prompt文件
@@ -28,30 +27,9 @@ func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, result int, s
 		return "", fmt.Errorf("failed to read prompt file: %v", err)
 	}
 
-	// 格式化villains信息
-	var villainsText strings.Builder
-	if len(villains) > 0 {
-		villainsText.WriteString("Villains:\n")
-		for i, villain := range villains {
-			villainsText.WriteString(fmt.Sprintf("Villain %d - Position: %s, Hole Cards: %s\n",
-				i+1, villain.Position, villain.HoleCards))
-		}
-	} else {
-		villainsText.WriteString("Villains: None\n")
-	}
-
 	// 替換變數
 	prompt := string(content)
 	prompt = strings.ReplaceAll(prompt, "{{HAND_DETAILS}}", handDetails)
-	prompt = strings.ReplaceAll(prompt, "{{RESULT}}", fmt.Sprintf("%+d", result))
-	prompt = strings.ReplaceAll(prompt, "{{SMALL_BLIND}}", fmt.Sprintf("%d", smallBlind))
-	prompt = strings.ReplaceAll(prompt, "{{BIG_BLIND}}", fmt.Sprintf("%d", bigBlind))
-	prompt = strings.ReplaceAll(prompt, "{{HERO_POSITION}}", heroPosition)
-	prompt = strings.ReplaceAll(prompt, "{{HERO_HAND}}", heroHand)
-	prompt = strings.ReplaceAll(prompt, "{{FLOP}}", flop)
-	prompt = strings.ReplaceAll(prompt, "{{TURN}}", turn)
-	prompt = strings.ReplaceAll(prompt, "{{RIVER}}", river)
-	prompt = strings.ReplaceAll(prompt, "{{VILLAINS}}", villainsText.String())
 	
 	// 使用傳入的語言設定，如果為空則使用預設值
 	if language == "" {
