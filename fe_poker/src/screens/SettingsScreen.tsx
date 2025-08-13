@@ -32,7 +32,12 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const languageOptions = [
     { label: '繁體中文', value: 'Traditional Chinese' },
     { label: '简体中文', value: 'Simplified Chinese' },
-    { label: 'English', value: 'English' }
+    { label: 'English', value: 'English' },
+    { label: '한국어', value: 'Korean' },
+    { label: 'Español', value: 'Spanish' },
+    { label: '日本語', value: 'Japanese' },
+    { label: 'Français', value: 'French' },
+    { label: 'Deutsch', value: 'German' }
   ];
 
   useEffect(() => {
