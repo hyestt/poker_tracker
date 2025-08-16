@@ -107,7 +107,7 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
         </View>
       </View>
 
-      {/* Action Buttons */}
+      {/* Action Buttons */} 
       <View style={styles.buttonCategory}>
         <View style={styles.buttonRow}>
           <TouchableOpacity
@@ -289,20 +289,15 @@ const styles = StyleSheet.create({
   quickButton: {
     backgroundColor: theme.colors.inputBg,
     borderRadius: theme.radius.button,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.sm,
     borderWidth: 1,
     borderColor: theme.colors.border || theme.colors.gray,
-    flex: 1,
-    minWidth: Math.max(Dimensions.get('window').width * 0.09, 36),
-    maxWidth: Dimensions.get('window').width * 0.16,
-    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 2,
   },
   quickButtonText: {
-    fontSize: Math.min(theme.font.size.small, 10),
+    fontSize: 18,
     color: '#000000',
     fontWeight: '700',
     textAlign: 'center',
@@ -318,10 +313,7 @@ const styles = StyleSheet.create({
   roundButton: {
     backgroundColor: theme.colors.profit,
     borderColor: theme.colors.profit,
-    minWidth: Math.max(Dimensions.get('window').width * 0.07, 28),
-    maxWidth: Dimensions.get('window').width * 0.10,
-    paddingHorizontal: 0,
-    height: 32,
+    paddingHorizontal: theme.spacing.sm,
   },
   compactButton: {
     minWidth: Math.max(Dimensions.get('window').width * 0.11, 44),
@@ -330,7 +322,7 @@ const styles = StyleSheet.create({
   roundButtonText: {
     color: '#000000',
     fontWeight: '700',
-    fontSize: Math.min(theme.font.size.small, 11),
+    fontSize: 18,
   },
   deleteButton: {
     backgroundColor: theme.colors.loss,
@@ -351,11 +343,11 @@ const styles = StyleSheet.create({
   enterButtonText: {
     color: '#000000',
     fontWeight: '700',
-    fontSize: theme.font.size.body,
+    fontSize: 18,
   },
   wideButton: {
     minWidth: Math.max(Dimensions.get('window').width * 0.09, 36), // 與一般按鈕相同大小
-    paddingHorizontal: 0,
+    paddingHorizontal: theme.spacing.sm,
   },
   positionButton: {
     backgroundColor: theme.colors.positionButton,

@@ -1398,7 +1398,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 2, // 添加小間距
   },
   quickButtonText: {
-    fontSize: Math.min(theme.font.size.small, 10), // 響應式字體大小：調整到10px
+    fontSize: 18,
     color: '#FFFFFF',
     fontWeight: '700',
     textAlign: 'center',
@@ -1426,7 +1426,7 @@ const styles = StyleSheet.create({
   roundButtonText: {
     color: '#000000',
     fontWeight: '700',
-    fontSize: Math.min(theme.font.size.small, 11), // 稍微減少字體大小以匹配較小按鈕
+    fontSize: 18,
   },
   deleteButton: {
     backgroundColor: theme.colors.loss,
@@ -1441,9 +1441,9 @@ const styles = StyleSheet.create({
     borderColor: '#93C5FD',
   },
   enterButtonText: {
-    color: '#000000', // 改為黑色
+    color: '#000000',
     fontWeight: '700',
-    fontSize: theme.font.size.body, // 稍大的字體
+    fontSize: 18,
   },
   wideButton: {
     minWidth: Math.max(Dimensions.get('window').width * 0.09, 36), // 與一般按鈕相同大小
@@ -1535,7 +1535,7 @@ const styles = StyleSheet.create({
   numberButtonText: {
     color: '#000000',
     fontWeight: '700',
-    fontSize: Math.min(theme.font.size.small, 10),
+    fontSize: 18,
     textAlign: 'center',
   },
   positionButton: {
