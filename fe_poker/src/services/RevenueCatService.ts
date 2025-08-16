@@ -188,7 +188,6 @@ class RevenueCatService {
   async isPremiumUser(): Promise<boolean> {
     try {
       console.log('💎 [RevenueCat] Checking premium user status...');
-      
       // 優先檢查測試模式設定（不論API Key是否配置）
       const testPremiumStatus = await AsyncStorage.getItem(TEST_PREMIUM_KEY);
       if (testPremiumStatus !== null) {
@@ -362,7 +361,7 @@ class RevenueCatService {
           const newQuota: GTOAnalysisQuota = {
             date: today,
             usedCount: 0,
-            maxFreeCount: 1,
+            maxFreeCount: 15,
           };
           await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
           return newQuota;
@@ -374,7 +373,7 @@ class RevenueCatService {
         const newQuota: GTOAnalysisQuota = {
           date: today,
           usedCount: 0,
-          maxFreeCount: 1,
+          maxFreeCount: 15,
         };
         await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
         return newQuota;
@@ -385,7 +384,7 @@ class RevenueCatService {
       return {
         date: new Date().toISOString().split('T')[0],
         usedCount: 0,
-        maxFreeCount: 1,
+        maxFreeCount: 15,
       };
     }
   }

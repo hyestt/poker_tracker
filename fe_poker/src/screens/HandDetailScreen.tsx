@@ -178,7 +178,7 @@ Shared from LiveHand`;
                 'GTO Analysis Limit Reached',
                 gtoQuotaInfo.isPremium
                   ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
-                  : 'You\'ve used your 1 free GTO analysis for today. Upgrade to Premium for unlimited analysis.',
+                  : 'You\'ve used your 15 free GTO analyses for today. Upgrade to Premium for unlimited analysis.',
                 gtoQuotaInfo.isPremium
                   ? [{ text: 'OK' }]
                   : [

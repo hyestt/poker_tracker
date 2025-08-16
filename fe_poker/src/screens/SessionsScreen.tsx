@@ -266,6 +266,34 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     );
   };
 
+  const handleAddSessionPress = async () => {
+    console.log('➕ [SessionsScreen] Add button pressed, current hands count:', hands.length);
+    try {
+      // 檢查是否有空的 session（沒有手牌的 session）
+      const emptySessions = sessions.filter(session => 
+        !hands.some(hand => hand.sessionId === session.id)
+      );
+
+      if (emptySessions.length > 0) {
+        // 找到最近創建的空 session
+        const mostRecentEmptySession = emptySessions.sort((a, b) => 
+          new Date(b.createdAt || b.date || '').getTime() - new Date(a.createdAt || a.date || '').getTime()
+        )[0];
+
+        console.log('🔄 [SessionsScreen] Found empty session, navigating to SessionDetail:', mostRecentEmptySession.id);
+        navigation.navigate('SessionDetail', { sessionId: mostRecentEmptySession.id });
+        return;
+      }
+
+      // 如果沒有空的 session，創建新的 session
+      navigation.navigate('NewSession');
+    } catch (error) {
+      console.error('Error in handleAddSessionPress:', error);
+      // 如果檢查失敗，還是允許進入（避免阻止正常用戶）
+      navigation.navigate('NewSession');
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -419,7 +447,7 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       {/* Floating Action Button for New Session */}
       <TouchableOpacity
         style={styles.fabButton}
-        onPress={() => navigation.navigate('NewSession')}
+        onPress={handleAddSessionPress}
       >
         <Text style={styles.fabButtonText}>+</Text>
       </TouchableOpacity>

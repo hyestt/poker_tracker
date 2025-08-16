@@ -276,7 +276,23 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         return;
       }
 
-      // 如果沒有達到限制，正常導航到新增頁面
+      // 檢查是否有空的 session（沒有手牌的 session）
+      const emptySessions = sessions.filter(session => 
+        !hands.some(hand => hand.sessionId === session.id)
+      );
+
+      if (emptySessions.length > 0) {
+        // 找到最近創建的空 session
+        const mostRecentEmptySession = emptySessions.sort((a, b) => 
+          new Date(b.createdAt || b.date || '').getTime() - new Date(a.createdAt || a.date || '').getTime()
+        )[0];
+
+        console.log('🔄 [HomeScreen] Found empty session, navigating to SessionDetail:', mostRecentEmptySession.id);
+        navigation.navigate('SessionDetail', { sessionId: mostRecentEmptySession.id });
+        return;
+      }
+
+      // 如果沒有空的 session，創建新的 session
       navigation.navigate('NewSession');
     } catch (error) {
       console.error('Error checking subscription status:', error);
