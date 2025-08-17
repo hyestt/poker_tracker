@@ -104,7 +104,7 @@ func printStartupInfo() {
 
 	fmt.Println("💰 Cost Info:")
 	fmt.Println("   AI Analysis: ~$0.0003-0.0008 per request")
-	fmt.Println("   Model: GPT-4o-mini")
+	fmt.Println("   Model: GPT-4o")
 	fmt.Println()
 
 	fmt.Println("🎉 Server ready! Happy poker tracking! 🃏")

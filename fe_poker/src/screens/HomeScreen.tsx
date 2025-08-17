@@ -29,6 +29,11 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [selectedSort, setSelectedSort] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isPremium, setIsPremium] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<{
+    gtoRemaining: number;
+    handRemaining: number;
+    isPremium: boolean;
+  } | null>(null);
 
   const [sessionFilter, setSessionFilter] = useState<{
     location?: string;
@@ -71,6 +76,20 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         console.log('🔄 HomeScreen useFocusEffect triggered');
         const premium = await RevenueCatService.isPremiumUser();
         setIsPremium(premium);
+        
+        // Load quota information
+        try {
+          const gtoQuota = await RevenueCatService.canUseGTOAnalysis();
+          const handQuota = await RevenueCatService.canCreateHand();
+          setQuotaInfo({
+            gtoRemaining: gtoQuota.remainingFree,
+            handRemaining: handQuota.remainingFree,
+            isPremium: premium,
+          });
+        } catch (error) {
+          console.error('Failed to load quota info:', error);
+        }
+        
         // 重新獲取最新的 hands 數據
         console.log('🔄 About to call fetchHands from useFocusEffect');
         await fetchHands();
@@ -563,6 +582,24 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Quota Status */}
+      {quotaInfo && !quotaInfo.isPremium && (
+        <View style={styles.quotaContainer}>
+          <View style={styles.quotaItem}>
+            <Text style={styles.quotaLabel}>GTO Analysis:</Text>
+            <Text style={[styles.quotaValue, quotaInfo.gtoRemaining === 0 && styles.quotaExhausted]}>
+              {quotaInfo.gtoRemaining === -1 ? '∞' : quotaInfo.gtoRemaining} left this week
+            </Text>
+          </View>
+          <View style={styles.quotaItem}>
+            <Text style={styles.quotaLabel}>Hand Creation:</Text>
+            <Text style={[styles.quotaValue, quotaInfo.handRemaining === 0 && styles.quotaExhausted]}>
+              {quotaInfo.handRemaining === -1 ? '∞' : quotaInfo.handRemaining} left total
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Usage Hint */}
       {filteredHands.length > 0 && (
@@ -1293,5 +1330,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     padding: theme.spacing.md,
+  },
+  quotaContainer: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.card,
+    margin: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    padding: theme.spacing.md,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  quotaItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  quotaLabel: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.text,
+    fontWeight: '500',
+  },
+  quotaValue: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  quotaExhausted: {
+    color: theme.colors.loss,
   },
 });

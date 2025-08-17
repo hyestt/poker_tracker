@@ -350,18 +350,19 @@ class RevenueCatService {
 
   async getGTOAnalysisQuota(): Promise<GTOAnalysisQuota> {
     try {
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const today = new Date();
+      const weekStart = this.getWeekStart(today).toISOString().split('T')[0]; // YYYY-MM-DD format for week start
       const quotaData = await AsyncStorage.getItem('gto_analysis_quota');
 
       if (quotaData) {
         const quota: GTOAnalysisQuota = JSON.parse(quotaData);
 
-        // If it's a new day, reset the quota
-        if (quota.date !== today) {
+        // If it's a new week, reset the quota
+        if (quota.date !== weekStart) {
           const newQuota: GTOAnalysisQuota = {
-            date: today,
+            date: weekStart,
             usedCount: 0,
-            maxFreeCount: 15,
+            maxFreeCount: 3,
           };
           await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
           return newQuota;
@@ -371,9 +372,9 @@ class RevenueCatService {
       } else {
         // First time - create new quota
         const newQuota: GTOAnalysisQuota = {
-          date: today,
+          date: weekStart,
           usedCount: 0,
-          maxFreeCount: 15,
+          maxFreeCount: 3,
         };
         await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
         return newQuota;
@@ -381,10 +382,12 @@ class RevenueCatService {
     } catch (error) {
       console.error('Failed to get GTO analysis quota:', error);
       // Return default quota on error
+      const today = new Date();
+      const weekStart = this.getWeekStart(today).toISOString().split('T')[0];
       return {
-        date: new Date().toISOString().split('T')[0],
+        date: weekStart,
         usedCount: 0,
-        maxFreeCount: 15,
+        maxFreeCount: 3,
       };
     }
   }
@@ -451,7 +454,7 @@ class RevenueCatService {
     }
   }
 
-  // Test method: reset daily quota (for testing purposes)
+  // Test method: reset weekly quota (for testing purposes)
   async resetGTOQuotaForTesting(): Promise<void> {
     try {
       await AsyncStorage.removeItem('gto_analysis_quota');
@@ -459,6 +462,14 @@ class RevenueCatService {
     } catch (error) {
       console.error('Failed to reset GTO quota:', error);
     }
+  }
+
+  // Helper method to get the start of the current week (Monday)
+  private getWeekStart(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    return new Date(d.setDate(diff));
   }
 }
 
