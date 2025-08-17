@@ -6,10 +6,13 @@ import Purchases, {
   PurchasesPackage,
 } from 'react-native-purchases';
 
-// RevenueCat API Keys (需要在RevenueCat Dashboard中獲取)
-const REVENUECAT_API_KEY = {
-  ios: 'appl_BwKUCybSdHvHESLRhDGVjAfAcLC', // 替换为你的iOS API Key
-  android: 'goog_YOUR_ANDROID_API_KEY_HERE', // 替换为你的Android API Key
+// RevenueCat 配置 (需要在RevenueCat Dashboard中獲取)
+const REVENUECAT_CONFIG = {
+  apiKeys: {
+    ios: 'appl_BwKUCybSdHvHESLRhDGVjAfAcLC', // iOS API Key
+    android: 'goog_YOUR_ANDROID_API_KEY_HERE', // Android API Key
+  },
+  appId: 'app8028b0ac14', // RevenueCat App ID (如果需要用於API調用)
 };
 
 // 開發環境標誌
@@ -52,7 +55,7 @@ class RevenueCatService {
   async initialize(userId?: string): Promise<void> {
     try {
       // 根據平台選擇API Key
-      const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY.ios : REVENUECAT_API_KEY.android;
+      const apiKey = Platform.OS === 'ios' ? REVENUECAT_CONFIG.apiKeys.ios : REVENUECAT_CONFIG.apiKeys.android;
 
       // 檢查API Key是否有效
       if (apiKey.includes('YOUR_') || apiKey.includes('_HERE')) {
@@ -292,7 +295,7 @@ class RevenueCatService {
   }
 
   private isRealRevenueCatConfigured(): boolean {
-    const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEY.ios : REVENUECAT_API_KEY.android;
+    const apiKey = Platform.OS === 'ios' ? REVENUECAT_CONFIG.apiKeys.ios : REVENUECAT_CONFIG.apiKeys.android;
     const isConfigured = !apiKey.includes('YOUR_') && !apiKey.includes('_HERE');
     console.log(`🔧 [RevenueCat] API Key check - Platform: ${Platform.OS}, Key: ${apiKey.substring(0, 10)}..., Configured: ${isConfigured}`);
     return isConfigured;
@@ -306,13 +309,22 @@ class RevenueCatService {
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: 'com.glen.livehand.premium', // 匹配App Store Connect的Product ID
-        title: 'LiveHand Premium',
+        id: '$rc_annual',
+        title: 'LiveHand Pro Annual',
         description: 'All premium features unlocked',
-        price: '$4.99',
-        period: 'Month',
+        price: '$120',
+        period: 'Year',
         features: this.getFeaturesForPlan('premium'),
         isPopular: true,
+      },
+      {
+        id: '$rc_monthly',
+        title: 'LiveHand Pro Monthly',
+        description: 'All premium features unlocked',
+        price: '$14.99',
+        period: 'Month',
+        features: this.getFeaturesForPlan('premium'),
+        isPopular: false,
       },
     ];
   }

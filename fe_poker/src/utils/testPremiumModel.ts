@@ -1,5 +1,5 @@
 // Test utility for Premium Model functionality
-import RevenueCatService from '../services/RevenueCatService';
+import revenueCatService from '../services/RevenueCatService';
 
 export const TestPremiumModel = {
   // Test quota system
@@ -8,26 +8,26 @@ export const TestPremiumModel = {
 
     try {
       // Reset quota first
-      await RevenueCatService.resetGTOQuotaForTesting();
+      await revenueCatService.resetGTOQuotaForTesting();
 
       // Check initial quota
-      const initialQuota = await RevenueCatService.getGTOAnalysisQuota();
+      const initialQuota = await revenueCatService.getGTOAnalysisQuota();
       console.log('📊 Initial quota:', initialQuota);
 
       // Test quota check
-      const canUse1 = await RevenueCatService.canUseGTOAnalysis();
+      const canUse1 = await revenueCatService.canUseGTOAnalysis();
       console.log('✅ Can use analysis (first check):', canUse1);
 
       // Use analysis
-      const used1 = await RevenueCatService.useGTOAnalysis();
+      const used1 = await revenueCatService.useGTOAnalysis();
       console.log('📈 Used analysis (first time):', used1);
 
       // Check quota after use
-      const canUse2 = await RevenueCatService.canUseGTOAnalysis();
+      const canUse2 = await revenueCatService.canUseGTOAnalysis();
       console.log('❌ Can use analysis (after use):', canUse2);
 
       // Try to use again (should fail)
-      const used2 = await RevenueCatService.useGTOAnalysis();
+      const used2 = await revenueCatService.useGTOAnalysis();
       console.log('🚫 Used analysis (second time - should fail):', used2);
 
       return {
@@ -49,13 +49,13 @@ export const TestPremiumModel = {
 
     try {
       // Test as free user
-      await RevenueCatService.setTestPremiumStatus(false);
-      const freeStatus = await RevenueCatService.canUseGTOAnalysis();
+      await revenueCatService.setTestPremiumStatus(false);
+      const freeStatus = await revenueCatService.canUseGTOAnalysis();
       console.log('🆓 Free user status:', freeStatus);
 
       // Test as premium user
-      await RevenueCatService.setTestPremiumStatus(true);
-      const premiumStatus = await RevenueCatService.canUseGTOAnalysis();
+      await revenueCatService.setTestPremiumStatus(true);
+      const premiumStatus = await revenueCatService.canUseGTOAnalysis();
       console.log('💎 Premium user status:', premiumStatus);
 
       return {
@@ -72,8 +72,8 @@ export const TestPremiumModel = {
   async resetTestData() {
     console.log('🔄 Resetting test data...');
     try {
-      await RevenueCatService.resetGTOQuotaForTesting();
-      await RevenueCatService.clearTestPremiumStatus();
+      await revenueCatService.resetGTOQuotaForTesting();
+      await revenueCatService.clearTestPremiumStatus();
       console.log('✅ Test data reset complete');
     } catch (error) {
       console.error('❌ Reset failed:', error);

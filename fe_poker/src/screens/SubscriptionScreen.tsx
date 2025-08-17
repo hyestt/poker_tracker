@@ -15,6 +15,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [_isPremium, _setIsPremium] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [_premiumFeatures, _setPremiumFeatures] = useState<PremiumFeatures>({
     unlimitedSessions: false,
     aiAnalysis: false,
@@ -38,6 +39,19 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       try {
         const offerings = await revenueCatService.getOfferings();
         console.log('📦 Available offerings:', offerings.length);
+        
+        // 詳細記錄每個offering和package
+        offerings.forEach((offering, index) => {
+          console.log(`📦 Offering ${index}:`, offering.identifier);
+          offering.availablePackages.forEach((pkg, pkgIndex) => {
+            console.log(`  📱 Package ${pkgIndex}:`, {
+              identifier: pkg.identifier,
+              title: pkg.product.title,
+              price: pkg.product.priceString
+            });
+          });
+        });
+        
         if (offerings.length === 0) {
           console.warn('⚠️ No offerings found - products may not be configured');
         }
@@ -83,7 +97,18 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
     try {
       setPurchasing(plan.id);
 
+      console.log('🛒 Starting purchase for plan:', plan.id);
       const offerings = await revenueCatService.getOfferings();
+      console.log('📦 Available offerings:', offerings.length);
+      
+      // 詳細打印所有可用的packages
+      offerings.forEach((offering, index) => {
+        console.log(`📦 Offering ${index}:`, offering.identifier);
+        offering.availablePackages.forEach((pkg, pkgIndex) => {
+          console.log(`  📱 Package ${pkgIndex}:`, pkg.identifier, pkg.product.title);
+        });
+      });
+
       let packageToPurchase = null;
 
       // 找到對應的package
@@ -91,10 +116,16 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         packageToPurchase = offering.availablePackages.find(
           pkg => pkg.identifier === plan.id
         );
-        if (packageToPurchase) {break;}
+        if (packageToPurchase) {
+          console.log('✅ Found matching package:', packageToPurchase.identifier);
+          break;
+        }
       }
 
       if (!packageToPurchase) {
+        console.error('❌ Package not found. Looking for:', plan.id);
+        console.error('❌ Available packages:', offerings.map(o => 
+          o.availablePackages.map(p => p.identifier)).flat());
         throw new Error('Package not found');
       }
 
@@ -243,40 +274,71 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         </View>
       </View>
 
-      {/* Pricing Plan */}
+      {/* Pricing Plans */}
       <View style={styles.pricingContainer}>
-        <View style={[styles.planCard, styles.selectedPlan]}>
+        {/* Annual Plan */}
+        <TouchableOpacity
+          style={[styles.planCard, selectedPlan === 'annual' && styles.selectedPlan]}
+          onPress={() => setSelectedPlan('annual')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountText}>33% OFF</Text>
+          </View>
           <View style={styles.planHeader}>
             <View style={styles.planLeft}>
-              <Text style={styles.planTitle}>LiveHand Premium</Text>
-              <Text style={styles.planPrice}>$4.99/month</Text>
-              <Text style={styles.planBilling}>Billed monthly • Cancel anytime</Text>
+              <Text style={styles.planTitle}>Year</Text>
+              <Text style={styles.planPrice}>$120</Text>
+              <Text style={styles.planSubPrice}>$10/month</Text>
             </View>
-            <View style={[styles.radioButton, styles.radioSelected]}>
-              <View style={styles.radioInner} />
+            <View style={[styles.radioButton, selectedPlan === 'annual' && styles.radioSelected]}>
+              {selectedPlan === 'annual' && <View style={styles.radioInner} />}
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
+
+        {/* Monthly Plan */}
+        <TouchableOpacity
+          style={[styles.planCard, selectedPlan === 'monthly' && styles.selectedPlan]}
+          onPress={() => setSelectedPlan('monthly')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.planHeader}>
+            <View style={styles.planLeft}>
+              <Text style={styles.planTitle}>Month</Text>
+              <Text style={styles.planPrice}>$14.99/mo</Text>
+            </View>
+            <View style={[styles.radioButton, selectedPlan === 'monthly' && styles.radioSelected]}>
+              {selectedPlan === 'monthly' && <View style={styles.radioInner} />}
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* CTA Button */}
       <TouchableOpacity
         style={styles.ctaButton}
-        onPress={() => handlePurchase({
-          id: 'com.glen.livehand.premium',
-          title: 'LiveHand Premium',
-          description: 'All premium features unlocked',
-          price: '$4.99/month',
-          period: 'Month',
-          features: [],
-          isPopular: true,
-        })}
+        onPress={() => {
+          const productId = selectedPlan === 'annual'
+            ? '$rc_annual'
+            : '$rc_monthly';
+          const planData = {
+            id: productId,
+            title: 'LiveHand Premium',
+            description: 'All premium features unlocked',
+            price: selectedPlan === 'annual' ? '$120/year' : '$14.99/month',
+            period: selectedPlan === 'annual' ? 'Year' : 'Month',
+            features: [],
+            isPopular: selectedPlan === 'annual',
+          };
+          handlePurchase(planData);
+        }}
         disabled={purchasing !== null}
       >
         {purchasing ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text style={styles.ctaButtonText}>Get started for free</Text>
+          <Text style={styles.ctaButtonText}>Subscribe</Text>
         )}
       </TouchableOpacity>
 
@@ -464,6 +526,11 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontWeight: '600',
     marginBottom: 2,
+  },
+  planSubPrice: {
+    fontSize: 11,
+    color: theme.colors.gray,
+    fontWeight: '400',
   },
   planBilling: {
     fontSize: 11,

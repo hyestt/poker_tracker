@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Saf
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
-import RevenueCatService from '../services/RevenueCatService';
+import revenueCatService from '../services/RevenueCatService';
 import { Input } from '../components/Input';
 import { CustomDateTimePicker } from '../components/DateTimePicker';
 
@@ -35,7 +35,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
     useCallback(() => {
       const checkSubscriptionAndRefreshData = async () => {
         console.log('🔄 SessionDetailScreen useFocusEffect triggered');
-        const premium = await RevenueCatService.isPremiumUser();
+        const premium = await revenueCatService.isPremiumUser();
         setIsPremium(premium);
         // 刷新 hands 數據以確保顯示最新的 hands
         console.log('🔄 About to call fetchHands from SessionDetail useFocusEffect');
@@ -169,7 +169,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
   const handleAddButtonPress = async () => {
     try {
       // 檢查手牌數量限制（免費用戶最多10手牌）
-      const premium = await RevenueCatService.isPremiumUser();
+      const premium = await revenueCatService.isPremiumUser();
       if (!premium && hands.length >= 10) {
         Alert.alert(
           'Upgrade Required',

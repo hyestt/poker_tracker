@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking, Modal } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { theme } from '../theme';
 import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
-import RevenueCatService from '../services/RevenueCatService';
+import revenueCatService from '../services/RevenueCatService';
 import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import { UserPreferencesService } from '../services/UserPreferences';
 import { createTestHands } from '../utils/createTestHands';
@@ -61,22 +62,22 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
         // Initialize RevenueCat if needed
         console.log('🔧 [SettingsScreen] Ensuring RevenueCat is initialized');
-        await RevenueCatService.initialize();
+        await revenueCatService.initialize();
 
         console.log('💎 [SettingsScreen] Checking premium user status');
-        const premiumStatus = await RevenueCatService.isPremiumUser();
+        const premiumStatus = await revenueCatService.isPremiumUser();
         console.log('💎 [SettingsScreen] Premium status:', premiumStatus);
         setIsPremium(premiumStatus);
 
         // 檢查測試模式狀態
         console.log('🧪 [SettingsScreen] Checking test mode status');
-        const testStatus = await RevenueCatService.getTestPremiumStatus();
+        const testStatus = await revenueCatService.getTestPremiumStatus();
         console.log('🧪 [SettingsScreen] Test mode status:', testStatus);
         setIsTestMode(testStatus);
 
         if (!premiumStatus) {
           console.log('🛍️ [SettingsScreen] User is not premium, fetching offerings');
-          const availableOfferings = await RevenueCatService.getOfferings();
+          const availableOfferings = await revenueCatService.getOfferings();
           console.log('🛍️ [SettingsScreen] Available offerings:', availableOfferings.length);
           setOfferings(availableOfferings);
         } else {
@@ -97,14 +98,33 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     checkSubscription();
   }, []);
 
+  // 每次進入頁面時檢查訂閱狀態
+  useFocusEffect(
+    useCallback(() => {
+      const refreshSubscriptionStatus = async () => {
+        console.log('🔄 [SettingsScreen] useFocusEffect - refreshing subscription status');
+        try {
+          const premiumStatus = await revenueCatService.isPremiumUser();
+          const testStatus = await revenueCatService.getTestPremiumStatus();
+          console.log('💎 [SettingsScreen] Focus refresh - Premium:', premiumStatus, 'Test:', testStatus);
+          setIsPremium(premiumStatus);
+          setIsTestMode(testStatus);
+        } catch (error) {
+          console.error('❌ [SettingsScreen] Failed to refresh subscription status:', error);
+        }
+      };
+      refreshSubscriptionStatus();
+    }, [])
+  );
+
   const handlePurchase = async (pkg: PurchasesPackage) => {
     console.log('🛍️ [SettingsScreen] Purchase initiated for package:', pkg.identifier);
     try {
       setIsLoading(true);
       console.log('💳 [SettingsScreen] Processing purchase...');
-      await RevenueCatService.purchasePackage(pkg);
+      await revenueCatService.purchasePackage(pkg);
       console.log('✅ [SettingsScreen] Purchase completed successfully');
-      const customerInfo = await RevenueCatService.getCustomerInfo();
+      const customerInfo = await revenueCatService.getCustomerInfo();
       if (customerInfo.entitlements.active.pro) {
         setIsPremium(true);
         Alert.alert('Success', 'You are now a PRO member!');
@@ -121,7 +141,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const handleRestorePurchases = async () => {
     try {
       setIsLoading(true);
-      const customerInfo = await RevenueCatService.restorePurchases();
+      const customerInfo = await revenueCatService.restorePurchases();
       if (customerInfo.entitlements.active.pro) {
         setIsPremium(true);
         Alert.alert('Success', 'Your purchases have been restored.');
@@ -254,7 +274,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
   const handleToggleTestPremium = async () => {
     try {
       const newStatus = !isTestMode;
-      await RevenueCatService.setTestPremiumStatus(newStatus);
+      await revenueCatService.setTestPremiumStatus(newStatus);
       setIsTestMode(newStatus);
       setIsPremium(newStatus);
 
@@ -466,7 +486,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
 
             <View style={styles.debugInfo}>
               <Text style={styles.debugText}>
-                Current Status: {isPremium ? 'Premium' : 'Free'}
+                Current Status: {isPremium || isTestMode ? 'Premium' : 'Free'}
+                {isTestMode && ' (Test Mode)'}
               </Text>
             </View>
           </View>

@@ -5,7 +5,7 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
-import RevenueCatService from '../services/RevenueCatService';
+import revenueCatService from '../services/RevenueCatService';
 
 const filterOptions = [
   { key: 'all', label: 'All Hands' },
@@ -74,13 +74,13 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     useCallback(() => {
       const checkSubscriptionAndRefreshData = async () => {
         console.log('🔄 HomeScreen useFocusEffect triggered');
-        const premium = await RevenueCatService.isPremiumUser();
+        const premium = await revenueCatService.isPremiumUser();
         setIsPremium(premium);
         
         // Load quota information
         try {
-          const gtoQuota = await RevenueCatService.canUseGTOAnalysis();
-          const handQuota = await RevenueCatService.canCreateHand();
+          const gtoQuota = await revenueCatService.canUseGTOAnalysis();
+          const handQuota = await revenueCatService.canCreateHand();
           setQuotaInfo({
             gtoRemaining: gtoQuota.remainingFree,
             handRemaining: handQuota.remainingFree,
@@ -275,7 +275,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       // 檢查手牌數量限制（免費用戶最多10手牌）
       console.log('💎 [HomeScreen] Checking premium status...');
-      const premium = await RevenueCatService.isPremiumUser();
+      const premium = await revenueCatService.isPremiumUser();
       console.log('💎 [HomeScreen] Premium status:', premium);
 
       if (!premium && hands.length >= 10) {

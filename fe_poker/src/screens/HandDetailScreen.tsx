@@ -5,7 +5,7 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Hand, Session, Villain } from '../models';
 import { formatDate } from '../utils/dateFormat';
-import RevenueCatService from '../services/RevenueCatService';
+import revenueCatService from '../services/RevenueCatService';
 
 export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const { handId } = route.params;
@@ -26,7 +26,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
           setSession(sessionData);
 
           // Check GTO analysis quota
-          const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
+          const quotaStatus = await revenueCatService.canUseGTOAnalysis();
           setGtoQuotaInfo(quotaStatus);
         } catch (error) {
           console.error('Failed to load hand/session:', error);

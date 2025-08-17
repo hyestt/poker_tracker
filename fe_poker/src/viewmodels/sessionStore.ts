@@ -3,7 +3,7 @@ import { Session, Hand, Stats } from '../models';
 import { API_BASE_URL } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DatabaseService } from '../services/DatabaseService';
-// import RevenueCatService from '../services/RevenueCatService'; // Removed as not used in store
+// import revenueCatService from '../services/RevenueCatService'; // Removed as not used in store
 import { WelcomeDemoService } from '../services/WelcomeDemoService';
 // 監控模組 - 純觀察者模式，不影響業務邏輯
 import { monitor } from '../monitoring/SentryMonitor';

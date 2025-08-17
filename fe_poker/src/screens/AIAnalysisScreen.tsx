@@ -4,7 +4,7 @@ import { theme } from '../theme';
 import { Hand } from '../models';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSessionStore } from '../viewmodels/sessionStore';
-import RevenueCatService from '../services/RevenueCatService';
+import revenueCatService from '../services/RevenueCatService';
 import { UserPreferencesService } from '../services/UserPreferences';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
@@ -24,7 +24,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const checkGTOQuotaAndLoadData = async () => {
     try {
       // Check GTO analysis quota first
-      const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
+      const quotaStatus = await revenueCatService.canUseGTOAnalysis();
       setQuotaInfo(quotaStatus);
 
       console.log('GTO Quota Status:', quotaStatus);
@@ -75,7 +75,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     console.log('Current hand analysis content:', currentHand.analysis ? 'YES' : 'NO');
 
     // Check quota before starting analysis
-    const quotaStatus = await RevenueCatService.canUseGTOAnalysis();
+    const quotaStatus = await revenueCatService.canUseGTOAnalysis();
     setQuotaInfo(quotaStatus);
 
     if (!quotaStatus.canUse && (forceReanalyze || !currentHand.analysis)) {
@@ -108,7 +108,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       console.log('Performing new AI analysis...');
 
       // Use the quota (this increments the counter for non-premium users)
-      const quotaUsed = await RevenueCatService.useGTOAnalysis();
+      const quotaUsed = await revenueCatService.useGTOAnalysis();
       if (!quotaUsed) {
         Alert.alert('Error', 'Unable to use GTO analysis at this time');
         setLoading(false);
@@ -116,7 +116,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       }
 
       // Update quota info after using analysis
-      const updatedQuotaStatus = await RevenueCatService.canUseGTOAnalysis();
+      const updatedQuotaStatus = await revenueCatService.canUseGTOAnalysis();
       setQuotaInfo(updatedQuotaStatus);
 
       // Execute the actual AI analysis
