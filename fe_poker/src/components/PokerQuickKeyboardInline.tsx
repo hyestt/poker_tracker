@@ -162,7 +162,7 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
             style={styles.quickButton}
             onPress={() => handleInsert('Limp ')}
           >
-            <Text style={styles.quickButtonText}>Limp</Text>
+            <Text style={styles.quickButtonText}>L</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}

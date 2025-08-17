@@ -35,7 +35,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const resultInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const handleInputFocus = (inputRef: React.RefObject<TextInput>) => {
+  const handleInputFocus = (inputRef: React.RefObject<TextInput | null>) => {
     setTimeout(() => {
       if (inputRef.current && scrollViewRef.current) {
         inputRef.current.measureInWindow((x, y, width, height) => {
@@ -521,10 +521,114 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled={true}
       >
+        {/* Hero Section - moved to top */}
+        <View style={styles.heroSection}>
+          <View style={styles.fullWidthField}>
+            <Text style={styles.fieldLabel}>Hero</Text>
+            <View style={styles.heroRow}>
+              <View style={styles.heroCardSection}>
+                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleHoleCardsSelect}>
+                  {holeCards ? (
+                    <View style={styles.selectedCardsContainer}>
+                      {holeCards.split(' ').map((card, index) => {
+                        const rank = card.slice(0, -1);
+                        const suit = card.slice(-1);
+                        const getSuitColor = (suit: string) => {
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
+                        };
+                        return (
+                          <View key={index} style={styles.miniCard}>
+                            <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                              {rank}{suit}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text style={styles.placeholderText}>
+                      Select hole cards
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+              <View style={styles.heroPositionSection}>
+                <CustomPicker
+                  options={positions}
+                  value={position}
+                  onValueChange={setPosition}
+                  onOptionsChange={() => {}} // Position options are fixed
+                  placeholder="Position"
+                  allowCustom={false}
+                  allowDelete={false}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.spacer} />
+
+        {/* Board Section */}
+        <View style={styles.boardSection}>
+          <View style={styles.fullWidthField}>
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Board</Text>
+              <View style={styles.fieldInputContainer}>
+                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
+                  {board ? (
+                    <View style={styles.selectedCardsContainer}>
+                      {board.split(' ').map((card, index) => {
+                        const rank = card.slice(0, -1);
+                        const suit = card.slice(-1);
+                        const getSuitColor = (suit: string) => {
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
+                        };
+
+                        return (
+                          <View key={index} style={styles.boardCardWrapper}>
+                            {/* Add label above second flop card for center alignment */}
+                            {index === 1 && (
+                              <Text style={styles.boardLabel}>Flop</Text>
+                            )}
+                            {/* Add label above turn card */}
+                            {index === 3 && (
+                              <Text style={styles.boardLabel}>Turn</Text>
+                            )}
+                            {/* Add label above river card */}
+                            {index === 4 && (
+                              <Text style={styles.boardLabel}>River</Text>
+                            )}
+                            {/* Add empty placeholder for alignment */}
+                            {index !== 1 && index !== 3 && index !== 4 && (
+                              <Text style={styles.boardLabelPlaceholder}> </Text>
+                            )}
+
+                            <View style={styles.miniCard}>
+                              <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                                {rank}{suit}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text style={styles.placeholderText}>Select board cards</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.spacer} />
+
+        {/* Hand Details Section - moved to bottom */}
         <View style={styles.topSection}>
           <View style={styles.fieldColumn}>
             <View style={styles.labelRow}>
-              <View style={{ flex: 1 }} />
+              <Text style={styles.label}>Hand Details</Text>
               <View style={styles.keyboardToggleContainer}>
                 <Text style={styles.toggleLabel}>Poker Keyboard</Text>
                 <Switch
@@ -710,7 +814,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                   style={styles.quickButton}
                   onPress={() => handleQuickInsert('Limp ')}
                 >
-                  <Text style={styles.quickButtonText}>Limp</Text>
+                  <Text style={styles.quickButtonText}>L</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
@@ -817,99 +921,40 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
         <View style={styles.spacer} />
 
+        {/* Hand Details Section */}
         <View style={styles.bottomSection}>
-          {/* Board Row */}
+          {/* Note Section */}
           <View style={styles.fullWidthField}>
             <View style={styles.fieldHeaderRow}>
-              <Text style={styles.fieldLabel}>Board</Text>
+              <Text style={styles.fieldLabel}>Note</Text>
               <View style={styles.fieldInputContainer}>
-                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
-                  {board ? (
-                    <View style={styles.selectedCardsContainer}>
-                      {board.split(' ').map((card, index) => {
-                        const rank = card.slice(0, -1);
-                        const suit = card.slice(-1);
-                        const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
-                        };
-
-                        return (
-                          <View key={index} style={styles.boardCardWrapper}>
-                            {/* Add label above second flop card for center alignment */}
-                            {index === 1 && (
-                              <Text style={styles.boardLabel}>Flop</Text>
-                            )}
-                            {/* Add label above turn card */}
-                            {index === 3 && (
-                              <Text style={styles.boardLabel}>Turn</Text>
-                            )}
-                            {/* Add label above river card */}
-                            {index === 4 && (
-                              <Text style={styles.boardLabel}>River</Text>
-                            )}
-                            {/* Add empty placeholder for alignment */}
-                            {index !== 1 && index !== 3 && index !== 4 && (
-                              <Text style={styles.boardLabelPlaceholder}> </Text>
-                            )}
-
-                            <View style={styles.miniCard}>
-                              <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
-                                {rank}{suit}
-                              </Text>
-                            </View>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  ) : (
-                    <Text style={styles.placeholderText}>
-                      Select board cards
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                <TextInput
+                  ref={noteInputRef}
+                  style={styles.noteInput}
+                  value={note}
+                  onChangeText={setNote}
+                  onFocus={() => handleInputFocus(noteInputRef)}
+                  placeholder="Add a note..."
+                  placeholderTextColor={theme.colors.gray}
+                  multiline={true}
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  scrollEnabled={false}
+                />
               </View>
             </View>
           </View>
 
-          {/* Hole Cards and Position Row */}
+          {/* Tags Section */}
           <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Hero</Text>
-            <View style={styles.heroRow}>
-              <View style={styles.heroCardSection}>
-                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleHoleCardsSelect}>
-                  {holeCards ? (
-                    <View style={styles.selectedCardsContainer}>
-                      {holeCards.split(' ').map((card, index) => {
-                        const rank = card.slice(0, -1);
-                        const suit = card.slice(-1);
-                        const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
-                        };
-                        return (
-                          <View key={index} style={styles.miniCard}>
-                            <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
-                              {rank}{suit}
-                            </Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  ) : (
-                    <Text style={styles.placeholderText}>
-                      Select hole cards
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-              <View style={styles.heroPositionSection}>
-                <CustomPicker
-                  options={positions}
-                  value={position}
-                  onValueChange={setPosition}
-                  onOptionsChange={() => {}} // Position options are fixed
-                  placeholder="Select position"
-                  allowCustom={false}
-                  allowDelete={false}
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Tags</Text>
+              <View style={styles.fieldInputContainer}>
+                <TagInput
+                  tags={tags}
+                  onTagsChange={setTags}
+                  placeholder="Add hand tags..."
+                  availableTags={getAllUsedTags()}
                 />
               </View>
             </View>
@@ -936,49 +981,12 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             ))}
           </View>
 
-          {/* Tags Section */}
-          <View style={styles.fullWidthField}>
-            <View style={styles.fieldHeaderRow}>
-              <Text style={styles.fieldLabel}>Tags</Text>
-              <View style={styles.fieldInputContainer}>
-                <TagInput
-                  tags={tags}
-                  onTagsChange={setTags}
-                  placeholder="Add hand tags..."
-                  availableTags={getAllUsedTags()}
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Note Section */}
-          <View style={styles.fullWidthField}>
-            <View style={styles.fieldHeaderRow}>
-              <Text style={styles.fieldLabel}>Note</Text>
-              <View style={styles.fieldInputContainer}>
-                <TextInput
-                  ref={noteInputRef}
-                  style={styles.noteInput}
-                  value={note}
-                  onChangeText={setNote}
-                  onFocus={() => handleInputFocus(noteInputRef)}
-                  placeholder="Add a note..."
-                  placeholderTextColor={theme.colors.gray}
-                  multiline={true}
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                  scrollEnabled={false}
-                />
-              </View>
-            </View>
-          </View>
-
           {/* Result Section */}
           <View style={styles.fullWidthField}>
             <View style={styles.fieldHeaderRow}>
               <Text style={styles.fieldLabel}>Result ($)</Text>
               <View style={styles.fieldInputContainer}>
-                <Input
+                <TextInput
                   ref={resultInputRef}
                   value={result}
                   onChangeText={setResult}
@@ -1540,5 +1548,11 @@ const styles = StyleSheet.create({
   },
   positionButton: {
     backgroundColor: theme.colors.positionButton,
+  },
+  heroSection: {
+    marginBottom: theme.spacing.md,
+  },
+  boardSection: {
+    marginBottom: theme.spacing.md,
   },
 });

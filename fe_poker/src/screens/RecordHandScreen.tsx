@@ -407,7 +407,7 @@ River: HJ Check BTN Check`;
   };
 
   // 處理輸入框焦點，自動滾動到可見區域
-  const handleInputFocus = (inputRef: React.RefObject<TextInput>) => {
+  const handleInputFocus = (inputRef: React.RefObject<TextInput | null>) => {
     setTimeout(() => {
       if (inputRef.current && scrollViewRef.current) {
         inputRef.current.measureInWindow((x, y, width, height) => {
@@ -531,6 +531,110 @@ River: HJ Check BTN Check`;
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled={true}
       >
+        {/* Hero Section - moved to top */}
+        <View style={styles.heroSection}>
+          <View style={styles.fullWidthField}>
+            <Text style={styles.fieldLabel}>Hero</Text>
+            <View style={styles.heroRow}>
+              <View style={styles.heroCardSection}>
+                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleHoleCardsSelect}>
+                  {holeCards ? (
+                    <View style={styles.selectedCardsContainer}>
+                      {holeCards.split(' ').map((card, index) => {
+                        const rank = card.slice(0, -1);
+                        const suit = card.slice(-1);
+                        const getSuitColor = (suit: string) => {
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
+                        };
+                        return (
+                          <View key={index} style={styles.miniCard}>
+                            <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                              {rank}{suit}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text style={styles.placeholderText}>
+                      Select hole cards
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+              <View style={styles.heroPositionSection}>
+                <CustomPicker
+                  options={positions}
+                  value={position}
+                  onValueChange={setPosition}
+                  onOptionsChange={() => {}} // Position options are fixed
+                  placeholder="Position"
+                  allowCustom={false}
+                  allowDelete={false}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.spacer} />
+
+        {/* Board Section */}
+        <View style={styles.boardSection}>
+          <View style={styles.fullWidthField}>
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Board</Text>
+              <View style={styles.fieldInputContainer}>
+                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
+                  {board ? (
+                    <View style={styles.selectedCardsContainer}>
+                      {board.split(' ').map((card, index) => {
+                        const rank = card.slice(0, -1);
+                        const suit = card.slice(-1);
+                        const getSuitColor = (suit: string) => {
+                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
+                        };
+
+                        return (
+                          <View key={index} style={styles.boardCardWrapper}>
+                            {/* Add label above second flop card for center alignment */}
+                            {index === 1 && (
+                              <Text style={styles.boardLabel}>Flop</Text>
+                            )}
+                            {/* Add label above turn card */}
+                            {index === 3 && (
+                              <Text style={styles.boardLabel}>Turn</Text>
+                            )}
+                            {/* Add label above river card */}
+                            {index === 4 && (
+                              <Text style={styles.boardLabel}>River</Text>
+                            )}
+                            {/* Add empty placeholder for alignment */}
+                            {index !== 1 && index !== 3 && index !== 4 && (
+                              <Text style={styles.boardLabelPlaceholder}> </Text>
+                            )}
+
+                            <View style={styles.miniCard}>
+                              <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
+                                {rank}{suit}
+                              </Text>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : (
+                    <Text style={styles.placeholderText}>Select board cards</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.spacer} />
+
+        {/* Hand Details Section - moved to bottom */}
         <View style={styles.topSection}>
           <View style={styles.fieldColumn}>
             <View style={styles.labelRow}>
@@ -752,7 +856,7 @@ River: HJ Check BTN Check`;
                   style={styles.quickButton}
                   onPress={() => handleQuickInsert('Limp ')}
                 >
-                  <Text style={styles.quickButtonText}>Limp</Text>
+                  <Text style={styles.quickButtonText}>L</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
@@ -860,103 +964,6 @@ River: HJ Check BTN Check`;
         <View style={styles.spacer} />
 
         <View style={styles.bottomSection}>
-          {/* Board Row */}
-          <View style={styles.fullWidthField}>
-            <View style={styles.fieldHeaderRow}>
-              <Text style={styles.fieldLabel}>Board</Text>
-              <View style={styles.fieldInputContainer}>
-                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleBoardSelect}>
-                  {board ? (
-                    <View style={styles.selectedCardsContainer}>
-                      {board.split(' ').map((card, index) => {
-                        const rank = card.slice(0, -1);
-                        const suit = card.slice(-1);
-                        const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
-                        };
-
-                        return (
-                          <View key={index} style={styles.boardCardWrapper}>
-                            {/* Add label above second flop card for center alignment */}
-                            {index === 1 && (
-                              <Text style={styles.boardLabel}>Flop</Text>
-                            )}
-                            {/* Add label above turn card */}
-                            {index === 3 && (
-                              <Text style={styles.boardLabel}>Turn</Text>
-                            )}
-                            {/* Add label above river card */}
-                            {index === 4 && (
-                              <Text style={styles.boardLabel}>River</Text>
-                            )}
-                            {/* Add empty placeholder for alignment */}
-                            {index !== 1 && index !== 3 && index !== 4 && (
-                              <Text style={styles.boardLabelPlaceholder}> </Text>
-                            )}
-
-                            <View style={styles.miniCard}>
-                              <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
-                                {rank}{suit}
-                              </Text>
-                            </View>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  ) : (
-                    <Text style={styles.placeholderText}>
-                      Select board cards
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Hole Cards and Position Row */}
-          <View style={styles.fullWidthField}>
-            <Text style={styles.fieldLabel}>Hero</Text>
-            <View style={styles.heroRow}>
-              <View style={styles.heroCardSection}>
-                <TouchableOpacity style={styles.holeCardDisplay} onPress={handleHoleCardsSelect}>
-                  {holeCards ? (
-                    <View style={styles.selectedCardsContainer}>
-                      {holeCards.split(' ').map((card, index) => {
-                        const rank = card.slice(0, -1);
-                        const suit = card.slice(-1);
-                        const getSuitColor = (suit: string) => {
-                          return suit === '♥' || suit === '♦' ? '#EF4444' : '#000000';
-                        };
-                        return (
-                          <View key={index} style={styles.miniCard}>
-                            <Text style={[styles.miniCardText, { color: getSuitColor(suit) }]}>
-                              {rank}{suit}
-                            </Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  ) : (
-                    <Text style={styles.placeholderText}>
-                      Select hole cards
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-                             <View style={styles.heroPositionSection}>
-                 <CustomPicker
-                   options={positions}
-                   value={position}
-                   onValueChange={setPosition}
-                   onOptionsChange={() => {}} // Position options are fixed
-                   placeholder="Position"
-                   allowCustom={false}
-                   allowDelete={false}
-                 />
-               </View>
-            </View>
-          </View>
-
           {/* Villain Section */}
           <View style={styles.fullWidthField}>
             <View style={styles.villainHeaderRow}>
@@ -1633,5 +1640,11 @@ const styles = StyleSheet.create({
     color: '#000000', // Black text for better contrast on light green
     fontWeight: '700',
     textAlign: 'center',
+  },
+  heroSection: {
+    marginBottom: theme.spacing.md,
+  },
+  boardSection: {
+    marginBottom: theme.spacing.md,
   },
 });
