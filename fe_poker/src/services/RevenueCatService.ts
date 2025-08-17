@@ -54,30 +54,44 @@ class RevenueCatService {
 
   async initialize(userId?: string): Promise<void> {
     try {
+      console.log('🔄 [RevenueCat] Starting initialization...');
+      
       // 根據平台選擇API Key
       const apiKey = Platform.OS === 'ios' ? REVENUECAT_CONFIG.apiKeys.ios : REVENUECAT_CONFIG.apiKeys.android;
+      console.log(`🔧 [RevenueCat] Platform: ${Platform.OS}, API Key prefix: ${apiKey.substring(0, 10)}...`);
 
       // 檢查API Key是否有效
       if (apiKey.includes('YOUR_') || apiKey.includes('_HERE')) {
-        console.warn('⚠️ RevenueCat API Key not configured. Running in mock mode.');
+        console.warn('⚠️ [RevenueCat] API Key not configured. Running in mock mode.');
         this.isInitialized = true;
         return;
       }
 
+      console.log('🔧 [RevenueCat] Calling Purchases.configure...');
       await Purchases.configure({ apiKey });
+      console.log('✅ [RevenueCat] Purchases.configure completed');
 
       if (userId) {
+        console.log(`🔧 [RevenueCat] Logging in user: ${userId}`);
         await Purchases.logIn(userId);
+        console.log('✅ [RevenueCat] User login completed');
       }
 
       this.isInitialized = true;
-      console.log('✅ RevenueCat initialized successfully');
-    } catch (error) {
-      console.error('❌ RevenueCat initialization failed:', error);
-      // 在開發環境中不拋出錯誤，允許應用繼續運行
-      console.log('🔧 Continuing despite RevenueCat error, using fallback mode');
-      this.isInitialized = true;
-      return;
+      console.log('✅ [RevenueCat] Initialization completed successfully');
+    } catch (error: any) {
+      console.error('❌ [RevenueCat] Initialization failed with error:', {
+        message: error.message,
+        code: error.code,
+        domain: error.domain,
+        userInfo: error.userInfo,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      // 不再隱藏錯誤 - 顯示所有初始化問題以便診斷
+      console.error('🚨 [RevenueCat] Initialization failed - throwing error for diagnosis');
+      throw error;
     }
   }
 
@@ -88,7 +102,8 @@ class RevenueCatService {
     }
 
     if (!this.isInitialized) {
-      throw new Error('RevenueCat not initialized');
+      console.warn('⚠️ RevenueCat not initialized, returning empty offerings');
+      return [];
     }
 
     try {
@@ -96,10 +111,8 @@ class RevenueCatService {
       return offerings.all ? Object.values(offerings.all) : [];
     } catch (error) {
       console.error('❌ Failed to get offerings:', error);
-      // In development, return empty array instead of throwing
-      if (__DEV__) {
-        return [];
-      }
+      // 不再隱藏錯誤 - 顯示所有getOfferings問題以便診斷
+      console.error('🚨 [RevenueCat] getOfferings failed - throwing error for diagnosis');
       throw error;
     }
   }
@@ -180,10 +193,8 @@ class RevenueCatService {
       return await Purchases.getCustomerInfo();
     } catch (error) {
       console.error('❌ Failed to get customer info:', error);
-      // 在開發環境中返回模擬數據作為後備
-      if (IS_DEVELOPMENT) {
-        return this.getMockCustomerInfo(false);
-      }
+      // 不再隱藏錯誤 - 顯示所有getCustomerInfo問題以便診斷
+      console.error('🚨 [RevenueCat] getCustomerInfo failed - throwing error for diagnosis');
       throw error;
     }
   }
@@ -309,7 +320,7 @@ class RevenueCatService {
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: '$rc_annual',
+        id: 'com.livehand.pro.annual',
         title: 'LiveHand Pro Annual',
         description: 'All premium features unlocked',
         price: '$120',
@@ -318,7 +329,7 @@ class RevenueCatService {
         isPopular: true,
       },
       {
-        id: '$rc_monthly',
+        id: 'com.livehand.pro.monthly',
         title: 'LiveHand Pro Monthly',
         description: 'All premium features unlocked',
         price: '$14.99',

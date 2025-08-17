@@ -320,8 +320,8 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         style={styles.ctaButton}
         onPress={() => {
           const productId = selectedPlan === 'annual'
-            ? '$rc_annual'
-            : '$rc_monthly';
+            ? 'com.livehand.pro.annual'
+            : 'com.livehand.pro.monthly';
           const planData = {
             id: productId,
             title: 'LiveHand Premium',
