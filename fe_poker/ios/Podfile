@@ -19,6 +19,10 @@ target 'PokerTrackerApp' do
 
   # 修復 Xcode Cloud 中的 Yoga 路徑問題
   ENV['INSTALL_YOGA_WITHOUT_PATH_OPTION'] = nil
+  
+  # 強制禁用新架構和 Fabric
+  ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+  ENV['USE_FABRIC'] = '0'
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -38,5 +42,14 @@ target 'PokerTrackerApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+    
+    # 修復 Xcode Cloud 中的 PrivacyInfo.xcprivacy 問題
+    installer.pods_project.targets.each do |target|
+      if target.name == 'React-cxxreact'
+        target.build_configurations.each do |config|
+          config.build_settings['INFOPLIST_FILE'] = '$(PODS_TARGET_SRCROOT)/PrivacyInfo.xcprivacy'
+        end
+      end
+    end
   end
 end
