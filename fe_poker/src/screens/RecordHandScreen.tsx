@@ -659,13 +659,13 @@ River: HJ Check BTN Check`;
                   style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG1 ')}
                 >
-                  <Text style={styles.quickButtonText}>UTG1</Text>
+                  <Text style={styles.quickButtonText}>U1</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG2 ')}
                 >
-                  <Text style={styles.quickButtonText}>UTG2</Text>
+                  <Text style={styles.quickButtonText}>U2</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
@@ -1249,7 +1249,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.inputBg,
     borderRadius: theme.radius.input,
     padding: theme.spacing.xs,
-    fontSize: 18, // 放大字體從 theme.font.size.body (通常是16) 到 18
+    fontSize: 21, // 放大字體從 18 到 21
     color: theme.colors.text,
     minHeight: 200,
     maxHeight: 300,

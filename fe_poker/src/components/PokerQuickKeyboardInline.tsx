@@ -69,13 +69,13 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
             style={[styles.quickButton, styles.positionButton]}
             onPress={() => handleInsert('UTG1 ')}
           >
-            <Text style={styles.quickButtonText}>UTG1</Text>
+            <Text style={styles.quickButtonText}>U1</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.quickButton, styles.positionButton]}
             onPress={() => handleInsert('UTG2 ')}
           >
-            <Text style={styles.quickButtonText}>UTG2</Text>
+            <Text style={styles.quickButtonText}>U2</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
