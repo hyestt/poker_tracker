@@ -215,19 +215,31 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
           <View style={styles.checkmarkContainer}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.featureText}>Unlimited GTO analyses</Text>
+          <Text style={styles.featureText}>Unlimited GTO solver analysis</Text>
         </View>
         <View style={styles.featureItem}>
           <View style={styles.checkmarkContainer}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.featureText}>Export to Contacts</Text>
+          <Text style={styles.featureText}>Offline Access</Text>
         </View>
         <View style={styles.featureItem}>
           <View style={styles.checkmarkContainer}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.featureText}>Batch GTO Analysis</Text>
+          <Text style={styles.featureText}>Advanced Filters and Search</Text>
+        </View>
+        <View style={styles.featureItem}>
+          <View style={styles.checkmarkContainer}>
+            <Text style={styles.checkmark}>✓</Text>
+          </View>
+          <Text style={styles.featureText}>Multi-language Support</Text>
+        </View>
+        <View style={styles.featureItem}>
+          <View style={styles.checkmarkContainer}>
+            <Text style={styles.checkmark}>✓</Text>
+          </View>
+          <Text style={styles.featureText}>Unlimited Hands and Sessions</Text>
         </View>
       </View>
 
