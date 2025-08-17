@@ -39875,6 +39875,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREFIX_HEADER = "Target Support Files/React-cxxreact/React-cxxreact-prefix.pch";
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(PODS_TARGET_SRCROOT)/PrivacyInfo.xcprivacy";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -39913,6 +39914,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREFIX_HEADER = "Target Support Files/React-cxxreact/React-cxxreact-prefix.pch";
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(PODS_TARGET_SRCROOT)/PrivacyInfo.xcprivacy";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
