@@ -14,11 +14,41 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# 檢測是否在 CI 環境（Xcode Cloud）
+def is_ci_environment?
+  ENV['CI'] == 'true' || ENV['XCODE_CLOUD'] == 'true' || ENV['XCS'] != nil
+end
+
+# Xcode Cloud 特定的 Yoga 路徑修復
+def setup_yoga_paths_for_ci
+  if is_ci_environment?
+    Pod::UI.puts "🔧 設置 Xcode Cloud Yoga 路徑修復".yellow
+    
+    # 確保 Yoga 使用正確的源路徑
+    ENV['PODS_TARGET_SRCROOT'] = "#{Pod::Config.instance.installation_root}/../node_modules/react-native/ReactCommon/yoga"
+    ENV['INSTALL_YOGA_WITHOUT_PATH_OPTION'] = 'true'
+    
+    # 添加額外的頭文件搜索路徑
+    yoga_paths = [
+      "#{Pod::Config.instance.installation_root}/../node_modules/react-native/ReactCommon/yoga",
+      "#{Pod::Config.instance.installation_root}/../node_modules/react-native/ReactCommon/yoga/yoga"
+    ]
+    
+    yoga_paths.each do |path|
+      if Dir.exist?(path)
+        Pod::UI.puts "✅ 驗證 Yoga 路徑: #{path}".green
+      else
+        Pod::UI.puts "⚠️  Yoga 路徑不存在: #{path}".red
+      end
+    end
+  end
+end
+
 target 'PokerTrackerApp' do
   config = use_native_modules!
 
-  # 修復 Xcode Cloud 中的 Yoga 路徑問題
-  ENV['INSTALL_YOGA_WITHOUT_PATH_OPTION'] = nil
+  # 在 CI 環境中設置 Yoga 路徑修復
+  setup_yoga_paths_for_ci
   
   # 強制禁用新架構和 Fabric
   ENV['RCT_NEW_ARCH_ENABLED'] = '0'
@@ -48,6 +78,38 @@ target 'PokerTrackerApp' do
       if target.name == 'React-cxxreact'
         target.build_configurations.each do |config|
           config.build_settings['INFOPLIST_FILE'] = '$(PODS_TARGET_SRCROOT)/PrivacyInfo.xcprivacy'
+        end
+      end
+      
+      # Xcode Cloud 中的 Yoga 特定修復
+      if target.name == 'Yoga' && is_ci_environment?
+        Pod::UI.puts "🔧 應用 Yoga 目標特定修復".yellow
+        
+        target.build_configurations.each do |config|
+          # 確保 Yoga 使用正確的源根路徑
+          yoga_srcroot = "#{Pod::Config.instance.installation_root}/../node_modules/react-native/ReactCommon/yoga"
+          
+          if Dir.exist?(yoga_srcroot)
+            config.build_settings['PODS_TARGET_SRCROOT'] = yoga_srcroot
+            Pod::UI.puts "✅ 設置 Yoga SRCROOT: #{yoga_srcroot}".green
+          else
+            Pod::UI.puts "⚠️  Yoga SRCROOT 路徑不存在: #{yoga_srcroot}".red
+          end
+          
+          # 添加額外的頭文件搜索路徑
+          additional_paths = [
+            "$(PODS_TARGET_SRCROOT)/yoga",
+            "$(PODS_TARGET_SRCROOT)/yoga/algorithm", 
+            "$(PODS_TARGET_SRCROOT)/yoga/event",
+            "$(PODS_TARGET_SRCROOT)/yoga/node"
+          ]
+          
+          current_paths = config.build_settings['HEADER_SEARCH_PATHS'] || ""
+          config.build_settings['HEADER_SEARCH_PATHS'] = "#{current_paths} #{additional_paths.join(' ')}"
+          
+          # 確保 C++ 標準設置正確
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++20'
+          config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
         end
       end
     end
