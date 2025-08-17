@@ -10,7 +10,7 @@ import Purchases, {
 const REVENUECAT_CONFIG = {
   apiKeys: {
     ios: 'appl_BwKUCybSdHvHESLRhDGVjAfAcLC', // iOS API Key
-    android: 'goog_YOUR_ANDROID_API_KEY_HERE', // Android API Key
+    android: 'goog_YOUR_ANDROID_API_KEY_HERE', // TODO: Replace with actual Android API Key from RevenueCat Dashboard
   },
   appId: 'app8028b0ac14', // RevenueCat App ID (如果需要用於API調用)
 };
@@ -320,7 +320,7 @@ class RevenueCatService {
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: 'com.livehand.pro.annual',
+        id: 'com.glen.livehand.pro.annual',
         title: 'LiveHand Pro Annual',
         description: 'All premium features unlocked',
         price: '$120',
@@ -329,7 +329,7 @@ class RevenueCatService {
         isPopular: true,
       },
       {
-        id: 'com.livehand.pro.monthly',
+        id: 'com.glen.livehand.pro.monthly',
         title: 'LiveHand Pro Monthly',
         description: 'All premium features unlocked',
         price: '$14.99',

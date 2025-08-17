@@ -426,8 +426,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
       
       const products = await getProducts({
         skus: [
-          'com.livehand.pro.annual',
-          'com.livehand.pro.monthly'
+          'com.glen.livehand.pro.annual',
+          'com.glen.livehand.pro.monthly'
         ]
       });
       
@@ -496,8 +496,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         await initConnection();
         const storeProducts = await getProducts({
           skus: [
-            'com.livehand.pro.annual',
-            'com.livehand.pro.monthly'
+            'com.glen.livehand.pro.annual',
+            'com.glen.livehand.pro.monthly'
           ]
         });
         storeProductIds = storeProducts.map((p: any) => p.productId);
@@ -510,7 +510,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
       }
       
       // 比較結果
-      const expectedProducts = ['com.livehand.pro.annual', 'com.livehand.pro.monthly'];
+      const expectedProducts = ['com.glen.livehand.pro.annual', 'com.glen.livehand.pro.monthly'];
       const revenueCatMatch = expectedProducts.every(p => revenueCatProducts.includes(p));
       const appStoreMatch = expectedProducts.every(p => storeProductIds.includes(p));
       const productsMatch = JSON.stringify(revenueCatProducts.sort()) === JSON.stringify(storeProductIds.sort());
