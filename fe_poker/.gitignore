@@ -61,7 +61,7 @@ yarn-error.log
 *.jsbundle
 
 # Ruby / CocoaPods
-**/Pods/
+# **/Pods/  # Commented out to allow Pods to be committed for Xcode Cloud
 !/ios/Pods/Target\ Support\ Files/
 !/ios/Pods/*.xcconfig
 /vendor/bundle/

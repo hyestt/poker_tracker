@@ -1,0 +1,6 @@
+module Pods_PokerTrackerApp {
+  umbrella header "Pods-PokerTrackerApp-umbrella.h"
+
+  export *
+  module * { export * }
+}
