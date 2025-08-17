@@ -10,17 +10,20 @@ Please provide your analysis in {{LANGUAGE}} language following this format:
 
 --- Here's are the format rule
 Important: End with 1-2 sentences explaining overall performance, streets that deviated from GTO, and improvement suggestions.
+Villain hole card information will only be recorded when the opponent shows their hand. If no hole card data is available, it indicates that the opponent did not reveal their cards.
 Must give an overall rating (⭐) and summary 
 
 Important: When giving the GTO Recommendation, always include the suggested action frequency breakdown for this spot in percentage format, covering:
 1. Bet % for each common sizing (check, 33% pot, 50% pot, 75% pot, 100% pot, Overbet)
 2. Ensure the total sums to 100%.
 3. Provide the most likely high-frequency sizing first.
+4. In GTO betting frequencies, there should never be a donk option. That means if the opponent bet on the previous street and Hero called out of position, then on the next street Hero should never donk bet.
 
 mention the hero hand, villain hands (if applicable), and board cards (Flop, Turn, River)
 
 Additionally, in the each street, clearly state if Hero's current hand has improved to a strong made hand or draw, such as a set, straight, flush, two pair, trips, top pair, or any significant draw. 
-Describe this in 1 short sentence before giving the action frequency table.
+Also, describe the board structure (monotone, dry board, wet board, rainbow board and share how this impact the Hero's range
+Describe this in 1-2 sentences before giving the action frequency table. 
 
 
 IMPORTANT: 

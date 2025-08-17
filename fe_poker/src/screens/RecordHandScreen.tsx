@@ -1432,6 +1432,10 @@ const styles = StyleSheet.create({
   compactInput: {
     fontSize: theme.font.size.small,
     paddingVertical: theme.spacing.xs,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.input,
+    paddingHorizontal: theme.spacing.sm,
   },
   quickButtonsSection: {
     backgroundColor: theme.colors.card,
@@ -1496,6 +1500,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
+    fontSize: 15,
   },
   roundButton: {
     backgroundColor: theme.colors.profit,

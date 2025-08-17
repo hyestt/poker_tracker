@@ -305,6 +305,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: theme.colors.gray,
+    fontSize: theme.font.size.body,
   },
   arrow: {
     fontSize: 16,

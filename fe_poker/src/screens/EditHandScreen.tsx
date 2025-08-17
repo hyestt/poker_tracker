@@ -1320,6 +1320,10 @@ const styles = StyleSheet.create({
   compactInput: {
     fontSize: theme.font.size.small,
     paddingVertical: theme.spacing.xs,
+    color: theme.colors.text,
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.input,
+    paddingHorizontal: theme.spacing.sm,
   },
   customKeyboardContainer: {
     backgroundColor: theme.colors.card,
