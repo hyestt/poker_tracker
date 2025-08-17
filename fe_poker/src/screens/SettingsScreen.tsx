@@ -433,10 +433,6 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={handleResetPreferences}>
-            <Text style={styles.menuText}>Reset User Preferences</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
         </View>
 
 
@@ -480,13 +476,8 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => handleMenuPress('Help')}>
-            <Text style={styles.menuText}>Help Center</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem} onPress={handleJoinDiscord}>
-            <Text style={styles.menuText}>Contact Us</Text>
+<TouchableOpacity style={styles.menuItem} onPress={handleJoinDiscord}>
+            <Text style={styles.menuText}>Contact us on Discord</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>

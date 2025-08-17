@@ -637,6 +637,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             console.log('DEBUG rendering hand:', hand.id, 'favorite:', hand.favorite, 'type:', typeof hand.favorite);
           }
 
+
           return (
             <TouchableOpacity
               key={hand.id}
@@ -657,6 +658,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   )}
                   {hand.favorite && (
                     <Text style={styles.favoriteIndicator}>⭐</Text>
+                  )}
+                  {hand.analysis && hand.analysis.trim() !== '' && (
+                    <Text style={styles.analysisIndicator}>📊</Text>
                   )}
                 </View>
                 {hand.details && !hand.position && (
@@ -1284,6 +1288,10 @@ const styles = StyleSheet.create({
   favoriteIndicator: {
     fontSize: 16,
     color: '#FFD700',
+    marginLeft: theme.spacing.xs,
+  },
+  analysisIndicator: {
+    fontSize: 16,
     marginLeft: theme.spacing.xs,
   },
   tagOptionContainer: {
