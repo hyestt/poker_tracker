@@ -320,7 +320,7 @@ class RevenueCatService {
   private getMockSubscriptionPlans(): SubscriptionPlan[] {
     return [
       {
-        id: 'com.glen.livehand.pro.annual',
+        id: '$rc_annual',
         title: 'LiveHand Pro Annual',
         description: 'All premium features unlocked',
         price: '$120',
@@ -329,7 +329,7 @@ class RevenueCatService {
         isPopular: true,
       },
       {
-        id: 'com.glen.livehand.pro.monthly',
+        id: '$rc_monthly',
         title: 'LiveHand Pro Monthly',
         description: 'All premium features unlocked',
         price: '$14.99',

@@ -111,13 +111,23 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
 
       let packageToPurchase = null;
 
-      // 找到對應的package
+      // 找到對應的package - 先嘗試套餐 identifier，再嘗試產品 identifier
       for (const offering of offerings) {
+        // 先嘗試用套餐 identifier 搜尋
         packageToPurchase = offering.availablePackages.find(
           pkg => pkg.identifier === plan.id
         );
+        
+        // 如果沒找到，嘗試用產品 identifier 搜尋
+        if (!packageToPurchase) {
+          packageToPurchase = offering.availablePackages.find(
+            pkg => pkg.product.identifier === plan.id
+          );
+        }
+        
         if (packageToPurchase) {
           console.log('✅ Found matching package:', packageToPurchase.identifier);
+          console.log('✅ Product identifier:', packageToPurchase.product.identifier);
           break;
         }
       }
@@ -125,7 +135,10 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       if (!packageToPurchase) {
         console.error('❌ Package not found. Looking for:', plan.id);
         console.error('❌ Available packages:', offerings.map(o => 
-          o.availablePackages.map(p => p.identifier)).flat());
+          o.availablePackages.map(p => ({
+            identifier: p.identifier,
+            product: p.product.identifier
+          }))).flat());
         throw new Error('Package not found');
       }
 
@@ -320,8 +333,8 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         style={styles.ctaButton}
         onPress={() => {
           const productId = selectedPlan === 'annual'
-            ? 'com.glen.livehand.pro.annual'
-            : 'com.glen.livehand.pro.monthly';
+            ? '$rc_annual'
+            : '$rc_monthly';
           const planData = {
             id: productId,
             title: 'LiveHand Premium',

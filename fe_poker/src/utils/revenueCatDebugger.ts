@@ -143,8 +143,8 @@ export class RevenueCatDebugger {
     console.log('🏷️ Individual Products Check:');
     
     const expectedProducts = [
-      'com.glen.livehand.pro.monthly',
-      'com.glen.livehand.pro.annual'
+      '$rc_monthly',
+      '$rc_annual'
     ];
     
     for (const productId of expectedProducts) {
@@ -194,8 +194,8 @@ export class RevenueCatDebugger {
       });
       
       const expectedProducts = [
-        'com.glen.livehand.pro.monthly',
-        'com.glen.livehand.pro.annual'
+        '$rc_monthly',
+        '$rc_annual'
       ];
       
       console.log(`\n   🎯 Expected Products Check:`);
@@ -242,8 +242,8 @@ export class RevenueCatDebugger {
       );
       
       const expectedProducts = [
-        'com.glen.livehand.pro.monthly',
-        'com.glen.livehand.pro.annual'
+        '$rc_monthly',
+        '$rc_annual'
       ];
       
       return {
