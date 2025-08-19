@@ -107,7 +107,7 @@ export const PokerQuickKeyboardInline: React.FC<PokerQuickKeyboardInlineProps> =
         </View>
       </View>
 
-      {/* Action Buttons */} 
+      {/* Action Buttons */}
       <View style={styles.buttonCategory}>
         <View style={styles.buttonRow}>
           <TouchableOpacity

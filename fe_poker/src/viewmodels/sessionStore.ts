@@ -570,12 +570,12 @@ export const useSessionStore = create<State>((set, get) => ({
         // 獲取用戶語言偏好
         const { UserPreferencesService } = await import('../services/UserPreferences');
         const preferences = await UserPreferencesService.getPreferences();
-        
+
         const response = await apiCall(`${API_BASE_URL}/analyze`, {
           method: 'POST',
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             hand: handForAnalysis,
-            language: preferences.language 
+            language: preferences.language,
           }),
         });
 

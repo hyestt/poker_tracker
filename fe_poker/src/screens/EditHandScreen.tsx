@@ -919,8 +919,6 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           )}
         </View>
 
-        <View style={styles.tightSpacer} />
-
         {/* Hand Details Section */}
         <View style={styles.bottomSection}>
           {/* Note Section */}

@@ -22,10 +22,10 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
   const initializePaywall = async () => {
     try {
       console.log('🔄 Initializing RevenueCat paywall...');
-      
+
       // Ensure RevenueCat is initialized
       await revenueCatService.initialize();
-      
+
       // Check if offerings are available
       const offerings = await revenueCatService.getOfferings();
       if (offerings.length > 0) {
@@ -46,14 +46,14 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
   const presentPaywall = async () => {
     try {
       console.log('🎯 Presenting RevenueCat paywall...');
-      
+
       // Present the paywall modally
       await RevenueCatUI.presentPaywall({
         requiredEntitlementIdentifier: 'entl875d4f9caa', // Your entitlement identifier from RevenueCat
       });
 
       console.log('✅ Paywall presented successfully');
-      
+
       // After paywall is dismissed, check if user is now premium
       const isPremium = await revenueCatService.isPremiumUser();
       if (isPremium) {
@@ -65,12 +65,12 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
       }
     } catch (error: any) {
       console.error('❌ Paywall presentation failed:', error);
-      
+
       if (error.userCancelled) {
         // User cancelled - no need to show error
         return;
       }
-      
+
       Alert.alert(
         'Paywall Error',
         'Unable to show premium options. Please try again later.',
@@ -82,14 +82,14 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
   const presentPaywallIfNeeded = async () => {
     try {
       console.log('🎯 Presenting paywall if needed...');
-      
+
       // This will only show paywall if user doesn't have the required entitlement
       await RevenueCatUI.presentPaywallIfNeeded({
         requiredEntitlementIdentifier: 'entl875d4f9caa',
       });
 
       console.log('✅ Paywall check completed');
-      
+
       // Check premium status after
       const isPremium = await revenueCatService.isPremiumUser();
       if (isPremium) {
@@ -101,11 +101,11 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
       }
     } catch (error: any) {
       console.error('❌ Paywall if needed failed:', error);
-      
+
       if (error.userCancelled) {
         return;
       }
-      
+
       Alert.alert(
         'Paywall Error',
         'Unable to show premium options. Please try again later.',
@@ -118,7 +118,7 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
     try {
       setLoading(true);
       await revenueCatService.restorePurchases();
-      
+
       const isPremium = await revenueCatService.isPremiumUser();
       if (isPremium) {
         Alert.alert(

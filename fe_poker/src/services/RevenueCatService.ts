@@ -55,7 +55,7 @@ class RevenueCatService {
   async initialize(userId?: string): Promise<void> {
     try {
       console.log('🔄 [RevenueCat] Starting initialization...');
-      
+
       // 根據平台選擇API Key
       const apiKey = Platform.OS === 'ios' ? REVENUECAT_CONFIG.apiKeys.ios : REVENUECAT_CONFIG.apiKeys.android;
       console.log(`🔧 [RevenueCat] Platform: ${Platform.OS}, API Key prefix: ${apiKey.substring(0, 10)}...`);
@@ -86,9 +86,9 @@ class RevenueCatService {
         domain: error.domain,
         userInfo: error.userInfo,
         stack: error.stack,
-        name: error.name
+        name: error.name,
       });
-      
+
       // 不再隱藏錯誤 - 顯示所有初始化問題以便診斷
       console.error('🚨 [RevenueCat] Initialization failed - throwing error for diagnosis');
       throw error;

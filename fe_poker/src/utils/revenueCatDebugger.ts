@@ -2,7 +2,7 @@ import Purchases, { PurchasesOffering, PurchasesPackage, CustomerInfo } from 're
 import { Platform } from 'react-native';
 
 export class RevenueCatDebugger {
-  
+
   static async printRevenueCatInfo(): Promise<void> {
     console.log('\n🔍 ================== RevenueCat Debug Info ==================');
     console.log(`📱 Platform: ${Platform.OS}`);
@@ -12,29 +12,29 @@ export class RevenueCatDebugger {
     try {
       // 1. Check if RevenueCat is configured
       await this.checkConfiguration();
-      
+
       // 2. Get and print customer info
       await this.printCustomerInfo();
-      
+
       // 3. Get and print all offerings
       await this.printOfferings();
-      
+
       // 4. Get and print products from each offering
       await this.printProducts();
-      
+
       // 5. Test specific product IDs
       await this.testSpecificProducts();
-      
+
     } catch (error: any) {
       console.error('❌ RevenueCat Debug failed:', {
         message: error.message,
         code: error.code,
         domain: error.domain,
         name: error.name,
-        stack: error.stack
+        stack: error.stack,
       });
     }
-    
+
     console.log('\n🔍 ============== RevenueCat Debug Complete ================\n');
   }
 
@@ -43,7 +43,7 @@ export class RevenueCatDebugger {
     try {
       const isAnonymous = await Purchases.isAnonymous();
       const appUserID = await Purchases.getAppUserID();
-      
+
       console.log(`   ✅ Is Anonymous: ${isAnonymous}`);
       console.log(`   👤 App User ID: ${appUserID}`);
       console.log(`   🎯 Platform: ${Platform.OS}`);
@@ -57,11 +57,11 @@ export class RevenueCatDebugger {
     console.log('👤 Customer Information:');
     try {
       const customerInfo: CustomerInfo = await Purchases.getCustomerInfo();
-      
+
       console.log(`   📅 Original App User ID: ${customerInfo.originalAppUserId}`);
       console.log(`   🔗 Original Purchase Date: ${customerInfo.originalPurchaseDate}`);
       console.log(`   📧 Management URL: ${customerInfo.managementURL || 'None'}`);
-      
+
       // Active entitlements
       const activeEntitlements = Object.keys(customerInfo.entitlements.active);
       console.log(`   🎫 Active Entitlements (${activeEntitlements.length}):`);
@@ -96,10 +96,10 @@ export class RevenueCatDebugger {
     console.log('🛍️ Offerings Information:');
     try {
       const offerings = await Purchases.getOfferings();
-      
+
       console.log(`   📦 Total Offerings: ${Object.keys(offerings.all).length}`);
       console.log(`   🎯 Current Offering: ${offerings.current?.identifier || 'None'}`);
-      
+
       if (Object.keys(offerings.all).length === 0) {
         console.log('   ⚠️  No offerings found!');
         console.log('   💡 This might be because:');
@@ -108,14 +108,14 @@ export class RevenueCatDebugger {
         console.log('      - API key configuration issue');
         return;
       }
-      
+
       Object.keys(offerings.all).forEach(key => {
         const offering = offerings.all[key];
         console.log(`\n   📋 Offering: "${key}"`);
         console.log(`      🏷️  Identifier: ${offering.identifier}`);
         console.log(`      📝 Description: ${offering.serverDescription}`);
         console.log(`      📦 Packages: ${offering.availablePackages.length}`);
-        
+
         offering.availablePackages.forEach((pkg, index) => {
           console.log(`         ${index + 1}. ${pkg.identifier}`);
           console.log(`            💰 Price: ${pkg.product.priceString}`);
@@ -127,13 +127,13 @@ export class RevenueCatDebugger {
           }
         });
       });
-      
+
     } catch (error: any) {
       console.error('   ❌ Offerings failed:', error.message);
       console.log('   🔍 Error details:', {
         code: error.code,
         domain: error.domain,
-        userInfo: error.userInfo
+        userInfo: error.userInfo,
       });
     }
     console.log('');
@@ -141,19 +141,19 @@ export class RevenueCatDebugger {
 
   private static async printProducts(): Promise<void> {
     console.log('🏷️ Individual Products Check:');
-    
+
     const expectedProducts = [
       '$rc_monthly',
-      '$rc_annual'
+      '$rc_annual',
     ];
-    
+
     for (const productId of expectedProducts) {
       console.log(`\n   🔍 Checking Product: ${productId}`);
       try {
         // Try to find this product in offerings
         const offerings = await Purchases.getOfferings();
         let found = false;
-        
+
         Object.values(offerings.all).forEach(offering => {
           offering.availablePackages.forEach(pkg => {
             if (pkg.product.identifier === productId) {
@@ -165,14 +165,14 @@ export class RevenueCatDebugger {
             }
           });
         });
-        
+
         if (!found) {
-          console.log(`      ❌ Product NOT found in any offering`);
-          console.log(`      💡 Check App Store Connect product status`);
+          console.log('      ❌ Product NOT found in any offering');
+          console.log('      💡 Check App Store Connect product status');
         }
-        
+
       } catch (error: any) {
-        console.error(`      ❌ Error checking product:`, error.message);
+        console.error('      ❌ Error checking product:', error.message);
       }
     }
     console.log('');
@@ -180,37 +180,37 @@ export class RevenueCatDebugger {
 
   private static async testSpecificProducts(): Promise<void> {
     console.log('🧪 Product Availability Test:');
-    
+
     try {
       const offerings = await Purchases.getOfferings();
-      const allProducts = Object.values(offerings.all).flatMap(offering => 
+      const allProducts = Object.values(offerings.all).flatMap(offering =>
         offering.availablePackages.map(pkg => pkg.product.identifier)
       );
-      
+
       console.log(`   📊 Total Products Available: ${allProducts.length}`);
-      console.log(`   📋 Product List:`);
+      console.log('   📋 Product List:');
       allProducts.forEach((productId, index) => {
         console.log(`      ${index + 1}. ${productId}`);
       });
-      
+
       const expectedProducts = [
         '$rc_monthly',
-        '$rc_annual'
+        '$rc_annual',
       ];
-      
-      console.log(`\n   🎯 Expected Products Check:`);
+
+      console.log('\n   🎯 Expected Products Check:');
       expectedProducts.forEach(expectedId => {
         const found = allProducts.includes(expectedId);
         console.log(`      ${found ? '✅' : '❌'} ${expectedId}: ${found ? 'Available' : 'Missing'}`);
       });
-      
+
       // Check for old product IDs
       const oldProducts = [
         'com.livehand.pro.monthly',
-        'com.livehand.pro.annual'
+        'com.livehand.pro.annual',
       ];
-      
-      console.log(`\n   🔍 Old Product IDs Check:`);
+
+      console.log('\n   🔍 Old Product IDs Check:');
       oldProducts.forEach(oldId => {
         const found = allProducts.includes(oldId);
         if (found) {
@@ -219,7 +219,7 @@ export class RevenueCatDebugger {
           console.log(`      ✅ ${oldId}: Correctly removed`);
         }
       });
-      
+
     } catch (error: any) {
       console.error('   ❌ Product test failed:', error.message);
     }
@@ -227,25 +227,25 @@ export class RevenueCatDebugger {
   }
 
   // Quick debug method for settings screen
-  static async quickDebug(): Promise<{ 
-    hasOfferings: boolean; 
-    offeringsCount: number; 
-    productsCount: number; 
+  static async quickDebug(): Promise<{
+    hasOfferings: boolean;
+    offeringsCount: number;
+    productsCount: number;
     expectedProducts: string[];
     availableProducts: string[];
     error?: string;
   }> {
     try {
       const offerings = await Purchases.getOfferings();
-      const allProducts = Object.values(offerings.all).flatMap(offering => 
+      const allProducts = Object.values(offerings.all).flatMap(offering =>
         offering.availablePackages.map(pkg => pkg.product.identifier)
       );
-      
+
       const expectedProducts = [
         '$rc_monthly',
-        '$rc_annual'
+        '$rc_annual',
       ];
-      
+
       return {
         hasOfferings: Object.keys(offerings.all).length > 0,
         offeringsCount: Object.keys(offerings.all).length,
@@ -260,7 +260,7 @@ export class RevenueCatDebugger {
         productsCount: 0,
         expectedProducts: [],
         availableProducts: [],
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -268,7 +268,7 @@ export class RevenueCatDebugger {
 
 // Usage example:
 // import { RevenueCatDebugger } from '../utils/revenueCatDebugger';
-// 
+//
 // In your component:
 // const debugRevenueCat = async () => {
 //   await RevenueCatDebugger.printRevenueCatInfo();

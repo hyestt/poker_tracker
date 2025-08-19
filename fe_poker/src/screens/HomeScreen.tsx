@@ -76,7 +76,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         console.log('🔄 HomeScreen useFocusEffect triggered');
         const premium = await revenueCatService.isPremiumUser();
         setIsPremium(premium);
-        
+
         // Load quota information
         try {
           const gtoQuota = await revenueCatService.canUseGTOAnalysis();
@@ -89,7 +89,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         } catch (error) {
           console.error('Failed to load quota info:', error);
         }
-        
+
         // 重新獲取最新的 hands 數據
         console.log('🔄 About to call fetchHands from useFocusEffect');
         await fetchHands();
@@ -296,13 +296,13 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
 
       // 檢查是否有空的 session（沒有手牌的 session）
-      const emptySessions = sessions.filter(session => 
+      const emptySessions = sessions.filter(session =>
         !hands.some(hand => hand.sessionId === session.id)
       );
 
       if (emptySessions.length > 0) {
         // 找到最近創建的空 session
-        const mostRecentEmptySession = emptySessions.sort((a, b) => 
+        const mostRecentEmptySession = emptySessions.sort((a, b) =>
           new Date(b.createdAt || b.date || '').getTime() - new Date(a.createdAt || a.date || '').getTime()
         )[0];
 
@@ -367,7 +367,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     const now = new Date();
     let handDate;
-    
+
     // Handle different date formats from SQLite
     if (dateStr.includes('T') && dateStr.includes('Z')) {
       // ISO format: "2025-06-06T00:22:48.342Z"
@@ -405,9 +405,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       diffMins,
       diffHours,
       diffDays,
-      result: diffMins < 60 ? `${diffMins} minutes ago` : 
-              diffHours < 24 ? `${diffHours} h ago` : 
-              `${diffDays} d ago`
+      result: diffMins < 60 ? `${diffMins} minutes ago` :
+              diffHours < 24 ? `${diffHours} h ago` :
+              `${diffDays} d ago`,
     });
 
     if (diffMins < 60) {
@@ -626,7 +626,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               createdAt: hand.createdAt,
               date: hand.date,
               timeString,
-              now: new Date().toISOString()
+              now: new Date().toISOString(),
             });
           }
           const timeAgo = getTimeAgo(timeString);

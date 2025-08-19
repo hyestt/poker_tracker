@@ -39,7 +39,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       try {
         const offerings = await revenueCatService.getOfferings();
         console.log('📦 Available offerings:', offerings.length);
-        
+
         // 詳細記錄每個offering和package
         offerings.forEach((offering, index) => {
           console.log(`📦 Offering ${index}:`, offering.identifier);
@@ -47,11 +47,11 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
             console.log(`  📱 Package ${pkgIndex}:`, {
               identifier: pkg.identifier,
               title: pkg.product.title,
-              price: pkg.product.priceString
+              price: pkg.product.priceString,
             });
           });
         });
-        
+
         if (offerings.length === 0) {
           console.warn('⚠️ No offerings found - products may not be configured');
         }
@@ -100,7 +100,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
       console.log('🛒 Starting purchase for plan:', plan.id);
       const offerings = await revenueCatService.getOfferings();
       console.log('📦 Available offerings:', offerings.length);
-      
+
       // 詳細打印所有可用的packages
       offerings.forEach((offering, index) => {
         console.log(`📦 Offering ${index}:`, offering.identifier);
@@ -117,14 +117,14 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         packageToPurchase = offering.availablePackages.find(
           pkg => pkg.identifier === plan.id
         );
-        
+
         // 如果沒找到，嘗試用產品 identifier 搜尋
         if (!packageToPurchase) {
           packageToPurchase = offering.availablePackages.find(
             pkg => pkg.product.identifier === plan.id
           );
         }
-        
+
         if (packageToPurchase) {
           console.log('✅ Found matching package:', packageToPurchase.identifier);
           console.log('✅ Product identifier:', packageToPurchase.product.identifier);
@@ -134,10 +134,10 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
 
       if (!packageToPurchase) {
         console.error('❌ Package not found. Looking for:', plan.id);
-        console.error('❌ Available packages:', offerings.map(o => 
+        console.error('❌ Available packages:', offerings.map(o =>
           o.availablePackages.map(p => ({
             identifier: p.identifier,
-            product: p.product.identifier
+            product: p.product.identifier,
           }))).flat());
         throw new Error('Package not found');
       }

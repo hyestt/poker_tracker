@@ -577,7 +577,7 @@ River: HJ Check BTN Check`;
           </View>
         </View>
 
-        <View style={styles.spacer} />
+        <View style={styles.tightSpacer} />
 
         {/* Board Section */}
         <View style={styles.boardSection}>
@@ -632,7 +632,7 @@ River: HJ Check BTN Check`;
           </View>
         </View>
 
-        <View style={styles.spacer} />
+        <View style={styles.tightSpacer} />
 
         {/* Hand Details Section - moved to bottom */}
         <View style={styles.topSection}>
@@ -1277,6 +1277,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: theme.spacing.sm,
   },
+  tightSpacer: {
+    minHeight: theme.spacing.xs / 2,
+  },
   bottomSection: {
     paddingTop: theme.spacing.sm,
   },
@@ -1325,6 +1328,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: theme.colors.gray,
+    fontSize: theme.font.size.body,
   },
   selectedCardsContainer: {
     flexDirection: 'row',
@@ -1647,9 +1651,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   heroSection: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
   },
   boardSection: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
   },
 });

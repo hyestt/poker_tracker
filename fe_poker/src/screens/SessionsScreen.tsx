@@ -270,13 +270,13 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     console.log('➕ [SessionsScreen] Add button pressed, current hands count:', hands.length);
     try {
       // 檢查是否有空的 session（沒有手牌的 session）
-      const emptySessions = sessions.filter(session => 
+      const emptySessions = sessions.filter(session =>
         !hands.some(hand => hand.sessionId === session.id)
       );
 
       if (emptySessions.length > 0) {
         // 找到最近創建的空 session
-        const mostRecentEmptySession = emptySessions.sort((a, b) => 
+        const mostRecentEmptySession = emptySessions.sort((a, b) =>
           new Date(b.createdAt || b.date || '').getTime() - new Date(a.createdAt || a.date || '').getTime()
         )[0];
 

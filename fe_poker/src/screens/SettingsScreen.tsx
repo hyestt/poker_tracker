@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking, Modal } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import { theme } from '../theme';
 import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
-import revenueCatService from '../services/RevenueCatService';
+import RevenueCatService from '../services/RevenueCatService';
 import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
-import { initConnection, getProducts, endConnection } from 'react-native-iap';
 import { UserPreferencesService } from '../services/UserPreferences';
 import { createTestHands } from '../utils/createTestHands';
 import { WelcomeDemoService } from '../services/WelcomeDemoService';
@@ -39,7 +37,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     { label: 'Español', value: 'Spanish' },
     { label: '日本語', value: 'Japanese' },
     { label: 'Français', value: 'French' },
-    { label: 'Deutsch', value: 'German' }
+    { label: 'Deutsch', value: 'German' },
   ];
 
   useEffect(() => {
@@ -63,48 +61,32 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
         // Initialize RevenueCat if needed
         console.log('🔧 [SettingsScreen] Ensuring RevenueCat is initialized');
-        await revenueCatService.initialize();
+        await RevenueCatService.initialize();
 
         console.log('💎 [SettingsScreen] Checking premium user status');
-        const premiumStatus = await revenueCatService.isPremiumUser();
+        const premiumStatus = await RevenueCatService.isPremiumUser();
         console.log('💎 [SettingsScreen] Premium status:', premiumStatus);
         setIsPremium(premiumStatus);
 
         // 檢查測試模式狀態
         console.log('🧪 [SettingsScreen] Checking test mode status');
-        const testStatus = await revenueCatService.getTestPremiumStatus();
+        const testStatus = await RevenueCatService.getTestPremiumStatus();
         console.log('🧪 [SettingsScreen] Test mode status:', testStatus);
         setIsTestMode(testStatus);
 
         if (!premiumStatus) {
           console.log('🛍️ [SettingsScreen] User is not premium, fetching offerings');
-          const availableOfferings = await revenueCatService.getOfferings();
+          const availableOfferings = await RevenueCatService.getOfferings();
           console.log('🛍️ [SettingsScreen] Available offerings:', availableOfferings.length);
           setOfferings(availableOfferings);
         } else {
           console.log('✨ [SettingsScreen] User is premium, no need to fetch offerings');
         }
-      } catch (error: any) {
-        console.error('❌ [SettingsScreen] Failed to fetch subscription status:', {
-          message: error.message,
-          code: error.code,
-          name: error.name,
-          stack: error.stack
-        });
-        
-        // 在開發環境或TestFlight測試中，優雅地處理訂閱錯誤
-        console.log('🧪 [SettingsScreen] Handling subscription error gracefully for testing');
-        console.log('🧪 [SettingsScreen] Error type:', error.constructor.name);
-        console.log('🧪 [SettingsScreen] Setting fallback state (non-premium, can toggle test mode)');
-        setIsPremium(false);
-        setIsTestMode(false);
-        
-        // 只在非常嚴重的錯誤情況下才顯示錯誤（如網絡完全斷開）
-        if (error.message && error.message.includes('network') && !error.message.includes('configuration')) {
-          Alert.alert(
-            'Network Error', 
-            'Please check your internet connection and try again.'
-          );
+      } catch (error) {
+        console.error('❌ [SettingsScreen] Failed to fetch subscription status:', error);
+        // 在开发环境中或RevenueCat未配置时不显示错误弹窗
+        if (!__DEV__) {
+          Alert.alert('Error', 'Failed to fetch subscription status.');
         }
       } finally {
         console.log('🔄 [SettingsScreen] Subscription check completed, setting loading to false');
@@ -115,37 +97,14 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     checkSubscription();
   }, []);
 
-  // 每次進入頁面時檢查訂閱狀態
-  useFocusEffect(
-    useCallback(() => {
-      const refreshSubscriptionStatus = async () => {
-        console.log('🔄 [SettingsScreen] useFocusEffect - refreshing subscription status');
-        try {
-          const premiumStatus = await revenueCatService.isPremiumUser();
-          const testStatus = await revenueCatService.getTestPremiumStatus();
-          console.log('💎 [SettingsScreen] Focus refresh - Premium:', premiumStatus, 'Test:', testStatus);
-          setIsPremium(premiumStatus);
-          setIsTestMode(testStatus);
-        } catch (error: any) {
-          console.error('❌ [SettingsScreen] Failed to refresh subscription status:', {
-            message: error.message,
-            code: error.code,
-            name: error.name
-          });
-        }
-      };
-      refreshSubscriptionStatus();
-    }, [])
-  );
-
   const handlePurchase = async (pkg: PurchasesPackage) => {
     console.log('🛍️ [SettingsScreen] Purchase initiated for package:', pkg.identifier);
     try {
       setIsLoading(true);
       console.log('💳 [SettingsScreen] Processing purchase...');
-      await revenueCatService.purchasePackage(pkg);
+      await RevenueCatService.purchasePackage(pkg);
       console.log('✅ [SettingsScreen] Purchase completed successfully');
-      const customerInfo = await revenueCatService.getCustomerInfo();
+      const customerInfo = await RevenueCatService.getCustomerInfo();
       if (customerInfo.entitlements.active.pro) {
         setIsPremium(true);
         Alert.alert('Success', 'You are now a PRO member!');
@@ -162,7 +121,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const handleRestorePurchases = async () => {
     try {
       setIsLoading(true);
-      const customerInfo = await revenueCatService.restorePurchases();
+      const customerInfo = await RevenueCatService.restorePurchases();
       if (customerInfo.entitlements.active.pro) {
         setIsPremium(true);
         Alert.alert('Success', 'Your purchases have been restored.');
@@ -295,7 +254,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
   const handleToggleTestPremium = async () => {
     try {
       const newStatus = !isTestMode;
-      await revenueCatService.setTestPremiumStatus(newStatus);
+      await RevenueCatService.setTestPremiumStatus(newStatus);
       setIsTestMode(newStatus);
       setIsPremium(newStatus);
 
@@ -376,165 +335,6 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
   const getCurrentLanguageLabel = () => {
     const option = languageOptions.find(opt => opt.value === currentLanguage);
     return option ? option.label : currentLanguage;
-  };
-
-  const testRevenueCatOfferings = async () => {
-    try {
-      setIsLoading(true);
-      console.log('🔍 Testing RevenueCat Offerings...');
-      
-      await revenueCatService.initialize();
-      const offerings = await revenueCatService.getOfferings();
-      
-      console.log('📦 Total offerings:', offerings.length);
-      let offeringsDetails = `Found ${offerings.length} offerings:\n\n`;
-      
-      offerings.forEach((offering, index) => {
-        console.log(`📦 Offering ${index}:`, offering.identifier);
-        offeringsDetails += `Offering ${index}: ${offering.identifier}\n`;
-        
-        offering.availablePackages.forEach((pkg, pkgIndex) => {
-          const packageInfo = {
-            identifier: pkg.identifier,
-            title: pkg.product.title,
-            price: pkg.product.priceString,
-            productId: pkg.product.identifier
-          };
-          console.log(`  📱 Package ${pkgIndex}:`, packageInfo);
-          offeringsDetails += `  Package: ${pkg.identifier}\n  Price: ${pkg.product.priceString}\n\n`;
-        });
-      });
-      
-      Alert.alert('RevenueCat Offerings Test', offeringsDetails || 'No offerings found');
-    } catch (error: any) {
-      console.error('❌ RevenueCat API Error:', error);
-      Alert.alert(
-        'RevenueCat Error', 
-        `Error: ${error.message || 'Unknown error'}\n\nCode: ${error.code || 'N/A'}\nDomain: ${error.domain || 'N/A'}`
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const testAppStoreProducts = async () => {
-    try {
-      setIsLoading(true);
-      console.log('🍎 Testing App Store Products...');
-      
-      await initConnection();
-      
-      const products = await getProducts({
-        skus: [
-          'com.glen.livehand.pro.annual',
-          'com.glen.livehand.pro.monthly'
-        ]
-      });
-      
-      console.log('🍎 App Store Products found:', products.length);
-      let productsDetails = `Found ${products.length} products:\n\n`;
-      
-      products.forEach((product: any) => {
-        const productInfo = {
-          productId: product.productId,
-          title: product.title,
-          price: product.price,
-          currency: product.currency
-        };
-        console.log(`  📱 Product:`, productInfo);
-        productsDetails += `Product: ${product.productId}\nTitle: ${product.title}\nPrice: ${product.price} ${product.currency}\n\n`;
-      });
-      
-      Alert.alert('App Store Products Test', productsDetails || 'No products found');
-      await endConnection();
-    } catch (error: any) {
-      console.error('❌ App Store Error:', error);
-      Alert.alert(
-        'App Store Error', 
-        `Error: ${error.message || 'Unknown error'}\n\nThis might indicate:\n• Products not configured in App Store Connect\n• Sandbox environment issues\n• Network connectivity problems`
-      );
-      await endConnection();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const runFullDiagnostic = async () => {
-    try {
-      setIsLoading(true);
-      console.log('🔍 Starting Full Diagnostic...');
-      
-      let diagnosticReport = 'Full Diagnostic Report:\n\n';
-      
-      // 測試1: RevenueCat初始化
-      try {
-        console.log('1️⃣ Testing RevenueCat initialization...');
-        await revenueCatService.initialize();
-        diagnosticReport += '✅ RevenueCat initialization: SUCCESS\n';
-      } catch (error: any) {
-        diagnosticReport += `❌ RevenueCat initialization: FAILED\n   Error: ${error.message}\n`;
-      }
-      
-      // 測試2: RevenueCat offerings
-      let revenueCatProducts: string[] = [];
-      try {
-        console.log('2️⃣ Testing RevenueCat offerings...');
-        const offerings = await revenueCatService.getOfferings();
-        revenueCatProducts = offerings
-          .flatMap(o => o.availablePackages)
-          .map(p => p.identifier);
-        diagnosticReport += `✅ RevenueCat offerings: ${offerings.length} found\n`;
-        diagnosticReport += `   Products: ${revenueCatProducts.join(', ')}\n`;
-      } catch (error: any) {
-        diagnosticReport += `❌ RevenueCat offerings: FAILED\n   Error: ${error.message}\n`;
-      }
-      
-      // 測試3: App Store products
-      let storeProductIds: string[] = [];
-      try {
-        console.log('3️⃣ Testing App Store products...');
-        await initConnection();
-        const storeProducts = await getProducts({
-          skus: [
-            'com.glen.livehand.pro.annual',
-            'com.glen.livehand.pro.monthly'
-          ]
-        });
-        storeProductIds = storeProducts.map((p: any) => p.productId);
-        diagnosticReport += `✅ App Store products: ${storeProducts.length} found\n`;
-        diagnosticReport += `   Products: ${storeProductIds.join(', ')}\n`;
-        await endConnection();
-      } catch (error: any) {
-        diagnosticReport += `❌ App Store products: FAILED\n   Error: ${error.message}\n`;
-        await endConnection();
-      }
-      
-      // 比較結果
-      const expectedProducts = ['com.glen.livehand.pro.annual', 'com.glen.livehand.pro.monthly'];
-      const revenueCatMatch = expectedProducts.every(p => revenueCatProducts.includes(p));
-      const appStoreMatch = expectedProducts.every(p => storeProductIds.includes(p));
-      const productsMatch = JSON.stringify(revenueCatProducts.sort()) === JSON.stringify(storeProductIds.sort());
-      
-      diagnosticReport += '\n📊 Sync Analysis:\n';
-      diagnosticReport += `   Expected products match RevenueCat: ${revenueCatMatch ? '✅' : '❌'}\n`;
-      diagnosticReport += `   Expected products match App Store: ${appStoreMatch ? '✅' : '❌'}\n`;
-      diagnosticReport += `   RevenueCat ↔️ App Store sync: ${productsMatch ? '✅' : '❌'}\n`;
-      
-      console.log('📊 Diagnostic Results:', {
-        revenueCatOfferings: revenueCatProducts.length,
-        revenueCatProducts: revenueCatProducts,
-        appStoreProducts: storeProductIds,
-        productsMatch
-      });
-      
-      Alert.alert('Full Diagnostic Complete', diagnosticReport);
-      
-    } catch (error: any) {
-      console.error('❌ Diagnostic Error:', error);
-      Alert.alert('Diagnostic Error', `Unexpected error: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleCreateWelcomeDemo = async () => {
@@ -636,10 +436,10 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         </View>
 
 
-        {/* Debug Section (Always visible for diagnostics) */}
-        {true && (
+        {/* Debug Section (Development Only) */}
+        {__DEV__ && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Diagnostics & Testing</Text>
+            <Text style={styles.sectionTitle}>Debug & Testing</Text>
 
             <TouchableOpacity style={styles.menuItem} onPress={handleToggleTestPremium}>
               <Text style={styles.menuText}>
@@ -664,31 +464,9 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
               <Text style={styles.menuArrow}>›</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem} onPress={testRevenueCatOfferings}>
-              <Text style={styles.menuText}>
-                Test RevenueCat Offerings
-              </Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} onPress={testAppStoreProducts}>
-              <Text style={styles.menuText}>
-                Test App Store Products
-              </Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem} onPress={runFullDiagnostic}>
-              <Text style={styles.menuText}>
-                Run Full Diagnostic
-              </Text>
-              <Text style={styles.menuArrow}>›</Text>
-            </TouchableOpacity>
-
             <View style={styles.debugInfo}>
               <Text style={styles.debugText}>
-                Current Status: {isPremium || isTestMode ? 'Premium' : 'Free'}
-                {isTestMode && ' (Test Mode)'}
+                Current Status: {isPremium ? 'Premium' : 'Free'}
               </Text>
             </View>
           </View>
@@ -718,20 +496,20 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Language</Text>
-            
+
             {languageOptions.map((option, index) => (
               <TouchableOpacity
                 key={option.value}
                 style={[
                   styles.languageOption,
                   currentLanguage === option.value && styles.selectedLanguageOption,
-                  index === languageOptions.length - 1 && { borderBottomWidth: 0 }
+                  index === languageOptions.length - 1 && { borderBottomWidth: 0 },
                 ]}
                 onPress={() => handleLanguageSelect(option.value)}
               >
                 <Text style={[
                   styles.languageOptionText,
-                  currentLanguage === option.value && styles.selectedLanguageOptionText
+                  currentLanguage === option.value && styles.selectedLanguageOptionText,
                 ]}>
                   {option.label}
                 </Text>
@@ -740,7 +518,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
                 )}
               </TouchableOpacity>
             ))}
-            
+
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setShowLanguageModal(false)}

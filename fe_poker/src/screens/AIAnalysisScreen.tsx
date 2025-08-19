@@ -176,10 +176,10 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       // 獲取用戶語言設定
       const userPreferences = await UserPreferencesService.getPreferences();
       const userLanguage = userPreferences.language || 'English';
-      
+
       // 生成完整的手牌歷史文本
       const handHistoryText = generateHandHistoryText(handData);
-      
+
       const requestPayload = {
         handDetails: handHistoryText,
         language: userLanguage,

@@ -29,7 +29,7 @@ export const HistoryScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
     const now = new Date();
     let handDate;
-    
+
     // Handle different date formats from SQLite
     if (dateStr.includes('T') && dateStr.includes('Z')) {
       // ISO format: "2025-06-06T00:22:48.342Z"
