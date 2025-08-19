@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking, Modal } from 'react-native';
 import { theme } from '../theme';
-import { DatabaseService } from '../services/DatabaseService';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import RevenueCatService from '../services/RevenueCatService';
-import { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
+import { PurchasesOffering } from 'react-native-purchases';
 import { UserPreferencesService } from '../services/UserPreferences';
 import { createTestHands } from '../utils/createTestHands';
 import { WelcomeDemoService } from '../services/WelcomeDemoService';
@@ -13,9 +12,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   console.log('⚙️ [SettingsScreen] Component mounted');
   const {
     isLocalMode,
-    switchToLocalMode,
-    switchToApiMode,
-    migrateToLocal,
     fetchSessions,
     fetchHands,
     fetchStats,
@@ -23,7 +19,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   console.log('⚙️ [SettingsScreen] Current mode - isLocalMode:', isLocalMode);
 
   const [isPremium, setIsPremium] = useState(false);
-  const [offerings, setOfferings] = useState<PurchasesOffering[]>([]);
+  const [_offerings, setOfferings] = useState<PurchasesOffering[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isTestMode, setIsTestMode] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('English');
@@ -97,27 +93,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     checkSubscription();
   }, []);
 
-  const handlePurchase = async (pkg: PurchasesPackage) => {
-    console.log('🛍️ [SettingsScreen] Purchase initiated for package:', pkg.identifier);
-    try {
-      setIsLoading(true);
-      console.log('💳 [SettingsScreen] Processing purchase...');
-      await RevenueCatService.purchasePackage(pkg);
-      console.log('✅ [SettingsScreen] Purchase completed successfully');
-      const customerInfo = await RevenueCatService.getCustomerInfo();
-      if (customerInfo.entitlements.active.pro) {
-        setIsPremium(true);
-        Alert.alert('Success', 'You are now a PRO member!');
-      }
-    } catch (e: any) {
-      if (!e.userCancelled) {
-        Alert.alert('Purchase Error', e.message);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleRestorePurchases = async () => {
     try {
       setIsLoading(true);
@@ -135,10 +110,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     }
   };
 
-  const handleMenuPress = (item: string) => {
-    Alert.alert('Feature in Development', `${item} feature coming soon`);
-  };
-
   const handleJoinDiscord = async () => {
     const discordUrl = 'https://discord.gg/MH74zefx';
     try {
@@ -151,103 +122,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     } catch (error) {
       Alert.alert('Error', 'Failed to open Discord link. Please try again later.');
       console.error('Failed to open Discord link:', error);
-    }
-  };
-
-  const handleDatabaseTest = async () => {
-    try {
-      // Initialize database
-      await DatabaseService.initialize();
-
-      // Get data statistics
-      const stats = await DatabaseService.getDataStats();
-
-      // Get some sample data
-      const sessions = await DatabaseService.getAllSessions();
-      const hands = await DatabaseService.getAllHands();
-
-      const message = `📊 SQLite Database Status:
-
-📈 Statistics:
-• Sessions: ${stats.sessionsCount}
-• Hands: ${stats.handsCount}
-
-📋 Recent Sessions (first 3):
-${sessions.slice(0, 3).map(s => `• ${s.location} - ${s.date}`).join('\n')}
-
-🃏 Recent Hands (first 3):
-${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).join('\n')}
-
-🔧 Current Mode: ${isLocalMode ? 'Local SQLite' : 'API Mode'}`;
-
-      Alert.alert('SQLite Database Test', message);
-    } catch (error) {
-      Alert.alert('Error', `Database test failed: ${error}`);
-    }
-  };
-
-  const handleMigrateToLocal = async () => {
-    Alert.alert(
-      'Migrate Data to Local',
-      'This will fetch all data from the backend API and store it in the local SQLite database. Do you want to continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Start Migration',
-          onPress: async () => {
-            try {
-              Alert.alert('Migrating', 'Migrating data, please wait...');
-              await migrateToLocal();
-              Alert.alert('Success', 'Data migration completed! Now using local SQLite storage.');
-            } catch (error) {
-              Alert.alert('Error', `Migration failed: ${error}`);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleSwitchMode = async () => {
-    const newMode = isLocalMode ? 'API Mode' : 'Local Mode';
-    const currentMode = isLocalMode ? 'Local Mode' : 'API Mode';
-
-    Alert.alert(
-      'Switch Storage Mode',
-      `Current Mode: ${currentMode}\nSwitch to: ${newMode}\n\nAre you sure you want to switch?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Switch',
-          onPress: async () => {
-            try {
-              if (isLocalMode) {
-                await switchToApiMode();
-                Alert.alert('Success', 'Switched to API mode');
-              } else {
-                await switchToLocalMode();
-                Alert.alert('Success', 'Switched to local mode');
-              }
-            } catch (error) {
-              Alert.alert('Error', `Switch failed: ${error}`);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleRefreshData = async () => {
-    try {
-      Alert.alert('Refreshing', 'Reloading data...');
-      await Promise.all([
-        fetchSessions(),
-        fetchHands(),
-        fetchStats(),
-      ]);
-      Alert.alert('Success', 'Data refreshed');
-    } catch (error) {
-      Alert.alert('Error', `Refresh failed: ${error}`);
     }
   };
 
@@ -292,28 +166,6 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
             } catch (error) {
               Alert.alert('Error', 'Failed to create test hands: ' + error);
               console.error('Failed to create test hands:', error);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleResetPreferences = async () => {
-    Alert.alert(
-      'Reset User Preferences',
-      'This will reset all your saved preferences (locations, currencies, etc.) to default values. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await UserPreferencesService.resetToDefaults();
-              Alert.alert('Success', 'User preferences have been reset to defaults');
-            } catch (error) {
-              Alert.alert('Error', `Reset failed: ${error}`);
             }
           },
         },
@@ -399,7 +251,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Upgrade to PRO</Text>
           {isLoading ? (
-            <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }}/>
+            <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loadingIndicator}/>
           ) : isPremium ? (
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>You are a PRO member</Text>
@@ -445,7 +297,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
               <Text style={styles.menuText}>
                 Toggle Premium Status (Test Mode)
               </Text>
-              <Text style={[styles.menuArrow, { color: isTestMode ? '#27C46A' : '#FF3B30' }]}>
+              <Text style={[styles.menuArrow, isTestMode ? styles.testModeActive : styles.testModeInactive]}>
                 {isTestMode ? 'Premium' : 'Free'}
               </Text>
             </TouchableOpacity>
@@ -503,7 +355,7 @@ ${hands.slice(0, 3).map(h => `• ${h.holeCards || 'Unknown'} - $${h.result}`).j
                 style={[
                   styles.languageOption,
                   currentLanguage === option.value && styles.selectedLanguageOption,
-                  index === languageOptions.length - 1 && { borderBottomWidth: 0 },
+                  index === languageOptions.length - 1 && styles.lastLanguageOption,
                 ]}
                 onPress={() => handleLanguageSelect(option.value)}
               >
@@ -537,6 +389,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  loadingIndicator: {
+    marginVertical: 20,
+  },
+  testModeActive: {
+    color: '#27C46A',
+  },
+  testModeInactive: {
+    color: '#FF3B30',
+  },
+  lastLanguageOption: {
+    borderBottomWidth: 0,
   },
 
   scrollContainer: {
