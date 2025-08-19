@@ -567,7 +567,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           </View>
         </View>
 
-        <View style={styles.spacer} />
+        <View style={styles.tightSpacer} />
 
         {/* Board Section */}
         <View style={styles.boardSection}>
@@ -622,7 +622,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           </View>
         </View>
 
-        <View style={styles.spacer} />
+        <View style={styles.tightSpacer} />
 
         {/* Hand Details Section - moved to bottom */}
         <View style={styles.topSection}>
@@ -919,7 +919,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           )}
         </View>
 
-        <View style={styles.spacer} />
+        <View style={styles.tightSpacer} />
 
         {/* Hand Details Section */}
         <View style={styles.bottomSection}>
@@ -1554,9 +1554,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.positionButton,
   },
   heroSection: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
   },
   boardSection: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
+  },
+  tightSpacer: {
+    minHeight: theme.spacing.xs / 2,
   },
 });
