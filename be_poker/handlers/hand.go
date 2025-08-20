@@ -3,13 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"poker_tracker_backend/db"
 	"poker_tracker_backend/models"
 	"poker_tracker_backend/services"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func CreateHand(w http.ResponseWriter, r *http.Request) {
@@ -325,7 +326,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		language = "English"
 	}
 	log.Printf("ℹ️ Using language: %s for analysis", language)
-	
+
 	analysis, err := openaiService.AnalyzeHand(request.HandDetails, language)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)

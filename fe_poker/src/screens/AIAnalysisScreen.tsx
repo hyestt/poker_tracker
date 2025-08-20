@@ -8,6 +8,8 @@ import { UserPreferencesService } from '../services/UserPreferences';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [analysis, setAnalysis] = useState<string>('');
+  const [sections, setSections] = useState<{ summary: string; preflop: string; flop: string; turn: string; river: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<'summary' | 'preflop' | 'flop' | 'turn' | 'river'>('summary');
   const [loading, setLoading] = useState(true);
   const [currentHand, setCurrentHand] = useState<Hand>(route.params.hand);
   const [quotaInfo, setQuotaInfo] = useState<{canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean} | null>(null);
@@ -68,6 +70,28 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (latestHand.analysis) {
         console.log('✅ Found cached analysis, displaying it');
         setAnalysis(latestHand.analysis);
+        
+        // 檢查是否有已儲存的 sections 數據
+        let parsed: { summary: string; preflop: string; flop: string; turn: string; river: string };
+        
+        if (latestHand.analysisSections) {
+          try {
+            parsed = JSON.parse(latestHand.analysisSections);
+            console.log('📊 Using stored sections:', JSON.stringify(parsed, null, 2));
+          } catch (e) {
+            console.warn('Failed to parse stored sections, falling back to client parsing');
+            parsed = parseSectionsClient(latestHand.analysis);
+          }
+        } else {
+          // 嘗試在前端解析舊的單頁分析為分段（備援）
+          console.log('📊 No stored sections, parsing on client side');
+          parsed = parseSectionsClient(latestHand.analysis);
+          console.log('📊 Client parsed sections:', JSON.stringify(parsed, null, 2));
+        }
+        
+        setSections(parsed);
+        // 設定第一個有內容的分頁
+        setActiveTab(getFirstAvailableTab(parsed));
         setLoading(false);
         return;
       }
@@ -138,8 +162,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       // Update hand data
       const updatedHand = {
         ...currentHand,
-        analysis: analysisResult,
+        analysis: analysisResult.text,
         analysisDate: new Date().toLocaleDateString(),
+        analysisSections: analysisResult.sections ? JSON.stringify(analysisResult.sections) : undefined,
       };
 
       // Save to sessionStore (this also updates localStorage)
@@ -150,7 +175,11 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       setCurrentHand(updatedHand);
       console.log('✅ Hand analysis updated and cached');
 
-      setAnalysis(analysisResult);
+      setAnalysis(analysisResult.text);
+      // 如果後端已返回 sections，直接使用；否則在前端解析
+      const s = analysisResult.sections || parseSectionsClient(analysisResult.text);
+      setSections(s);
+      setActiveTab(getFirstAvailableTab(s));
     } catch (error) {
       console.error('AI analysis error:', error);
       Alert.alert('Error', 'Failed to perform AI analysis');
@@ -183,7 +212,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
   };
 
   // 真正的AI分析功能
-  const performRealAIAnalysis = async (handData: Hand): Promise<string> => {
+  const performRealAIAnalysis = async (handData: Hand): Promise<{ text: string; sections?: { summary: string; preflop: string; flop: string; turn: string; river: string } }> => {
     try {
       // 獲取用戶語言設定
       const userPreferences = await UserPreferencesService.getPreferences();
@@ -222,14 +251,19 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
 
       const result = await response.json();
       console.log('API analysis result received successfully');
-      return result.analysis || 'No analysis available';
+      console.log('🔍 Raw API result:', JSON.stringify(result, null, 2));
+      const apiText: string = result.analysis || 'No analysis available';
+      const apiSections = result.sections as { summary: string; preflop: string; flop: string; turn: string; river: string } | undefined;
+      console.log('🔍 Extracted sections:', JSON.stringify(apiSections, null, 2));
+      return { text: apiText, sections: apiSections };
     } catch (error) {
       console.error('Real AI analysis error:', error);
 
       // 只有在網路錯誤時才回退到模擬分析
       if (error instanceof Error && (error.message.includes('Network request failed') || error.message.includes('fetch'))) {
         console.log('Network error detected, falling back to simulation');
-        return await simulateAIAnalysis(handData);
+        const fallbackText = await simulateAIAnalysis(handData);
+        return { text: fallbackText };
       }
 
       // 其他錯誤直接拋出
@@ -291,6 +325,83 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       Alert.alert('Error', 'Failed to reanalyze hand');
     }
   };
+  // ---------- Helpers: client-side parsing (fallback when backend sections not present) ----------
+  const cleanTrailingHeaders = (content: string): string => {
+    // Remove trailing headers like "## Flop", "Flop:", etc.
+    const headerPatterns = [
+      /^##\s*(Summary|Preflop|Flop|Turn|River)\s*$/gim,
+      /^(Summary|Preflop|Flop|Turn|River)\s*:\s*$/gim,
+      /^(Summary|Preflop|Flop|Turn|River)\s*$/gim,
+    ];
+    
+    let cleaned = content;
+    for (const pattern of headerPatterns) {
+      cleaned = cleaned.replace(pattern, '');
+    }
+    
+    return cleaned.trim();
+  };
+
+  const parseSectionsClient = (text: string): { summary: string; preflop: string; flop: string; turn: string; river: string } => {
+    const empty = { summary: '', preflop: '', flop: '', turn: '', river: '' };
+    if (!text) {return empty;}
+    
+    console.log('🔍 Parsing text:', text.substring(0, 200) + '...');
+    
+    // 1) Try strict JSON
+    try {
+      const obj = JSON.parse(text);
+      console.log('✅ Parsed as JSON');
+      return {
+        summary: String(obj.summary || ''),
+        preflop: String(obj.preflop || ''),
+        flop: String(obj.flop || ''),
+        turn: String(obj.turn || ''),
+        river: String(obj.river || ''),
+      };
+    } catch (e) {
+      console.log('❌ Not JSON, trying headings');
+    }
+    
+    // 2) Try headings ## Summary etc.
+    const map = { summary: '', preflop: '', flop: '', turn: '', river: '' } as { [k: string]: string };
+    const regex = /^##\s*(Summary|Preflop|Flop|Turn|River)\s*$/gim;
+    const indices: Array<{ key: string; start: number; end: number }> = [];
+    let m: RegExpExecArray | null;
+    while ((m = regex.exec(text)) !== null) {
+      indices.push({ key: m[1].toLowerCase(), start: m.index + m[0].length, end: -1 });
+    }
+    if (indices.length > 0) {
+      console.log('✅ Found headings:', indices.map(i => i.key));
+      for (let i = 0; i < indices.length; i++) {
+        const nextIndex = i + 1 < indices.length ? indices[i + 1].start : text.length;
+        const content = text.slice(indices[i].start, nextIndex);
+        // Clean trailing headers before storing
+        map[indices[i].key] = cleanTrailingHeaders(content);
+      }
+      return {
+        summary: map.summary || '',
+        preflop: map.preflop || '',
+        flop: map.flop || '',
+        turn: map.turn || '',
+        river: map.river || '',
+      };
+    }
+    
+    console.log('❌ No headings found, using fallback - putting all content in Summary');
+    // 3) Fallback: dump all into summary
+    return { summary: text.trim(), preflop: '', flop: '', turn: '', river: '' };
+  };
+
+  const getFirstAvailableTab = (s: { summary: string; preflop: string; flop: string; turn: string; river: string }) => {
+    if (s.summary?.trim()) {return 'summary' as const;}
+    if (s.preflop?.trim()) {return 'preflop' as const;}
+    if (s.flop?.trim()) {return 'flop' as const;}
+    if (s.turn?.trim()) {return 'turn' as const;}
+    if (s.river?.trim()) {return 'river' as const;}
+    return 'summary' as const;
+  };
+
 
   // 將 Re-analyze 放到右上角 header（確保在函式定義之後）
   useLayoutEffect(() => {
@@ -446,6 +557,36 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
 
   return (
     <View style={styles.container}>
+      {/* Tabs */}
+      {sections && (
+        <View style={styles.tabBar}>
+          {(
+            [
+              { key: 'summary', label: 'Summary' },
+              { key: 'preflop', label: 'Preflop' },
+              { key: 'flop', label: 'Flop' },
+              { key: 'turn', label: 'Turn' },
+              { key: 'river', label: 'River' },
+            ] as const
+          ).map((t) => {
+            const disabled = !((sections as any)[t.key]?.trim());
+            const isActive = activeTab === (t.key as any);
+            return (
+              <TouchableOpacity
+                key={t.key}
+                style={[styles.tabItem, isActive && styles.tabItemActive, disabled && styles.tabItemDisabled]}
+                onPress={() => !disabled && setActiveTab(t.key as any)}
+                disabled={disabled}
+              >
+                <Text style={[styles.tabText, isActive && styles.tabTextActive, disabled && styles.tabTextDisabled]}>
+                  {t.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
       {/* Content */}
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         {/* Hand Summary */}
@@ -474,8 +615,18 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
         <View style={styles.analysisCard}>
           <Text style={styles.analysisCardTitle}>GTO Analysis Result</Text>
           <View style={styles.analysisContent}>
-            {analysis ? renderFormattedAnalysis(analysis) : (
-              <Text style={styles.analysisText}>Analysis is being generated...</Text>
+            {sections ? (
+              <>
+                {activeTab === 'summary' && renderFormattedAnalysis(sections.summary)}
+                {activeTab === 'preflop' && renderFormattedAnalysis(sections.preflop)}
+                {activeTab === 'flop' && renderFormattedAnalysis(sections.flop)}
+                {activeTab === 'turn' && renderFormattedAnalysis(sections.turn)}
+                {activeTab === 'river' && renderFormattedAnalysis(sections.river)}
+              </>
+            ) : (
+              analysis ? renderFormattedAnalysis(analysis) : (
+                <Text style={styles.analysisText}>Analysis is being generated...</Text>
+              )
             )}
           </View>
         </View>
@@ -679,6 +830,38 @@ const styles = StyleSheet.create({
   },
   analysisContent: {
     flex: 1,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    gap: theme.spacing.xs,
+  },
+  tabItem: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: theme.colors.inputBg,
+    alignItems: 'center',
+  },
+  tabItemActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  tabItemDisabled: {
+    opacity: 0.4,
+  },
+  tabText: {
+    color: theme.colors.text,
+    fontSize: theme.font.size.small,
+    fontWeight: '600',
+  },
+  tabTextActive: {
+    color: '#fff',
+  },
+  tabTextDisabled: {
+    color: theme.colors.gray,
   },
   analysisMainTitle: {
     fontSize: theme.font.size.title,

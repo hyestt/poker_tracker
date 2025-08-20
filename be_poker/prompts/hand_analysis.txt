@@ -46,7 +46,7 @@ Flop, Turn, River GTO suggested frequency: (CRITICAL: use this format below unle
 CRITICAL REQUIREMENT: Your ENTIRE response below must be written in {{LANGUAGE}}. 
 ---------------------------
 
-**Summary**
+## Summary
 Overall: ⭐ (1 to 5 ⭐) and summary
 
 ## Preflop  
@@ -75,3 +75,21 @@ Also describe the Turn card
 ## River  
 Also describe the River card
 ...(if applicable)
+
+---------------------------
+CRITICAL JSON OUTPUT REQUIREMENT:
+After completing your analysis above, you MUST also output the same content in strict JSON format using these exact keys:
+{
+  "summary": "Your Summary section content",
+  "preflop": "Your Preflop section content", 
+  "flop": "Your Flop section content",
+  "turn": "Your Turn section content",
+  "river": "Your River section content"
+}
+
+Requirements:
+- All values must be strings
+- Include only the content, not the section headers
+- If a section has no content, use empty string ""
+- No additional text outside the JSON
+- JSON must be valid and parseable

@@ -196,7 +196,13 @@ Shared from LiveHand`;
   return (
     <View style={styles.container}>
 
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollContainer}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: theme.spacing.xl * 3 },
+        ]}
+      >
         {/* Hero Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hero</Text>

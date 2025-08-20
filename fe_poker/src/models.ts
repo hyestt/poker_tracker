@@ -32,6 +32,7 @@ export interface Hand {
   result: number;
   analysis?: string;
   analysisDate?: string;
+  analysisSections?: string; // JSON string of parsed sections
   favorite: boolean;
   tag?: string;
   tags?: string[];
