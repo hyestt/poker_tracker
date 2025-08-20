@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking, Modal, Platform } from 'react-native';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -7,6 +7,7 @@ import { PurchasesOffering } from 'react-native-purchases';
 import { UserPreferencesService } from '../services/UserPreferences';
 import { createTestHands } from '../utils/createTestHands';
 import { WelcomeDemoService } from '../services/WelcomeDemoService';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   console.log('⚙️ [SettingsScreen] Component mounted');
@@ -48,60 +49,72 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     loadUserLanguage();
   }, []);
 
+  const refreshSubscriptionStatus = useCallback(async () => {
+    try {
+      console.log('🔄 [SettingsScreen] Starting subscription check');
+
+      // Initialize RevenueCat if needed
+      console.log('🔧 [SettingsScreen] Ensuring RevenueCat is initialized');
+      await RevenueCatService.initialize();
+
+      console.log('💎 [SettingsScreen] Checking premium user status');
+      const premiumStatus = await RevenueCatService.isPremiumUser();
+      console.log('💎 [SettingsScreen] Premium status:', premiumStatus);
+      setIsPremium(premiumStatus);
+
+      // 檢查測試模式狀態
+      console.log('🧪 [SettingsScreen] Checking test mode status');
+      const testStatus = await RevenueCatService.getTestPremiumStatus();
+      console.log('🧪 [SettingsScreen] Test mode status:', testStatus);
+      setIsTestMode(testStatus);
+
+      if (!premiumStatus) {
+        console.log('🛍️ [SettingsScreen] User is not premium, fetching offerings');
+        const availableOfferings = await RevenueCatService.getOfferings();
+        console.log('🛍️ [SettingsScreen] Available offerings:', availableOfferings.length);
+        setOfferings(availableOfferings);
+      } else {
+        console.log('✨ [SettingsScreen] User is premium, no need to fetch offerings');
+      }
+    } catch (error) {
+      console.error('❌ [SettingsScreen] Failed to fetch subscription status:', error);
+      if (!__DEV__) {
+        Alert.alert('Error', 'Failed to fetch subscription status.');
+      }
+    } finally {
+      console.log('🔄 [SettingsScreen] Subscription check completed');
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     console.log('💎 [SettingsScreen] useEffect - checking subscription status');
-    const checkSubscription = async () => {
-      try {
-        console.log('🔄 [SettingsScreen] Starting subscription check');
+    refreshSubscriptionStatus();
+  }, [refreshSubscriptionStatus]);
 
-        // Initialize RevenueCat if needed
-        console.log('🔧 [SettingsScreen] Ensuring RevenueCat is initialized');
-        await RevenueCatService.initialize();
-
-        console.log('💎 [SettingsScreen] Checking premium user status');
-        const premiumStatus = await RevenueCatService.isPremiumUser();
-        console.log('💎 [SettingsScreen] Premium status:', premiumStatus);
-        setIsPremium(premiumStatus);
-
-        // 檢查測試模式狀態
-        console.log('🧪 [SettingsScreen] Checking test mode status');
-        const testStatus = await RevenueCatService.getTestPremiumStatus();
-        console.log('🧪 [SettingsScreen] Test mode status:', testStatus);
-        setIsTestMode(testStatus);
-
-        if (!premiumStatus) {
-          console.log('🛍️ [SettingsScreen] User is not premium, fetching offerings');
-          const availableOfferings = await RevenueCatService.getOfferings();
-          console.log('🛍️ [SettingsScreen] Available offerings:', availableOfferings.length);
-          setOfferings(availableOfferings);
-        } else {
-          console.log('✨ [SettingsScreen] User is premium, no need to fetch offerings');
-        }
-      } catch (error) {
-        console.error('❌ [SettingsScreen] Failed to fetch subscription status:', error);
-        // 在开发环境中或RevenueCat未配置时不显示错误弹窗
-        if (!__DEV__) {
-          Alert.alert('Error', 'Failed to fetch subscription status.');
-        }
-      } finally {
-        console.log('🔄 [SettingsScreen] Subscription check completed');
-        setIsLoading(false);
-      }
-    };
-
-    checkSubscription();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      refreshSubscriptionStatus();
+    }, [refreshSubscriptionStatus])
+  );
 
   const handleRestorePurchases = async () => {
     try {
       setIsLoading(true);
-      const customerInfo = await RevenueCatService.restorePurchases();
-      if (customerInfo.entitlements.active.pro) {
-        setIsPremium(true);
+      await RevenueCatService.restorePurchases();
+
+      // 用統一邏輯判斷是否為 Premium（避免依賴特定 entitlement 名稱）
+      const premium = await RevenueCatService.isPremiumUser();
+      setIsPremium(premium);
+
+      if (premium) {
         Alert.alert('Success', 'Your purchases have been restored.');
       } else {
         Alert.alert('Info', 'No active subscriptions found to restore.');
       }
+
+      // 重新刷新畫面狀態（offerings / test mode 標示等）
+      await refreshSubscriptionStatus();
     } catch (e: any) {
       Alert.alert('Restore Error', e.message);
     } finally {

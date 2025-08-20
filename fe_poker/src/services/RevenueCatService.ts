@@ -204,10 +204,9 @@ class RevenueCatService {
       console.log('💎 [RevenueCat] Checking premium user status...');
       // 優先檢查測試模式設定（不論API Key是否配置）
       const testPremiumStatus = await AsyncStorage.getItem(TEST_PREMIUM_KEY);
-      if (testPremiumStatus !== null) {
-        const isTestPremium = testPremiumStatus === 'true';
-        console.log(`🧪 [RevenueCat] Using test premium status: ${isTestPremium}`);
-        return isTestPremium;
+      if (testPremiumStatus === 'true') {
+        console.log('🧪 [RevenueCat] Using test premium status: true');
+        return true;
       }
 
       // 如果API Key未配置，返回false
@@ -220,6 +219,15 @@ class RevenueCatService {
       if (!this.isInitialized) {
         console.warn('⚠️ [RevenueCat] Not initialized yet, returning false for premium status');
         return false;
+      }
+
+      // 主動刷新購買者資訊快取，避免取消/續訂後短時間內仍返回舊權益
+      try {
+        // invalidate 失敗不影響後續取得資訊
+        // @ts-ignore - method available in react-native-purchases v8+
+        await (Purchases as any).invalidateCustomerInfoCache?.();
+      } catch (e) {
+        console.warn('⚠️ [RevenueCat] invalidateCustomerInfoCache failed (non-fatal):', e);
       }
 
       const customerInfo = await this.getCustomerInfo();

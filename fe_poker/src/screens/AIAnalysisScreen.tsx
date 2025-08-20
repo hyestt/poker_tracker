@@ -20,15 +20,14 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     checkGTOQuotaAndLoadData();
   }, []);
 
-  // 在此頁隱藏底部 Tab Bar，離開時恢復
+  // 在此頁隱藏底部 Tab Bar；離開時也維持隱藏，交由上一頁自行決定是否顯示
   useEffect(() => {
     const parent = navigation?.getParent?.();
     if (!parent) {return;}
-    // 記住預設樣式以便恢復
-    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
     parent.setOptions({ tabBarStyle: { display: 'none' } });
     return () => {
-      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+      // 不主動恢復，以免返回手牌詳情時 TabBar 被顯示
+      parent.setOptions({ tabBarStyle: { display: 'none' } });
     };
   }, [navigation]);
 

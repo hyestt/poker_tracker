@@ -40,16 +40,24 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }, [handId, getHand, getSession])
   );
 
-  // 隱藏底部 TabBar，離開時恢復
-  useEffect(() => {
-    const parent = navigation?.getParent?.();
-    if (!parent) {return;}
-    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
-    parent.setOptions({ tabBarStyle: { display: 'none' } });
-    return () => {
-      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
-    };
-  }, [navigation]);
+  // 隱藏底部 TabBar，並在畫面重新獲得焦點或轉場結束時再次隱藏，避免子頁返回後被恢復
+  useFocusEffect(
+    useCallback(() => {
+      const parent = navigation?.getParent?.();
+      if (!parent) {return;}
+      const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
+      parent.setOptions({ tabBarStyle: { display: 'none' } });
+
+      const unsubscribeTransition = navigation.addListener('transitionEnd', () => {
+        parent.setOptions({ tabBarStyle: { display: 'none' } });
+      });
+
+      return () => {
+        unsubscribeTransition?.();
+        parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+      };
+    }, [navigation])
+  );
 
   const handleEdit = useCallback(() => {
     navigation.navigate('EditHand', { handId });
