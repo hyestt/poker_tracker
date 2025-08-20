@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { theme } from '../theme';
 import revenueCatService, { SubscriptionPlan, PremiumFeatures } from '../services/RevenueCatService';
@@ -28,6 +29,17 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
   useEffect(() => {
     initializeRevenueCat();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 進入訂閱頁時隱藏 TabBar，離開時恢復
+  useEffect(() => {
+    const parent = navigation?.getParent?.();
+    if (!parent) {return;}
+    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
+    parent.setOptions({ tabBarStyle: { display: 'none' } });
+    return () => {
+      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+    };
+  }, [navigation]);
 
   const initializeRevenueCat = async () => {
     try {
@@ -240,16 +252,9 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         </TouchableOpacity>
       </View>
 
-      {/* Pro Badge Header */}
+      {/* Header with LiveHand Logo */}
       <View style={styles.header}>
-        <View style={styles.proIconContainer}>
-          <View style={styles.proIcon}>
-            <Text style={styles.proIconText}>📊</Text>
-            <View style={styles.proBadge}>
-              <Text style={styles.proBadgeText}>pro</Text>
-            </View>
-          </View>
-        </View>
+        <Image source={require('../../assets/appstore.png')} style={styles.logoImage} resizeMode="contain" />
         <Text style={styles.title}>LiveHand Pro</Text>
       </View>
 
@@ -289,43 +294,48 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
 
       {/* Pricing Plans */}
       <View style={styles.pricingContainer}>
-        {/* Annual Plan */}
-        <TouchableOpacity
-          style={[styles.planCard, selectedPlan === 'annual' && styles.selectedPlan]}
-          onPress={() => setSelectedPlan('annual')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>33% OFF</Text>
-          </View>
-          <View style={styles.planHeader}>
-            <View style={styles.planLeft}>
-              <Text style={styles.planTitle}>Year</Text>
-              <Text style={styles.planPrice}>$120</Text>
-              <Text style={styles.planSubPrice}>$10/month</Text>
+        <View style={styles.planRow}>
+          {/* Annual Plan */}
+          <TouchableOpacity
+            style={[styles.planCard, styles.planCardHalf, selectedPlan === 'annual' && styles.selectedPlan]}
+            onPress={() => setSelectedPlan('annual')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.discountBadgeCenterContainer}>
+              <View style={styles.discountBadgeCenter}>
+                <Text style={styles.discountText}>33% OFF</Text>
+              </View>
             </View>
-            <View style={[styles.radioButton, selectedPlan === 'annual' && styles.radioSelected]}>
-              {selectedPlan === 'annual' && <View style={styles.radioInner} />}
+            <View style={styles.planHeader}>
+              <View style={styles.planLeft}>
+                <Text style={styles.planTitle}>Year</Text>
+                <Text style={styles.planPrice}>$120</Text>
+                <Text style={styles.planSubPrice}>$10/month</Text>
+              </View>
+              <View style={[styles.radioButton, selectedPlan === 'annual' && styles.radioSelected]}>
+                {selectedPlan === 'annual' && <View style={styles.radioInner} />}
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
 
-        {/* Monthly Plan */}
-        <TouchableOpacity
-          style={[styles.planCard, selectedPlan === 'monthly' && styles.selectedPlan]}
-          onPress={() => setSelectedPlan('monthly')}
-          activeOpacity={0.7}
-        >
-          <View style={styles.planHeader}>
-            <View style={styles.planLeft}>
-              <Text style={styles.planTitle}>Month</Text>
-              <Text style={styles.planPrice}>$14.99/mo</Text>
+          {/* Monthly Plan */}
+          <TouchableOpacity
+            style={[styles.planCard, styles.planCardHalf, selectedPlan === 'monthly' && styles.selectedPlan]}
+            onPress={() => setSelectedPlan('monthly')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.planHeader}>
+              <View style={styles.planLeft}>
+                <Text style={styles.planTitle}>Month</Text>
+                <Text style={styles.planPrice}>$14.99/mo</Text>
+                <Text style={styles.planSubPrice}>Billed monthly</Text>
+              </View>
+              <View style={[styles.radioButton, selectedPlan === 'monthly' && styles.radioSelected]}>
+                {selectedPlan === 'monthly' && <View style={styles.radioInner} />}
+              </View>
             </View>
-            <View style={[styles.radioButton, selectedPlan === 'monthly' && styles.radioSelected]}>
-              {selectedPlan === 'monthly' && <View style={styles.radioInner} />}
-            </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* CTA Button */}
@@ -360,12 +370,10 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         <TouchableOpacity onPress={handleRestorePurchases}>
           <Text style={styles.footerLink}>Restore Purchases</Text>
         </TouchableOpacity>
-        <Text style={styles.footerSeparator}>•</Text>
-        <TouchableOpacity>
+        <TouchableOpacity style={styles.footerLinkRight}>
           <Text style={styles.footerLink}>Terms</Text>
         </TouchableOpacity>
-        <Text style={styles.footerSeparator}>•</Text>
-        <TouchableOpacity>
+        <TouchableOpacity style={styles.footerLinkRight}>
           <Text style={styles.footerLink}>Privacy</Text>
         </TouchableOpacity>
       </View>
@@ -421,35 +429,11 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.md,
     alignItems: 'center',
   },
-  proIconContainer: {
-    alignItems: 'center',
+  logoImage: {
+    width: 72,
+    height: 72,
     marginBottom: theme.spacing.sm,
-  },
-  proIcon: {
-    position: 'relative',
-    width: 60,
-    height: 60,
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  proIconText: {
-    fontSize: 24,
-  },
-  proBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#2D3748',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  proBadgeText: {
-    color: theme.colors.text,
-    fontSize: 10,
-    fontWeight: 'bold',
+    borderRadius: 16,
   },
   title: {
     fontSize: 22,
@@ -508,6 +492,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     marginBottom: theme.spacing.sm,
   },
+  planRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
   planCard: {
     backgroundColor: theme.colors.card,
     borderRadius: 12,
@@ -516,6 +504,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
     position: 'relative',
+  },
+  planCardHalf: {
+    flex: 1,
   },
   selectedPlan: {
     borderColor: '#FF6B35',
@@ -577,6 +568,28 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
   },
+  discountBadgeInline: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginBottom: theme.spacing.xs,
+  },
+  discountBadgeCenterContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: -8,
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  discountBadgeCenter: {
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
   discountText: {
     color: 'white',
     fontSize: 10,
@@ -589,7 +602,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.lg,
     minHeight: 52, // 改用 minHeight 並增加到 52px
   },
   ctaButtonText: {
@@ -600,19 +613,19 @@ const styles = StyleSheet.create({
     lineHeight: theme.font.size.body + 2, // 設定行高避免文字被切
   },
   footer: {
+    marginTop: theme.spacing.xs, // 更靠近 Subscribe 按鈕
+    marginBottom: theme.spacing.lg,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
+    justifyContent: 'center',
+    gap: theme.spacing.md,
   },
   footerLink: {
     color: '#FF6B35',
     fontSize: theme.font.size.small,
     fontWeight: '600',
   },
-  footerSeparator: {
-    color: theme.colors.gray,
-    marginHorizontal: 6,
+  footerLinkRight: {
+    marginLeft: theme.spacing.md,
   },
 });

@@ -51,6 +51,17 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     loadPokerKeyboardPreference();
   }, []);
 
+  // 隱藏底部 TabBar，離開時恢復
+  useEffect(() => {
+    const parent = navigation?.getParent?.();
+    if (!parent) {return;}
+    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
+    parent.setOptions({ tabBarStyle: { display: 'none' } });
+    return () => {
+      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+    };
+  }, [navigation]);
+
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 
   const handleHoleCardsSelect = () => {
@@ -675,7 +686,7 @@ River: HJ Check BTN Check`;
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
                   • Focus on betting action{'\n'}
-                  • Provide more contex for the hand{'\n'}
+                  • Provide more context for the hand{'\n'}
                 </Text>
                 <View style={styles.exampleButtonsContainer}>
                   <TouchableOpacity
@@ -1292,7 +1303,7 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.xs,
   },
   headerBackButtonText: {
-    color: theme.colors.primary,
+    color: '#FFFFFF',
     fontSize: theme.font.size.body,
     fontWeight: '600',
   },
