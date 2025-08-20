@@ -496,9 +496,13 @@ River: HJ Check BTN Check`;
       console.log('✅ [RecordHandScreen] Hand saved successfully');
       // fetchHands 和 fetchStats 已經在 addHand 中被調用了
 
-      console.log('🎯 [RecordHandScreen] Navigating to SessionDetail with sessionId:', sessionId);
-      // Navigate to SessionDetail page instead of going back
-      navigation.navigate('SessionDetail', { sessionId });
+      console.log('🎯 [RecordHandScreen] Navigating to HandDetail with handId:', hand.id);
+      // Navigate to HandDetail with the freshly created hand for optimistic render
+      navigation.navigate('HandDetail', { 
+        handId: hand.id,
+        sessionId: sessionId,
+        initialHand: hand,
+      });
     } catch (error) {
       console.error('❌ [RecordHandScreen] Failed to save hand:', error);
       Alert.alert('Error', 'Failed to save hand');

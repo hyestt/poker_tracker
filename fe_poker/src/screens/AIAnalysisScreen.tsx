@@ -119,7 +119,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         'GTO Analysis Limit Reached',
         quotaStatus.isPremium
           ? 'Please try again later.'
-          : 'You\'ve used your 3 free weekly GTO analyses. Upgrade to Premium for unlimited analysis.',
+          : 'You\'ve used your 15 free weekly GTO analyses. Upgrade to Premium for unlimited analysis.',
         quotaStatus.isPremium
           ? [{ text: 'OK' }]
           : [
@@ -532,7 +532,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
           <Text style={styles.quotaExceededMessage}>
             {quotaInfo.isPremium
               ? 'You\'ve reached your analysis limit for this week. Please try again next week.'
-              : 'You\'ve used your 3 free GTO analyses for this week. Upgrade to Premium for unlimited analysis.'}
+              : 'You\'ve used your 15 free GTO analyses for this week. Upgrade to Premium for unlimited analysis.'}
           </Text>
 
           {!quotaInfo.isPremium && (

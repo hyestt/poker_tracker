@@ -8,36 +8,45 @@ import { formatDate } from '../utils/dateFormat';
 import revenueCatService from '../services/RevenueCatService';
 
 export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
-  const { handId } = route.params;
+  const { handId, sessionId: routeSessionId, initialHand } = route.params || {};
   const { getHand, getSession } = useSessionStore();
-  const [hand, setHand] = useState<Hand | null>(null);
+  const [hand, setHand] = useState<Hand | null>(initialHand ?? null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [gtoQuotaInfo, setGtoQuotaInfo] = useState<{canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean} | null>(null);
 
   useFocusEffect(
     useCallback(() => {
+      let isMounted = true;
+
       const loadData = async () => {
         try {
-          setLoading(true);
+          // 先顯示初始 hand（如果有），避免白屏
+          if (!initialHand) {
+            setLoading(true);
+          }
+
           const handData = await getHand(handId);
           const sessionData = await getSession(handData.sessionId);
+          if (!isMounted) return;
           setHand(handData);
           setSession(sessionData);
 
-          // Check GTO analysis quota
-          const quotaStatus = await revenueCatService.canUseGTOAnalysis();
-          setGtoQuotaInfo(quotaStatus);
+          // 非阻塞檢查 GTO 配額
+          revenueCatService.canUseGTOAnalysis()
+            .then(q => isMounted && setGtoQuotaInfo(q))
+            .catch(() => {});
         } catch (error) {
           console.error('Failed to load hand/session:', error);
           Alert.alert('Error', 'Failed to load hand details');
         } finally {
-          setLoading(false);
+          if (isMounted) setLoading(false);
         }
       };
 
       loadData();
-    }, [handId, getHand, getSession])
+      return () => { isMounted = false; };
+    }, [handId, getHand, getSession, initialHand])
   );
 
   // 隱藏底部 TabBar，並在畫面重新獲得焦點或轉場結束時再次隱藏，避免子頁返回後被恢復
@@ -63,16 +72,31 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
     navigation.navigate('EditHand', { handId });
   }, [navigation, handId]);
 
-  // 將 Edit 移到導航列右上角
+  const handleBack = useCallback(() => {
+    // 如果有 routeSessionId，說明是從 RecordHand 導航過來的，應該回到 SessionDetail
+    if (routeSessionId) {
+      navigation.navigate('SessionDetail', { sessionId: routeSessionId });
+    } else {
+      // 否則使用標準的返回行為
+      navigation.goBack();
+    }
+  }, [navigation, routeSessionId]);
+
+  // 設置導航列按鈕
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={handleBack} style={styles.navBackButton}>
+          <Text style={styles.navBackButtonText}>‹ Back</Text>
+        </TouchableOpacity>
+      ),
       headerRight: () => (
         <TouchableOpacity onPress={handleEdit} style={styles.navEditButton}>
           <Text style={styles.navEditButtonText}>Edit</Text>
         </TouchableOpacity>
       ),
     });
-  }, [navigation, handleEdit]);
+  }, [navigation, handleEdit, handleBack]);
   const getSuitColor = (suit: string) => {
     return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
   };
@@ -418,6 +442,16 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
+    fontSize: theme.font.size.body,
+  },
+  navBackButton: {
+    marginLeft: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+  },
+  navBackButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
     fontSize: theme.font.size.body,
   },
   navEditButton: {

@@ -393,7 +393,7 @@ class RevenueCatService {
           const newQuota: GTOAnalysisQuota = {
             date: weekStart,
             usedCount: 0,
-            maxFreeCount: 3,
+            maxFreeCount: 15,
           };
           await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
           return newQuota;
@@ -405,7 +405,7 @@ class RevenueCatService {
         const newQuota: GTOAnalysisQuota = {
           date: weekStart,
           usedCount: 0,
-          maxFreeCount: 3,
+          maxFreeCount: 15,
         };
         await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(newQuota));
         return newQuota;
@@ -418,7 +418,7 @@ class RevenueCatService {
       return {
         date: weekStart,
         usedCount: 0,
-        maxFreeCount: 3,
+        maxFreeCount: 15,
       };
     }
   }
