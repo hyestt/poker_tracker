@@ -460,6 +460,11 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         onRequestClose={() => setShowFilterModal(false)}
       >
         <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.backdrop}
+            activeOpacity={1}
+            onPress={() => setShowFilterModal(false)}
+          />
           <View style={styles.filterModal}>
             <Text style={styles.modalTitle}>Filter Sessions</Text>
 
@@ -794,8 +799,11 @@ const styles = StyleSheet.create({
   // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   filterModal: {
     backgroundColor: theme.colors.card,

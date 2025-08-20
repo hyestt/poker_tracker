@@ -1630,10 +1630,8 @@ const styles = StyleSheet.create({
   hideKeyboardButton: {
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: 'transparent',
     borderRadius: theme.radius.button,
-    borderWidth: 1,
-    borderColor: theme.colors.primary,
   },
   hideKeyboardButtonText: {
     fontSize: theme.font.size.small,
