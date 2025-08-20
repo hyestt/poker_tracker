@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { SessionForm } from '../components/SessionForm';
 import { theme } from '../theme';
@@ -9,6 +9,17 @@ export const NewSessionScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   console.log('➕ [NewSessionScreen] Component mounted');
   const { addSession, fetchHands, fetchStats } = useSessionStore();
   const [isLoading, setIsLoading] = useState(false);
+
+  // 隱藏底部 TabBar，離開時恢復
+  useEffect(() => {
+    const parent = navigation?.getParent?.();
+    if (!parent) {return;}
+    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
+    parent.setOptions({ tabBarStyle: { display: 'none' } });
+    return () => {
+      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+    };
+  }, [navigation]);
 
   const handleSubmit = async (session: Session) => {
     console.log('📝 [NewSessionScreen] Session form submitted:', {

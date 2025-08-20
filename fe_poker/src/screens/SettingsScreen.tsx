@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Linking, Modal, Platform } from 'react-native';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import RevenueCatService from '../services/RevenueCatService';
@@ -20,7 +20,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   const [isPremium, setIsPremium] = useState(false);
   const [_offerings, setOfferings] = useState<PurchasesOffering[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // 預設不顯示 loading，避免進入頁面閃爍
   const [isTestMode, setIsTestMode] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('English');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
@@ -53,7 +53,6 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     const checkSubscription = async () => {
       try {
         console.log('🔄 [SettingsScreen] Starting subscription check');
-        setIsLoading(true);
 
         // Initialize RevenueCat if needed
         console.log('🔧 [SettingsScreen] Ensuring RevenueCat is initialized');
@@ -85,7 +84,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           Alert.alert('Error', 'Failed to fetch subscription status.');
         }
       } finally {
-        console.log('🔄 [SettingsScreen] Subscription check completed, setting loading to false');
+        console.log('🔄 [SettingsScreen] Subscription check completed');
         setIsLoading(false);
       }
     };
@@ -122,6 +121,20 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     } catch (error) {
       Alert.alert('Error', 'Failed to open Discord link. Please try again later.');
       console.error('Failed to open Discord link:', error);
+    }
+  };
+
+  const handleRateUs = async () => {
+    try {
+      const iosReviewUrl = 'itms-apps://apps.apple.com/app/id6749833754?action=write-review';
+      const webFallbackUrl = 'https://apps.apple.com/app/id6749833754?action=write-review';
+
+      const preferredUrl = Platform.OS === 'ios' ? iosReviewUrl : webFallbackUrl;
+      const supported = await Linking.canOpenURL(preferredUrl);
+      await Linking.openURL(supported ? preferredUrl : webFallbackUrl);
+    } catch (error) {
+      Alert.alert('Error', 'Unable to open the App Store review page.');
+      console.error('Failed to open review link:', error);
     }
   };
 
@@ -250,20 +263,25 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         {/* Subscription Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Upgrade to PRO</Text>
-          {isLoading ? (
-            <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loadingIndicator}/>
-          ) : isPremium ? (
+          {isPremium ? (
             <View style={styles.menuItem}>
               <Text style={styles.menuText}>You are a PRO member</Text>
             </View>
           ) : (
             <>
               <TouchableOpacity
-                style={[styles.menuItem, styles.upgradeMenuItem]}
+                style={styles.menuItem}
                 onPress={() => navigation.navigate('Subscription')}
               >
-                <Text style={[styles.menuText, styles.upgradeMenuText]}>🚀 View Premium Plans</Text>
-                <Text style={styles.menuArrow}>›</Text>
+                <View style={styles.menuItemLeft}>
+                  <Text style={styles.menuText}>Upgrade to Pro</Text>
+                </View>
+                <View style={styles.menuRight}>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>Save 33%</Text>
+                  </View>
+                  <Text style={styles.menuArrow}>›</Text>
+                </View>
               </TouchableOpacity>
               <TouchableOpacity style={styles.menuItem} onPress={handleRestorePurchases}>
                 <Text style={styles.menuText}>Restore Purchases</Text>
@@ -328,8 +346,13 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
 
-<TouchableOpacity style={styles.menuItem} onPress={handleJoinDiscord}>
-            <Text style={styles.menuText}>Contact us on Discord</Text>
+          <TouchableOpacity style={styles.menuItem} onPress={handleRateUs}>
+            <Text style={styles.menuText}>Rate Us</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={handleJoinDiscord}>
+            <Text style={styles.menuText}>Contact Us on Discord</Text>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
         </View>
@@ -441,14 +464,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: theme.colors.gray,
   },
-  upgradeMenuItem: {
-    backgroundColor: '#F0F8FF',
-    borderLeftWidth: 4,
-    borderLeftColor: theme.colors.primary,
+  menuRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  upgradeMenuText: {
-    color: theme.colors.primary,
-    fontWeight: '600',
+  badge: {
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    marginRight: 6,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  menuItemLeft: {
+    flex: 1,
+  },
+  menuSubtitle: {
+    fontSize: 12,
+    color: theme.colors.gray,
+    marginTop: 2,
   },
   statusSection: {
     margin: 16,

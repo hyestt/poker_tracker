@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Share } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSessionStore } from '../viewmodels/sessionStore';
@@ -40,8 +40,31 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }, [handId, getHand, getSession])
   );
 
+  // 隱藏底部 TabBar，離開時恢復
+  useEffect(() => {
+    const parent = navigation?.getParent?.();
+    if (!parent) {return;}
+    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
+    parent.setOptions({ tabBarStyle: { display: 'none' } });
+    return () => {
+      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+    };
+  }, [navigation]);
 
+  const handleEdit = useCallback(() => {
+    navigation.navigate('EditHand', { handId });
+  }, [navigation, handId]);
 
+  // 將 Edit 移到導航列右上角
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={handleEdit} style={styles.navEditButton}>
+          <Text style={styles.navEditButtonText}>Edit</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, handleEdit]);
   const getSuitColor = (suit: string) => {
     return suit === '♥' || suit === '♦' ? '#DC2626' : '#000000';
   };
@@ -144,9 +167,7 @@ Shared from LiveHand`;
     }
   };
 
-  const handleEdit = () => {
-    navigation.navigate('EditHand', { handId });
-  };
+  // edit moved to headerRight
 
   if (loading) {
     return (
@@ -166,43 +187,6 @@ Shared from LiveHand`;
 
   return (
     <View style={styles.container}>
-      {/* Header with action buttons */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
-          <Text style={styles.editButtonText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            if (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) {
-              Alert.alert(
-                'GTO Analysis Limit Reached',
-                gtoQuotaInfo.isPremium
-                  ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
-                  : 'You\'ve used your 15 free GTO analyses for today. Upgrade to Premium for unlimited analysis.',
-                gtoQuotaInfo.isPremium
-                  ? [{ text: 'OK' }]
-                  : [
-                      { text: 'Maybe Later', style: 'cancel' },
-                      { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') },
-                    ]
-              );
-            } else {
-              navigation.navigate('AIAnalysis', { hand });
-            }
-          }}
-          style={[
-            styles.aiAnalysisButton,
-            (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) && styles.aiAnalysisButtonDisabled,
-          ]}
-        >
-          <Text style={styles.aiAnalysisButtonText}>
-            GTO Analysis{gtoQuotaInfo && !gtoQuotaInfo.isPremium && gtoQuotaInfo.remainingFree >= 0 && ` (${gtoQuotaInfo.remainingFree})`}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-          <Text style={styles.shareButtonText}>Share</Text>
-        </TouchableOpacity>
-      </View>
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         {/* Hero Information */}
@@ -322,6 +306,41 @@ Shared from LiveHand`;
           </View>
         </View>
       </ScrollView>
+
+      {/* Fixed bottom action bar */}
+      <View style={styles.actionBar}>
+        <TouchableOpacity onPress={handleShare} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Share</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            if (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) {
+              Alert.alert(
+                'GTO Analysis Limit Reached',
+                gtoQuotaInfo.isPremium
+                  ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
+                  : 'You\'ve used your 15 free GTO analyses for today. Upgrade to Premium for unlimited analysis.',
+                gtoQuotaInfo.isPremium
+                  ? [{ text: 'OK' }]
+                  : [
+                      { text: 'Maybe Later', style: 'cancel' },
+                      { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') },
+                    ]
+              );
+            } else {
+              navigation.navigate('AIAnalysis', { hand });
+            }
+          }}
+          style={[
+            styles.primaryButton,
+            (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) && styles.primaryButtonDisabled,
+          ]}
+        >
+          <Text style={styles.primaryButtonText}>
+            GTO Analysis{gtoQuotaInfo && !gtoQuotaInfo.isPremium && gtoQuotaInfo.remainingFree >= 0 && ` (${gtoQuotaInfo.remainingFree})`}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -340,6 +359,62 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border || '#E5E7EB',
     gap: theme.spacing.xs,
+  },
+  actionBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: theme.colors.background,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.lg,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: theme.colors.inputBg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingVertical: theme.spacing.md,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButtonText: {
+    color: theme.colors.text,
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
+  },
+  primaryButton: {
+    flex: 1,
+    backgroundColor: '#FF8C00',
+    paddingVertical: theme.spacing.md,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonDisabled: {
+    backgroundColor: theme.colors.gray,
+    opacity: 0.6,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: theme.font.size.body,
+  },
+  navEditButton: {
+    marginRight: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+  },
+  navEditButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
   },
   editButton: {
     backgroundColor: theme.colors.primary,
@@ -422,6 +497,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xl * 2, // 為底部固定按鈕預留空間
   },
   section: {
     backgroundColor: theme.colors.card,

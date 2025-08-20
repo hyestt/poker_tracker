@@ -58,6 +58,8 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     loadData();
   }, [sessions.length, fetchSessions, fetchHands]);
 
+  // Sessions 保持顯示底部 TabBar（不做隱藏）
+
   // Calculate session duration
   const getSessionDuration = (session: Session) => {
     if (!session.date) {return '';}

@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { theme } from '../theme';
 import { Hand } from '../models';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import revenueCatService from '../services/RevenueCatService';
 import { UserPreferencesService } from '../services/UserPreferences';
@@ -20,6 +19,20 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   useEffect(() => {
     checkGTOQuotaAndLoadData();
   }, []);
+
+  // 在此頁隱藏底部 Tab Bar，離開時恢復
+  useEffect(() => {
+    const parent = navigation?.getParent?.();
+    if (!parent) {return;}
+    // 記住預設樣式以便恢復
+    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
+    parent.setOptions({ tabBarStyle: { display: 'none' } });
+    return () => {
+      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+    };
+  }, [navigation]);
+
+  // 將 Re-analyze 放到右上角 header（在定義函式之後再設定）
 
   const checkGTOQuotaAndLoadData = async () => {
     try {
@@ -268,10 +281,6 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     return analysis;
   };
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
   const handleReanalyze = async () => {
     try {
       console.log('Re-analyzing hand, forcing new analysis...');
@@ -283,6 +292,17 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       Alert.alert('Error', 'Failed to reanalyze hand');
     }
   };
+
+  // 將 Re-analyze 放到右上角 header（確保在函式定義之後）
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeHeaderButton}>
+          <Text style={styles.reanalyzeHeaderButtonText}>Re-analyze</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, handleReanalyze]);
 
   // 渲染 markdown 格式的分析結果
   const renderFormattedAnalysis = (text: string) => {
@@ -395,15 +415,6 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
   if (quotaInfo && !quotaInfo.canUse && !currentHand.analysis) {
     return (
       <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>GTO Analysis</Text>
-          <View style={styles.reanalyzeButton} />
-        </View>
-
         {/* Quota Exceeded Message */}
         <View style={styles.quotaExceededContainer}>
           <Text style={styles.quotaExceededIcon}>🎯</Text>
@@ -436,17 +447,6 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>GTO Analysis</Text>
-        <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeButton}>
-          <Text style={styles.reanalyzeButtonText}>Re-analyze</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Content */}
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         {/* Hand Summary */}
@@ -481,6 +481,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
           </View>
         </View>
       </ScrollView>
+
     </View>
   );
 };
@@ -658,6 +659,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+  },
+  reanalyzeHeaderButton: {
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 6,
+    borderRadius: theme.radius.button,
+    marginRight: theme.spacing.xs,
+  },
+  reanalyzeHeaderButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: theme.font.size.small,
   },
   analysisCardTitle: {
     fontSize: theme.font.size.body,
