@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { theme } from '../theme';
+import { buildFrequenciesViewModel } from '../viewmodels/FrequenciesViewModel';
+import { FrequenciesChart } from '../components/FrequenciesChart';
 import { Hand } from '../models';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import revenueCatService from '../services/RevenueCatService';
@@ -451,27 +453,21 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       nodes.push(<Text key={`rating-val`} style={styles.analysisText}>{String(obj.rating)}</Text>);
     }
 
+    // Frequencies 物件（放在 Rating 下方）
+    if (obj.frequencies && typeof obj.frequencies === 'object') {
+      const vm = buildFrequenciesViewModel(obj.frequencies as Record<string, unknown>);
+      if (vm.entries.length > 0) {
+        nodes.push(
+          <View key={`freq-chart`} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
+            <FrequenciesChart entries={vm.entries} noteMayNotSum100={vm.mayNotSum100} />
+          </View>
+        );
+      }
+    }
+
     // Player Action / Recommendation
     pushText('Player Action', obj.player_action);
     pushText('GTO Recommendation', obj.recommendation);
-
-    // Frequencies 物件
-    if (obj.frequencies && typeof obj.frequencies === 'object') {
-      const entries = Object.entries(obj.frequencies as Record<string, string>).filter(([, v]) => String(v).trim());
-      if (entries.length > 0) {
-        nodes.push(
-          <Text key={`freq-h`} style={[styles.analysisSubTitle, { marginTop: nodes.length ? theme.spacing.md : 0 }]}>Frequencies</Text>
-        );
-        entries.forEach(([k, v], idx) => {
-          nodes.push(
-            <View key={`freq-${idx}`} style={styles.listItemContainer}>
-              <Text style={styles.bulletPoint}>•</Text>
-              <Text style={styles.analysisListItem}>{`${frequencyLabel(k)}: ${String(v)}`}</Text>
-            </View>
-          );
-        });
-      }
-    }
 
     // Summary（街道/總結）
     pushText('Summary', obj.summary);
@@ -559,7 +555,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       return renderFormattedAnalysis(normalized);
     }
 
-    const order = ['rating', 'rating & summary', 'player action', 'gto recommendation', 'frequencies', 'summary'];
+    const order = ['rating', 'rating & summary', 'frequencies', 'player action', 'gto recommendation', 'summary'];
     const nodes: React.ReactNode[] = [];
 
     const normalizeFrequencies = (s: string) => {
@@ -791,18 +787,14 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       {/* Bottom Tabs */}
       {sections && (
         <View style={[styles.bottomTabBarContainer, { paddingBottom: Math.max(insets.bottom, 6) }]}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.bottomTabBar}
-          >
+          <View style={styles.bottomTabBar}>
             {(
               [
-                { key: 'summary', label: 'Summary' },
-                { key: 'preflop', label: 'Preflop' },
-                { key: 'flop', label: 'Flop' },
-                { key: 'turn', label: 'Turn' },
-                { key: 'river', label: 'River' },
+                { key: 'summary', label: 'S' },
+                { key: 'preflop', label: 'PF' },
+                { key: 'flop', label: 'F' },
+                { key: 'turn', label: 'T' },
+                { key: 'river', label: 'R' },
               ] as const
             ).map((t) => {
               const disabled = !((sections as any)[t.key]?.trim());
@@ -810,17 +802,21 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
               return (
                 <TouchableOpacity
                   key={t.key}
-                  style={[styles.tabItem, isActive && styles.tabItemActive, disabled && styles.tabItemDisabled]}
+                  style={[styles.tabItem, styles.tabItemFixed, isActive && styles.tabItemActive, disabled && styles.tabItemDisabled]}
                   onPress={() => !disabled && setActiveTab(t.key as any)}
                   disabled={disabled}
                 >
-                  <Text style={[styles.tabText, isActive && styles.tabTextActive, disabled && styles.tabTextDisabled]}>
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={[styles.tabText, isActive && styles.tabTextActive, disabled && styles.tabTextDisabled]}
+                  >
                     {t.label}
                   </Text>
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
       )}
 
@@ -1036,19 +1032,25 @@ const styles = StyleSheet.create({
   bottomTabBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
     paddingTop: theme.spacing.xs,
     paddingBottom: theme.spacing.xs,
+    justifyContent: 'space-between',
   },
   tabItem: {
-    paddingVertical: 8,
-    paddingHorizontal: theme.spacing.md,
+    height: 44,
+    paddingHorizontal: theme.spacing.sm,
     borderRadius: 18,
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
+  },
+  tabItemFixed: {
+    flex: 1,
+    minWidth: 0,
   },
   tabItemActive: {
     backgroundColor: '#3B82F6',
@@ -1061,6 +1063,7 @@ const styles = StyleSheet.create({
     color: '#E5E7EB',
     fontSize: theme.font.size.small,
     fontWeight: '700',
+    textAlign: 'center',
   },
   tabTextActive: {
     color: '#FFFFFF',
