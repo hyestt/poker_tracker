@@ -104,7 +104,8 @@ After completing your analysis above, you MUST also output the SAME CONTENT in s
       "bet_33": "30%",
       "bet_50": "20%",
       "bet_75": "5%",
-      "bet_100": "0%"
+      "bet_100": "0%",
+      "fold": "0%"
     },
     "rating": "",
     "summary": ""

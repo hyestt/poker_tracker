@@ -49,22 +49,21 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }, [handId, getHand, getSession, initialHand])
   );
 
-  // 隱藏底部 TabBar，並在畫面重新獲得焦點或轉場結束時再次隱藏，避免子頁返回後被恢復
+  // 進入詳情頁時隱藏 TabBar，離開時恢復預設樣式
   useFocusEffect(
     useCallback(() => {
       const parent = navigation?.getParent?.();
       if (!parent) {return;}
       const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
-      parent.setOptions({ tabBarStyle: { display: 'none' } });
+      parent.setOptions({ tabBarStyle: { ...defaultTabBarStyle, display: 'none' } });
 
       const unsubscribeTransition = navigation.addListener('transitionEnd', () => {
-        parent.setOptions({ tabBarStyle: { display: 'none' } });
+        parent.setOptions({ tabBarStyle: { ...defaultTabBarStyle, display: 'none' } });
       });
 
       return () => {
         unsubscribeTransition?.();
-        // 不在此恢復 TabBar，避免子頁（如 AIAnalysis）顯示時被搶回
-        parent.setOptions({ tabBarStyle: { display: 'none' } });
+        parent.setOptions({ tabBarStyle: defaultTabBarStyle });
       };
     }, [navigation])
   );
