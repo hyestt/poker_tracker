@@ -336,13 +336,17 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	// ⚠️ 注意：分析結果不保存到後端資料庫，只返回給前端
 	// 前端會將結果保存到本地 SQLite
 
-	// 返回分析結果
+	// 解析為 sections
+	sections := services.ParseHandAnalysis(analysis)
+
+	// 返回分析結果（含 sections）
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	analysisDate := time.Now().Format(time.RFC3339)
-	response := map[string]string{
+	response := map[string]interface{}{
 		"analysis": analysis,
 		"date":     analysisDate,
+		"sections": sections,
 	}
 	json.NewEncoder(w).Encode(response)
 }

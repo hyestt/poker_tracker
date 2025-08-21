@@ -5,6 +5,8 @@ import { Hand } from '../models';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import revenueCatService from '../services/RevenueCatService';
 import { UserPreferencesService } from '../services/UserPreferences';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [analysis, setAnalysis] = useState<string>('');
@@ -14,6 +16,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [currentHand, setCurrentHand] = useState<Hand>(route.params.hand);
   const [quotaInfo, setQuotaInfo] = useState<{canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean} | null>(null);
   const { getHand, updateHand } = useSessionStore();
+  const insets = useSafeAreaInsets();
 
   console.log('AIAnalysisScreen mounted with hand:', currentHand);
   console.log('Hand has existing analysis:', !!currentHand.analysis);
@@ -22,16 +25,28 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     checkGTOQuotaAndLoadData();
   }, []);
 
-  // 在此頁隱藏底部 Tab Bar；離開時也維持隱藏，交由上一頁自行決定是否顯示
+  // 在此頁隱藏所有上層的 TabBar（包含多層 Navigator）
+  const setAllParentsTabBarDisplay = (display: 'none' | 'flex') => {
+    let parent: any = navigation?.getParent?.();
+    let depth = 0;
+    while (parent && depth < 5) {
+      try { parent.setOptions?.({ tabBarStyle: { display } }); } catch {}
+      parent = parent.getParent?.();
+      depth += 1;
+    }
+  };
+
   useEffect(() => {
-    const parent = navigation?.getParent?.();
-    if (!parent) {return;}
-    parent.setOptions({ tabBarStyle: { display: 'none' } });
-    return () => {
-      // 不主動恢復，以免返回手牌詳情時 TabBar 被顯示
-      parent.setOptions({ tabBarStyle: { display: 'none' } });
-    };
+    setAllParentsTabBarDisplay('none');
+    return () => setAllParentsTabBarDisplay('none');
   }, [navigation]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setAllParentsTabBarDisplay('none');
+      return () => setAllParentsTabBarDisplay('none');
+    }, [navigation])
+  );
 
   // 將 Re-analyze 放到右上角 header（在定義函式之後再設定）
 
@@ -71,27 +86,20 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         console.log('✅ Found cached analysis, displaying it');
         setAnalysis(latestHand.analysis);
         
-        // 檢查是否有已儲存的 sections 數據
-        let parsed: { summary: string; preflop: string; flop: string; turn: string; river: string };
-        
+        // 只使用後端提供或已存的 sections。若不存在，全部顯示於 Summary。
         if (latestHand.analysisSections) {
           try {
-            parsed = JSON.parse(latestHand.analysisSections);
-            console.log('📊 Using stored sections:', JSON.stringify(parsed, null, 2));
+            const parsed = JSON.parse(latestHand.analysisSections);
+            setSections(parsed);
           } catch (e) {
-            console.warn('Failed to parse stored sections, falling back to client parsing');
-            parsed = parseSectionsClient(latestHand.analysis);
+            console.warn('Failed to parse stored sections JSON, using Summary-only fallback');
+            setSections({ summary: latestHand.analysis, preflop: '', flop: '', turn: '', river: '' });
           }
         } else {
-          // 嘗試在前端解析舊的單頁分析為分段（備援）
-          console.log('📊 No stored sections, parsing on client side');
-          parsed = parseSectionsClient(latestHand.analysis);
-          console.log('📊 Client parsed sections:', JSON.stringify(parsed, null, 2));
+          setSections({ summary: latestHand.analysis, preflop: '', flop: '', turn: '', river: '' });
         }
-        
-        setSections(parsed);
         // 設定第一個有內容的分頁
-        setActiveTab(getFirstAvailableTab(parsed));
+        setActiveTab('summary');
         setLoading(false);
         return;
       }
@@ -176,8 +184,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       console.log('✅ Hand analysis updated and cached');
 
       setAnalysis(analysisResult.text);
-      // 如果後端已返回 sections，直接使用；否則在前端解析
-      const s = analysisResult.sections || parseSectionsClient(analysisResult.text);
+      // 僅使用後端 sections；缺失時以 Summary-only 呈現
+      const s = analysisResult.sections || { summary: analysisResult.text, preflop: '', flop: '', turn: '', river: '' };
       setSections(s);
       setActiveTab(getFirstAvailableTab(s));
     } catch (error) {
@@ -325,73 +333,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       Alert.alert('Error', 'Failed to reanalyze hand');
     }
   };
-  // ---------- Helpers: client-side parsing (fallback when backend sections not present) ----------
-  const cleanTrailingHeaders = (content: string): string => {
-    // Remove trailing headers like "## Flop", "Flop:", etc.
-    const headerPatterns = [
-      /^##\s*(Summary|Preflop|Flop|Turn|River)\s*$/gim,
-      /^(Summary|Preflop|Flop|Turn|River)\s*:\s*$/gim,
-      /^(Summary|Preflop|Flop|Turn|River)\s*$/gim,
-    ];
-    
-    let cleaned = content;
-    for (const pattern of headerPatterns) {
-      cleaned = cleaned.replace(pattern, '');
-    }
-    
-    return cleaned.trim();
-  };
-
-  const parseSectionsClient = (text: string): { summary: string; preflop: string; flop: string; turn: string; river: string } => {
-    const empty = { summary: '', preflop: '', flop: '', turn: '', river: '' };
-    if (!text) {return empty;}
-    
-    console.log('🔍 Parsing text:', text.substring(0, 200) + '...');
-    
-    // 1) Try strict JSON
-    try {
-      const obj = JSON.parse(text);
-      console.log('✅ Parsed as JSON');
-      return {
-        summary: String(obj.summary || ''),
-        preflop: String(obj.preflop || ''),
-        flop: String(obj.flop || ''),
-        turn: String(obj.turn || ''),
-        river: String(obj.river || ''),
-      };
-    } catch (e) {
-      console.log('❌ Not JSON, trying headings');
-    }
-    
-    // 2) Try headings ## Summary etc.
-    const map = { summary: '', preflop: '', flop: '', turn: '', river: '' } as { [k: string]: string };
-    const regex = /^##\s*(Summary|Preflop|Flop|Turn|River)\s*$/gim;
-    const indices: Array<{ key: string; start: number; end: number }> = [];
-    let m: RegExpExecArray | null;
-    while ((m = regex.exec(text)) !== null) {
-      indices.push({ key: m[1].toLowerCase(), start: m.index + m[0].length, end: -1 });
-    }
-    if (indices.length > 0) {
-      console.log('✅ Found headings:', indices.map(i => i.key));
-      for (let i = 0; i < indices.length; i++) {
-        const nextIndex = i + 1 < indices.length ? indices[i + 1].start : text.length;
-        const content = text.slice(indices[i].start, nextIndex);
-        // Clean trailing headers before storing
-        map[indices[i].key] = cleanTrailingHeaders(content);
-      }
-      return {
-        summary: map.summary || '',
-        preflop: map.preflop || '',
-        flop: map.flop || '',
-        turn: map.turn || '',
-        river: map.river || '',
-      };
-    }
-    
-    console.log('❌ No headings found, using fallback - putting all content in Summary');
-    // 3) Fallback: dump all into summary
-    return { summary: text.trim(), preflop: '', flop: '', turn: '', river: '' };
-  };
+  // 前端備援解析已移除：新手牌僅依賴後端 sections；無 sections 時以 Summary-only 呈現
 
   const getFirstAvailableTab = (s: { summary: string; preflop: string; flop: string; turn: string; river: string }) => {
     if (s.summary?.trim()) {return 'summary' as const;}
@@ -557,38 +499,8 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
 
   return (
     <View style={styles.container}>
-      {/* Tabs */}
-      {sections && (
-        <View style={styles.tabBar}>
-          {(
-            [
-              { key: 'summary', label: 'Summary' },
-              { key: 'preflop', label: 'Preflop' },
-              { key: 'flop', label: 'Flop' },
-              { key: 'turn', label: 'Turn' },
-              { key: 'river', label: 'River' },
-            ] as const
-          ).map((t) => {
-            const disabled = !((sections as any)[t.key]?.trim());
-            const isActive = activeTab === (t.key as any);
-            return (
-              <TouchableOpacity
-                key={t.key}
-                style={[styles.tabItem, isActive && styles.tabItemActive, disabled && styles.tabItemDisabled]}
-                onPress={() => !disabled && setActiveTab(t.key as any)}
-                disabled={disabled}
-              >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive, disabled && styles.tabTextDisabled]}>
-                  {t.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
-
       {/* Content */}
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={[styles.scrollContent, { paddingBottom: theme.spacing.xl * 3 + Math.max(insets.bottom, theme.spacing.lg) }]}>
         {/* Hand Summary */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Hand Summary</Text>
@@ -631,6 +543,36 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
           </View>
         </View>
       </ScrollView>
+
+      {/* Bottom Tabs */}
+      {sections && (
+        <View style={[styles.bottomTabBar, { paddingBottom: Math.max(insets.bottom, theme.spacing.sm) }]}>
+          {(
+            [
+              { key: 'summary', label: 'Summary' },
+              { key: 'preflop', label: 'Preflop' },
+              { key: 'flop', label: 'Flop' },
+              { key: 'turn', label: 'Turn' },
+              { key: 'river', label: 'River' },
+            ] as const
+          ).map((t) => {
+            const disabled = !((sections as any)[t.key]?.trim());
+            const isActive = activeTab === (t.key as any);
+            return (
+              <TouchableOpacity
+                key={t.key}
+                style={[styles.tabItem, isActive && styles.tabItemActive, disabled && styles.tabItemDisabled]}
+                onPress={() => !disabled && setActiveTab(t.key as any)}
+                disabled={disabled}
+              >
+                <Text style={[styles.tabText, isActive && styles.tabTextActive, disabled && styles.tabTextDisabled]}>
+                  {t.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
 
     </View>
   );
@@ -831,13 +773,21 @@ const styles = StyleSheet.create({
   analysisContent: {
     flex: 1,
   },
-  tabBar: {
+  bottomTabBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: theme.spacing.xs,
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.sm,
-    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.background,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    zIndex: 10,
   },
   tabItem: {
     flex: 1,
