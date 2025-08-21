@@ -383,6 +383,29 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     return map[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
   };
 
+  // 以花色顏色渲染撲克牌文字（♠黑、♥紅、♦藍、♣綠）
+  const renderColoredCardsText = (value?: string) => {
+    if (!value || !value.trim()) return 'Unknown';
+    const colorMap: Record<string, string> = {
+      '♠': '#FFFFFF', // 黑桃
+      '♥': '#FF4C4C', // 紅心
+      '♦': '#FF4C4C', // 方塊
+      '♣': '#4CAF50', // 梅花
+    };
+    const tokens = value.split(/\s+/).filter(Boolean);
+    const nodes: React.ReactNode[] = [];
+    tokens.forEach((tok, idx) => {
+      const suit = tok.slice(-1);
+      const rank = tok.slice(0, -1);
+      const color = colorMap[suit] || theme.colors.primary;
+      nodes.push(
+        <Text key={`c-${idx}`} style={{ color }}>{rank}{suit}</Text>
+      );
+      if (idx < tokens.length - 1) nodes.push(<Text key={`c-sp-${idx}`}> </Text>);
+    });
+    return nodes;
+  };
+
   // 以標籤區塊方式渲染（優先）：支援「物件 JSON」與「標籤字串」兩種格式
   const renderStructuredAnalysis = (input: any) => {
     if (!input) {return null;}
@@ -736,11 +759,11 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Hole Cards:</Text>
-            <Text style={styles.summaryValue}>{currentHand.holeCards || 'Unknown'}</Text>
+            <Text style={styles.summaryValue}>{renderColoredCardsText(currentHand.holeCards)}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Board:</Text>
-            <Text style={styles.summaryValue}>{currentHand.board || 'No board shown'}</Text>
+            <Text style={styles.summaryValue}>{renderColoredCardsText(currentHand.board)}</Text>
           </View>
         </View>
 
