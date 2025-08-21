@@ -779,17 +779,9 @@ export const useSessionStore = create<State>((set, get) => ({
       const firstLaunchCompleted = await AsyncStorage.getItem('first_launch_completed');
 
       if (!firstLaunchCompleted) {
-        console.log('🎉 First launch detected, creating welcome demo data...');
-
-        // 檢查歡迎數據是否已存在（避免重複創建）
-        const welcomeDataExists = await WelcomeDemoService.checkIfWelcomeDataExists();
-
-        if (!welcomeDataExists) {
-          await WelcomeDemoService.createWelcomeData();
-          console.log('✅ Welcome demo data created successfully');
-        } else {
-          console.log('✅ Welcome demo data already exists');
-        }
+        console.log('🎉 First launch detected, recreating welcome demo data...');
+        await WelcomeDemoService.recreateWelcomeData();
+        console.log('✅ Welcome demo data recreated successfully');
 
         // 標記首次啟動已完成
         await AsyncStorage.setItem('first_launch_completed', 'true');

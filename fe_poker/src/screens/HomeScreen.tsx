@@ -9,6 +9,7 @@ import revenueCatService from '../services/RevenueCatService';
 
 const filterOptions = [
   { key: 'all', label: 'All Hands' },
+  { key: 'analyzed', label: 'Analyzed' },
   { key: 'favorites', label: 'Starred ⭐' },
   { key: 'recent', label: 'Recent' },
   { key: 'profitable', label: 'Profitable' },
@@ -184,6 +185,18 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     // Other filters
     switch (selectedFilter) {
+      case 'analyzed':
+        console.log('🔍 Applying analyzed filter. Total hands before filter:', filtered.length);
+        const analyzedHands = filtered.filter(hand => {
+          const hasAnalysis = hand.analysis && hand.analysis.trim() !== '';
+          if (hasAnalysis) {
+            console.log('✅ Found analyzed hand:', hand.id, hand.analysis?.substring(0, 50) + '...');
+          }
+          return hasAnalysis;
+        });
+        console.log('📊 Analyzed hands found:', analyzedHands.length);
+        filtered = analyzedHands;
+        break;
       case 'recent':
         filtered = filtered.slice(-10);
         break;
@@ -510,7 +523,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       styles.filterDropdownText,
                       selectedFilter === option.key && styles.selectedFilterDropdownText,
                     ]}>
-                      {option.key === 'favorites' ? 'Starred' : option.label}
+                      {option.key === 'favorites' ? 'Starred' : 
+                       option.key === 'analyzed' ? 'Analyzed' : option.label}
                     </Text>
                     {option.key === 'favorites' && (
                       <Text style={[
@@ -518,6 +532,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                         selectedFilter === option.key && styles.selectedFilterDropdownText,
                       ]}>
                         ⭐
+                      </Text>
+                    )}
+                    {option.key === 'analyzed' && (
+                      <Text style={[
+                        styles.filterDropdownStar,
+                        selectedFilter === option.key && styles.selectedFilterDropdownText,
+                      ]}>
+                        📊
                       </Text>
                     )}
                   </View>
