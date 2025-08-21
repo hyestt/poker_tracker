@@ -11,7 +11,7 @@ export class DatabaseService {
   private static isInitialized: boolean = false;
   private static isInitializing: boolean = false;
   private static readonly DB_NAME = 'poker_tracker.db';
-  private static readonly DB_VERSION = '1.1';
+  private static readonly DB_VERSION = '1.2';
   private static readonly DB_DISPLAY_NAME = 'LiveHand Database';
   private static readonly DB_SIZE = 200000;
 
@@ -83,6 +83,7 @@ export class DatabaseService {
         date TEXT,
         analysis TEXT,
         analysis_date TEXT,
+        analysis_sections TEXT,
         hole_cards TEXT,
         position TEXT,
         is_favorite INTEGER DEFAULT 0,
@@ -122,6 +123,10 @@ export class DatabaseService {
       if (!handsColumns.has('created_at')) {
         console.log('Adding created_at column to hands table');
         await this.db.executeSql('ALTER TABLE hands ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP');
+      }
+      if (!handsColumns.has('analysis_sections')) {
+        console.log('Adding analysis_sections column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN analysis_sections TEXT');
       }
 
       if (!handsColumns.has('updated_at')) {
@@ -323,6 +328,7 @@ export class DatabaseService {
         date: row.date || '',
         analysis: row.analysis || '',
         analysisDate: row.analysis_date || '',
+        analysisSections: row.analysis_sections || '',
         holeCards: row.hole_cards || '',
         position: row.position || '',
         favorite: Boolean(row.is_favorite),
@@ -378,6 +384,7 @@ export class DatabaseService {
       date: row.date || '',
       analysis: row.analysis || '',
       analysisDate: row.analysis_date || '',
+      analysisSections: row.analysis_sections || '',
       holeCards: row.hole_cards || '',
       position: row.position || '',
       favorite: Boolean(row.is_favorite),
@@ -397,10 +404,10 @@ export class DatabaseService {
     console.log('🗃️ DatabaseService.insertHand called with:', { id: hand.id, result: hand.result, sessionId: hand.sessionId });
 
     const sql = `
-      INSERT INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, 
+      INSERT INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, analysis_sections,
                         hole_cards, position, is_favorite, tag, board, note, villains, tags,
                         created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `;
 
     // 序列化 villains 和 tags
@@ -415,6 +422,7 @@ export class DatabaseService {
       hand.date,
       hand.analysis || '',
       hand.analysisDate || '',
+      hand.analysisSections || '',
       hand.holeCards || '',
       hand.position || '',
       hand.favorite ? 1 : 0,
@@ -433,7 +441,7 @@ export class DatabaseService {
 
     const sql = `
       UPDATE hands 
-      SET session_id = ?, details = ?, result_amount = ?, date = ?, analysis = ?, analysis_date = ?,
+      SET session_id = ?, details = ?, result_amount = ?, date = ?, analysis = ?, analysis_date = ?, analysis_sections = ?,
           hole_cards = ?, position = ?, is_favorite = ?, tag = ?, board = ?, note = ?, villains = ?, tags = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
@@ -450,6 +458,7 @@ export class DatabaseService {
       hand.date,
       hand.analysis || '',
       hand.analysisDate || '',
+      hand.analysisSections || '',
       hand.holeCards || '',
       hand.position || '',
       hand.favorite ? 1 : 0,
@@ -619,10 +628,10 @@ export class DatabaseService {
     await this.db.transaction(async (tx: any) => {
       for (const hand of hands) {
         const sql = `
-          INSERT OR REPLACE INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, 
+          INSERT OR REPLACE INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, analysis_sections,
                                       hole_cards, position, is_favorite, tag, board, note, villains,
                                       created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
                   COALESCE(?, CURRENT_TIMESTAMP), CURRENT_TIMESTAMP)
         `;
 
@@ -636,6 +645,7 @@ export class DatabaseService {
           hand.date,
           hand.analysis || '',
           hand.analysisDate || '',
+          hand.analysisSections || '',
           hand.holeCards || '',
           hand.position || '',
           hand.favorite ? 1 : 0,

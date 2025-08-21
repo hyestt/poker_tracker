@@ -492,6 +492,7 @@ export const useSessionStore = create<State>((set, get) => ({
           result: data.result || 0,
           analysis: data.analysis || '',
           analysisDate: data.analysisDate || '',
+          analysisSections: data.analysisSections || '',
           favorite: data.favorite || false,
           tag: data.tag || '',
           villains: data.villains || [],

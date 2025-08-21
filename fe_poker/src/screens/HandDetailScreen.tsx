@@ -63,7 +63,8 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
       return () => {
         unsubscribeTransition?.();
-        parent.setOptions({ tabBarStyle: defaultTabBarStyle });
+        // 不在此恢復 TabBar，避免子頁（如 AIAnalysis）顯示時被搶回
+        parent.setOptions({ tabBarStyle: { display: 'none' } });
       };
     }, [navigation])
   );
@@ -375,7 +376,9 @@ Shared from LiveHand`;
           ]}
         >
           <Text style={styles.primaryButtonText}>
-            GTO Analysis{gtoQuotaInfo && !gtoQuotaInfo.isPremium && gtoQuotaInfo.remainingFree >= 0 && ` (${gtoQuotaInfo.remainingFree})`}
+            {hand.analysis
+              ? 'View GTO Analysis'
+              : `GTO Analysis${gtoQuotaInfo && !gtoQuotaInfo.isPremium && gtoQuotaInfo.remainingFree >= 0 ? ` (${gtoQuotaInfo.remainingFree})` : ''}`}
           </Text>
         </TouchableOpacity>
       </View>

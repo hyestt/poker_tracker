@@ -37,8 +37,14 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
 
   useEffect(() => {
-    setAllParentsTabBarDisplay('none');
-    return () => setAllParentsTabBarDisplay('none');
+    // 進入與離開都強制隱藏
+    const hide = () => setAllParentsTabBarDisplay('none');
+    hide();
+    const unsub = navigation.addListener('state', hide);
+    return () => {
+      unsub?.();
+      hide();
+    };
   }, [navigation]);
 
   useFocusEffect(
@@ -86,22 +92,27 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         console.log('✅ Found cached analysis, displaying it');
         setAnalysis(latestHand.analysis);
         
-        // 只使用後端提供或已存的 sections。若不存在，全部顯示於 Summary。
-        if (latestHand.analysisSections) {
+        // 使用已存的 sections（本地 SQLite 或 API 回存）
+        if (latestHand.analysisSections && latestHand.analysisSections.trim()) {
           try {
             const parsed = JSON.parse(latestHand.analysisSections);
             setSections(parsed);
+            setActiveTab(getFirstAvailableTab(parsed));
+            setLoading(false);
+            return;
           } catch (e) {
             console.warn('Failed to parse stored sections JSON, using Summary-only fallback');
             setSections({ summary: latestHand.analysis, preflop: '', flop: '', turn: '', river: '' });
+            setActiveTab('summary');
+            setLoading(false);
+            return;
           }
         } else {
           setSections({ summary: latestHand.analysis, preflop: '', flop: '', turn: '', river: '' });
+          setActiveTab('summary');
+          setLoading(false);
+          return;
         }
-        // 設定第一個有內容的分頁
-        setActiveTab('summary');
-        setLoading(false);
-        return;
       }
 
       // 沒有緩存的分析，執行新分析
@@ -356,7 +367,101 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     });
   }, [navigation, handleReanalyze]);
 
-  // 渲染 markdown 格式的分析結果
+  // 以標籤區塊方式渲染（優先）：Rating 放最前，之後 Player Action / GTO Recommendation / Frequencies / Summary
+  const renderStructuredAnalysis = (text: string) => {
+    if (!text) {return null;}
+
+    // 將文本切成區塊
+    const labels = ['Rating', 'Rating & Summary', 'Player Action', 'GTO Recommendation', 'Frequencies', 'Summary'];
+    const labelRegex = /^(Rating(?:\s*&\s*Summary)?|Player Action|GTO Recommendation|Frequencies|Summary)\s*:\s*(.*)$/i;
+
+    type Block = { key: string; content: string[] };
+    const blocks: Record<string, Block> = {};
+    let currentKey: string | null = null;
+
+    const rawLines = text.split(/\r?\n/);
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i];
+      const m = line.match(labelRegex);
+      if (m) {
+        const key = m[1].toLowerCase();
+        currentKey = key;
+        const firstLine = m[2]?.trim() ? [m[2].trim()] : [];
+        blocks[key] = { key, content: firstLine };
+      } else if (currentKey) {
+        blocks[currentKey].content.push(line);
+      }
+    }
+
+    // 如果解析不到任何標籤（行首），嘗試在整段文字中以行內方式切割
+    if (Object.keys(blocks).length === 0) {
+      const inlineRe = /(Rating\s*&\s*Summary|Rating|Player Action|GTO Recommendation|Frequencies|Summary)\s*:/gi;
+      const matches: Array<{ key: string; start: number }> = [];
+      let m: RegExpExecArray | null;
+      while ((m = inlineRe.exec(text)) !== null) {
+        matches.push({ key: m[1].toLowerCase(), start: m.index });
+      }
+      if (matches.length > 0) {
+        for (let i = 0; i < matches.length; i++) {
+          const start = matches[i].start;
+          const end = i + 1 < matches.length ? matches[i + 1].start : text.length;
+          const key = matches[i].key;
+          const seg = text.slice(start, end);
+          const content = seg.replace(/^(?:[\s\S]*?)\s*:\s*/i, '');
+          blocks[key] = { key, content: [content.trim()] };
+        }
+      } else {
+        return renderFormattedAnalysis(text);
+      }
+    }
+
+    const order = ['rating', 'rating & summary', 'player action', 'gto recommendation', 'frequencies', 'summary'];
+    const nodes: React.ReactNode[] = [];
+
+    const normalizeFrequencies = (s: string) => {
+      // 把內嵌的 " - " 轉成換行條列
+      return s.replace(/\s*-\s+/g, '\n- ');
+    };
+
+    const pushBlock = (title: string, key: string) => {
+      const b = blocks[key];
+      if (!b || !b.content.join('\n').trim()) {return;}
+      nodes.push(
+        <Text key={`h-${key}`} style={[styles.analysisSubTitle, { marginTop: nodes.length ? theme.spacing.md : 0 }]}>
+          {title}
+        </Text>
+      );
+
+      let contentText = b.content.join('\n').trim();
+      if (key === 'frequencies') {
+        contentText = normalizeFrequencies(contentText);
+      }
+      // 若為頻率條列，行內本來就有 "- Key: xx%"，沿用通用渲染
+      nodes.push(
+        <View key={`c-${key}`}>
+          {renderFormattedAnalysis(contentText)}
+        </View>
+      );
+    };
+
+    for (const k of order) {
+      if (k === 'rating') {
+        // Rating 或 Rating & Summary 任一存在都優先顯示
+        if (blocks['rating']) pushBlock('Rating', 'rating');
+        else if (blocks['rating & summary']) pushBlock('Rating', 'rating & summary');
+        continue;
+      }
+      if (k === 'rating & summary') continue; // 已處理
+      if (k === 'player action') pushBlock('Player Action', 'player action');
+      if (k === 'gto recommendation') pushBlock('GTO Recommendation', 'gto recommendation');
+      if (k === 'frequencies') pushBlock('Frequencies', 'frequencies');
+      if (k === 'summary') pushBlock('Summary', 'summary');
+    }
+
+    return nodes;
+  };
+
+  // 通用的行級格式渲染
   const renderFormattedAnalysis = (text: string) => {
     if (!text) {return null;}
 
@@ -513,13 +618,8 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
             <Text style={styles.summaryValue}>{currentHand.holeCards || 'Unknown'}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Result:</Text>
-            <Text style={[
-              styles.summaryValue,
-              { color: currentHand.result >= 0 ? theme.colors.profit : theme.colors.loss },
-            ]}>
-              {currentHand.result >= 0 ? '+' : ''}${currentHand.result}
-            </Text>
+            <Text style={styles.summaryLabel}>Board:</Text>
+            <Text style={styles.summaryValue}>{currentHand.board || 'No board shown'}</Text>
           </View>
         </View>
 
@@ -529,14 +629,14 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
           <View style={styles.analysisContent}>
             {sections ? (
               <>
-                {activeTab === 'summary' && renderFormattedAnalysis(sections.summary)}
-                {activeTab === 'preflop' && renderFormattedAnalysis(sections.preflop)}
-                {activeTab === 'flop' && renderFormattedAnalysis(sections.flop)}
-                {activeTab === 'turn' && renderFormattedAnalysis(sections.turn)}
-                {activeTab === 'river' && renderFormattedAnalysis(sections.river)}
+                {activeTab === 'summary' && renderStructuredAnalysis(sections.summary)}
+                {activeTab === 'preflop' && renderStructuredAnalysis(sections.preflop)}
+                {activeTab === 'flop' && renderStructuredAnalysis(sections.flop)}
+                {activeTab === 'turn' && renderStructuredAnalysis(sections.turn)}
+                {activeTab === 'river' && renderStructuredAnalysis(sections.river)}
               </>
             ) : (
-              analysis ? renderFormattedAnalysis(analysis) : (
+              analysis ? renderStructuredAnalysis(analysis) : (
                 <Text style={styles.analysisText}>Analysis is being generated...</Text>
               )
             )}
@@ -546,31 +646,37 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
 
       {/* Bottom Tabs */}
       {sections && (
-        <View style={[styles.bottomTabBar, { paddingBottom: Math.max(insets.bottom, theme.spacing.sm) }]}>
-          {(
-            [
-              { key: 'summary', label: 'Summary' },
-              { key: 'preflop', label: 'Preflop' },
-              { key: 'flop', label: 'Flop' },
-              { key: 'turn', label: 'Turn' },
-              { key: 'river', label: 'River' },
-            ] as const
-          ).map((t) => {
-            const disabled = !((sections as any)[t.key]?.trim());
-            const isActive = activeTab === (t.key as any);
-            return (
-              <TouchableOpacity
-                key={t.key}
-                style={[styles.tabItem, isActive && styles.tabItemActive, disabled && styles.tabItemDisabled]}
-                onPress={() => !disabled && setActiveTab(t.key as any)}
-                disabled={disabled}
-              >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive, disabled && styles.tabTextDisabled]}>
-                  {t.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={[styles.bottomTabBarContainer, { paddingBottom: Math.max(insets.bottom, 6) }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.bottomTabBar}
+          >
+            {(
+              [
+                { key: 'summary', label: 'Summary' },
+                { key: 'preflop', label: 'Preflop' },
+                { key: 'flop', label: 'Flop' },
+                { key: 'turn', label: 'Turn' },
+                { key: 'river', label: 'River' },
+              ] as const
+            ).map((t) => {
+              const disabled = !((sections as any)[t.key]?.trim());
+              const isActive = activeTab === (t.key as any);
+              return (
+                <TouchableOpacity
+                  key={t.key}
+                  style={[styles.tabItem, isActive && styles.tabItemActive, disabled && styles.tabItemDisabled]}
+                  onPress={() => !disabled && setActiveTab(t.key as any)}
+                  disabled={disabled}
+                >
+                  <Text style={[styles.tabText, isActive && styles.tabTextActive, disabled && styles.tabTextDisabled]}>
+                    {t.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
       )}
 
@@ -773,45 +879,50 @@ const styles = StyleSheet.create({
   analysisContent: {
     flex: 1,
   },
-  bottomTabBar: {
+  bottomTabBarContainer: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: theme.spacing.sm,
     backgroundColor: theme.colors.background,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
     zIndex: 10,
   },
-  tabItem: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: theme.colors.inputBg,
+  bottomTabBar: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.xs,
+  },
+  tabItem: {
+    paddingVertical: 8,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   tabItemActive: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
   },
   tabItemDisabled: {
-    opacity: 0.4,
+    opacity: 0.35,
   },
   tabText: {
-    color: theme.colors.text,
+    color: '#E5E7EB',
     fontSize: theme.font.size.small,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   tabTextActive: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
   tabTextDisabled: {
-    color: theme.colors.gray,
+    color: '#9CA3AF',
   },
   analysisMainTitle: {
     fontSize: theme.font.size.title,

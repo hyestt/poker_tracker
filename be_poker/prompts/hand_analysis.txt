@@ -77,8 +77,8 @@ Also describe the River card
 ...(if applicable)
 
 ---------------------------
-CRITICAL JSON OUTPUT REQUIREMENT:
-After completing your analysis above, you MUST also output the same content in strict JSON format using these exact keys:
+CRITICAL JSON OUTPUT REQUIREMENT (DO NOT OMIT FREQUENCIES OR RATINGS):
+After completing your analysis above, you MUST also output the SAME CONTENT in strict JSON format using these exact keys:
 {
   "summary": "Your Summary section content",
   "preflop": "Your Preflop section content", 
@@ -89,7 +89,31 @@ After completing your analysis above, you MUST also output the same content in s
 
 Requirements:
 - All values must be strings
-- Include only the content, not the section headers
-- If a section has no content, use empty string ""
+- Include only the content, not the H2 headers
+- If a street has no cards/information, use empty string ""
 - No additional text outside the JSON
 - JSON must be valid and parseable
+
+Per-section content FORMAT (MANDATORY):
+- Each non-empty street (and Summary) MUST include the following labeled blocks in order:
+  1) "Player Action:" — 1–3 sentences
+  2) "GTO Recommendation:" — 1–3 sentences
+  3) "Frequencies:" — exact bullet lines that sum to 100%
+     • Preflop example bullets (use only those that apply):
+       - Raise 3X: 70%
+       - Raise 5X: 25%
+       - Check: 5%
+       - Fold: 0%
+     • Postflop example bullets (use only those that apply):
+       - Check: 45%
+       - Bet 33%: 30%
+       - Bet 50%: 20%
+       - Bet 75%: 5%
+       - Bet 100%: 0%
+  4) "Rating:" — a 1–5 star string using emojis, e.g., ⭐⭐⭐⭐
+  5) "Summary:" — 1–2 sentences explaining why and any improvement notes
+
+Important:
+- Do NOT replace bullets with tables. Use hyphen bullets exactly as shown ("- Key: 10%").
+- Ensure the percentages sum to 100% per street.
+- Stars must be emoji characters (⭐), not numbers.
