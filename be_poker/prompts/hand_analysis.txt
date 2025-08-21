@@ -80,11 +80,37 @@ Also describe the River card
 CRITICAL JSON OUTPUT REQUIREMENT (DO NOT OMIT FREQUENCIES OR RATINGS):
 After completing your analysis above, you MUST also output the SAME CONTENT in strict JSON format using these exact keys:
 {
-  "summary": "Your Summary section content",
-  "preflop": "Your Preflop section content", 
-  "flop": "Your Flop section content",
-  "turn": "Your Turn section content",
-  "river": "Your River section content"
+  "summary": {
+    "rating": "⭐⭐⭐⭐",                        // overall star rating (emoji)
+    "summary": "1-3 sentences overview"
+  },
+  "preflop": {
+    "player_action": "1-3 sentences",
+    "recommendation": "1-3 sentences",
+    "frequencies": {                           // sum must be 100
+      "raise_3x": "70%",
+      "raise_5x": "25%",
+      "check": "5%",
+      "fold": "0%"
+    },
+    "rating": "⭐⭐⭐⭐",
+    "summary": "1-2 sentences"
+  },
+  "flop": {
+    "player_action": "",
+    "recommendation": "",
+    "frequencies": {
+      "check": "45%",
+      "bet_33": "30%",
+      "bet_50": "20%",
+      "bet_75": "5%",
+      "bet_100": "0%"
+    },
+    "rating": "",
+    "summary": ""
+  },
+  "turn": { ... same keys ... },
+  "river": { ... same keys ... }
 }
 
 Requirements:
@@ -94,24 +120,11 @@ Requirements:
 - No additional text outside the JSON
 - JSON must be valid and parseable
 
-Per-section content FORMAT (MANDATORY):
-- Each non-empty street (and Summary) MUST include the following labeled blocks in order:
-  1) "Player Action:" — 1–3 sentences
-  2) "GTO Recommendation:" — 1–3 sentences
-  3) "Frequencies:" — exact bullet lines that sum to 100%
-     • Preflop example bullets (use only those that apply):
-       - Raise 3X: 70%
-       - Raise 5X: 25%
-       - Check: 5%
-       - Fold: 0%
-     • Postflop example bullets (use only those that apply):
-       - Check: 45%
-       - Bet 33%: 30%
-       - Bet 50%: 20%
-       - Bet 75%: 5%
-       - Bet 100%: 0%
-  4) "Rating:" — a 1–5 star string using emojis, e.g., ⭐⭐⭐⭐
-  5) "Summary:" — 1–2 sentences explaining why and any improvement notes
+Per-section JSON rules (MANDATORY):
+- Keys must be exactly: player_action, recommendation, frequencies, rating, summary.
+- Frequencies object keys must be snake_case (e.g., bet_33, bet_50, bet_75, bet_100, check, raise_3x, raise_5x, fold...)
+- Percentages must be strings with a trailing % sign and sum to 100 for that street.
+- Use empty string "" for any missing field; do NOT omit keys.
 
 Important:
 - Do NOT replace bullets with tables. Use hyphen bullets exactly as shown ("- Key: 10%").

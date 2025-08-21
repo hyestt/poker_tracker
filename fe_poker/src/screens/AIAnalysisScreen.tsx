@@ -367,52 +367,173 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     });
   }, [navigation, handleReanalyze]);
 
-  // 以標籤區塊方式渲染（優先）：Rating 放最前，之後 Player Action / GTO Recommendation / Frequencies / Summary
-  const renderStructuredAnalysis = (text: string) => {
+  // 將頻率 key 轉為友好顯示
+  const frequencyLabel = (key: string) => {
+    const map: Record<string, string> = {
+      raise_3x: 'Raise 3X',
+      raise_5x: 'Raise 5X',
+      check: 'Check',
+      fold: 'Fold',
+      bet_33: 'Bet 33%',
+      bet_50: 'Bet 50%',
+      bet_75: 'Bet 75%',
+      bet_100: 'Bet 100%',
+      overbet: 'Overbet',
+    };
+    return map[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+  };
+
+  // 以標籤區塊方式渲染（優先）：支援「物件 JSON」與「標籤字串」兩種格式
+  const renderStructuredAnalysis = (input: any) => {
+    if (!input) {return null;}
+
+    // 若為 JSON 字串，先嘗試解析
+    if (typeof input === 'string') {
+      const trimmed = input.trim();
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        try { return renderFromObject(JSON.parse(trimmed)); } catch {}
+      }
+      // 否則走字串標籤解析
+      return renderFromLabeledString(trimmed);
+    }
+
+    // 若為物件，直接渲染
+    if (typeof input === 'object') {
+      return renderFromObject(input);
+    }
+
+    return null;
+  };
+
+  const renderFromObject = (obj: any) => {
+    const nodes: React.ReactNode[] = [];
+
+    const pushText = (title: string, value?: string) => {
+      if (!value || !String(value).trim()) return;
+      nodes.push(
+        <Text key={`h-${title}`} style={[styles.analysisSubTitle, { marginTop: nodes.length ? theme.spacing.md : 0 }]}>
+          {title}
+        </Text>
+      );
+      nodes.push(
+        <Text key={`c-${title}`} style={styles.analysisText}>{value}</Text>
+      );
+    };
+
+    // Rating 置頂（Summary 或街道）
+    if (obj.rating) {
+      nodes.push(
+        <Text key={`rating`} style={[styles.analysisSubTitle, { marginTop: 0 }]}>Rating</Text>
+      );
+      nodes.push(<Text key={`rating-val`} style={styles.analysisText}>{String(obj.rating)}</Text>);
+    }
+
+    // Player Action / Recommendation
+    pushText('Player Action', obj.player_action);
+    pushText('GTO Recommendation', obj.recommendation);
+
+    // Frequencies 物件
+    if (obj.frequencies && typeof obj.frequencies === 'object') {
+      const entries = Object.entries(obj.frequencies as Record<string, string>).filter(([, v]) => String(v).trim());
+      if (entries.length > 0) {
+        nodes.push(
+          <Text key={`freq-h`} style={[styles.analysisSubTitle, { marginTop: nodes.length ? theme.spacing.md : 0 }]}>Frequencies</Text>
+        );
+        entries.forEach(([k, v], idx) => {
+          nodes.push(
+            <View key={`freq-${idx}`} style={styles.listItemContainer}>
+              <Text style={styles.bulletPoint}>•</Text>
+              <Text style={styles.analysisListItem}>{`${frequencyLabel(k)}: ${String(v)}`}</Text>
+            </View>
+          );
+        });
+      }
+    }
+
+    // Summary（街道/總結）
+    pushText('Summary', obj.summary);
+
+    return nodes.length ? nodes : null;
+  };
+
+  const renderFromLabeledString = (text: string) => {
     if (!text) {return null;}
 
     // 將文本切成區塊
     const labels = ['Rating', 'Rating & Summary', 'Player Action', 'GTO Recommendation', 'Frequencies', 'Summary'];
-    const labelRegex = /^(Rating(?:\s*&\s*Summary)?|Player Action|GTO Recommendation|Frequencies|Summary)\s*:\s*(.*)$/i;
+    // 支援多種別名：Overall / Action / Recommendation / (Betting) Frequencies
+    const labelRegex = /^(Overall|Rating(?:\s*&\s*Summary)?|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies|Summary)\s*:\s*(.*)$/i;
 
     type Block = { key: string; content: string[] };
     const blocks: Record<string, Block> = {};
     let currentKey: string | null = null;
 
-    const rawLines = text.split(/\r?\n/);
+    // 文本正規化：合併換行分裂的標籤
+    let normalized = text
+      .replace(/GTO\s*\n\s*Recommendation\s*:/gi, 'GTO Recommendation:')
+      .replace(/Player\s*\n\s*Action\s*:/gi, 'Player Action:')
+      .replace(/Rating\s*&\s*\n\s*Summary\s*:/gi, 'Rating & Summary:')
+      .replace(/Betting\s*\n\s*Frequencies\s*:/gi, 'Betting Frequencies:');
+
+    // 先處理明顯的 Overall 行（如 "Overall: ⭐⭐⭐⭐ ..."）
+    const overallMatch = normalized.match(/^Overall\s*:\s*([⭐\s]+)([\s\S]*)$/i);
+    if (overallMatch) {
+      const stars = (overallMatch[1] || '').trim();
+      const rest = (overallMatch[2] || '').trim();
+      if (stars) {
+        blocks['rating'] = { key: 'rating', content: [stars] };
+      }
+      if (rest) {
+        blocks['summary'] = { key: 'summary', content: [rest] };
+      }
+    }
+
+    // 先進行全局掃描（比逐行更穩定）
+    const inlineRe = /(Overall|Rating\s*&\s*Summary|Rating|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies|Summary)\s*:/gi;
+    const matches: Array<{ key: string; start: number }> = [];
+    let mm: RegExpExecArray | null;
+    while ((mm = inlineRe.exec(normalized)) !== null) {
+      let k = mm[1].toLowerCase();
+      if (k === 'action') k = 'player action';
+      if (k === 'recommendation') k = 'gto recommendation';
+      if (k === 'frequency' || k === 'betting frequencies') k = 'frequencies';
+      if (k === 'overall') k = 'rating & summary';
+      matches.push({ key: k, start: mm.index });
+    }
+    if (matches.length > 0) {
+      for (let i = 0; i < matches.length; i++) {
+        const start = matches[i].start;
+        const end = i + 1 < matches.length ? matches[i + 1].start : normalized.length;
+        const key = matches[i].key;
+        const seg = normalized.slice(start, end);
+        const content = seg.replace(/^(?:[\s\S]*?)\s*:\s*/i, '');
+        blocks[key] = { key, content: [content.trim()] };
+      }
+    }
+
+    // 再逐行補漏
+    const rawLines = normalized.split(/\r?\n/);
     for (let i = 0; i < rawLines.length; i++) {
       const line = rawLines[i];
       const m = line.match(labelRegex);
       if (m) {
-        const key = m[1].toLowerCase();
+        let key = m[1].toLowerCase();
+        // 別名標籤正規化
+        if (key === 'action') key = 'player action';
+        if (key === 'recommendation') key = 'gto recommendation';
+        if (key === 'frequency' || key === 'betting frequencies') key = 'frequencies';
+        if (key === 'overall') key = 'rating & summary';
         currentKey = key;
         const firstLine = m[2]?.trim() ? [m[2].trim()] : [];
-        blocks[key] = { key, content: firstLine };
+        if (!blocks[key]) blocks[key] = { key, content: [] };
+        blocks[key].content.push(...firstLine);
       } else if (currentKey) {
         blocks[currentKey].content.push(line);
       }
     }
 
-    // 如果解析不到任何標籤（行首），嘗試在整段文字中以行內方式切割
     if (Object.keys(blocks).length === 0) {
-      const inlineRe = /(Rating\s*&\s*Summary|Rating|Player Action|GTO Recommendation|Frequencies|Summary)\s*:/gi;
-      const matches: Array<{ key: string; start: number }> = [];
-      let m: RegExpExecArray | null;
-      while ((m = inlineRe.exec(text)) !== null) {
-        matches.push({ key: m[1].toLowerCase(), start: m.index });
-      }
-      if (matches.length > 0) {
-        for (let i = 0; i < matches.length; i++) {
-          const start = matches[i].start;
-          const end = i + 1 < matches.length ? matches[i + 1].start : text.length;
-          const key = matches[i].key;
-          const seg = text.slice(start, end);
-          const content = seg.replace(/^(?:[\s\S]*?)\s*:\s*/i, '');
-          blocks[key] = { key, content: [content.trim()] };
-        }
-      } else {
-        return renderFormattedAnalysis(text);
-      }
+      return renderFormattedAnalysis(normalized);
     }
 
     const order = ['rating', 'rating & summary', 'player action', 'gto recommendation', 'frequencies', 'summary'];
@@ -562,8 +683,8 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>GTO is analyzing your hand...</Text>
-        <Text style={styles.loadingSubText}>This may take a few seconds</Text>
+        <Text style={styles.loadingText}>Analyzing your hand...</Text>
+        <Text style={styles.loadingSubText}>This may take few seconds</Text>
       </View>
     );
   }
