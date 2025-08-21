@@ -3,9 +3,10 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq" // PostgreSQL driver
 	"log"
 	"os"
+
+	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 var DB *sql.DB
@@ -109,6 +110,7 @@ func ensureTablesExist() error {
 				villains TEXT DEFAULT '[]',
 				analysis TEXT DEFAULT '',
 				analysis_date TEXT DEFAULT '',
+				analysis_sections TEXT DEFAULT '',
 				is_favorite BOOLEAN DEFAULT FALSE,
 				tag TEXT DEFAULT '',
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

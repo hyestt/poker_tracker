@@ -28,11 +28,12 @@ type Hand struct {
 	Note         *string   `json:"note"` // 筆記
 	Result       int       `json:"result"`
 	Date         string    `json:"date"`
-	Tag          string    `json:"tag"`                    // 標籤
-	Villains     []Villain `json:"villains"`               // Villains 陣列
-	Analysis     string    `json:"analysis,omitempty"`     // OpenAI 分析結果
-	AnalysisDate string    `json:"analysisDate,omitempty"` // 分析時間
-	Favorite     bool      `json:"favorite"`               // 是否為最愛
+	Tag          string    `json:"tag"`                        // 標籤
+	Villains     []Villain `json:"villains"`                   // Villains 陣列
+	Analysis     string    `json:"analysis,omitempty"`         // OpenAI 分析結果
+	AnalysisDate string    `json:"analysisDate,omitempty"`     // 分析時間
+	AnalysisJSON string    `json:"analysisSections,omitempty"` // 分段結果(JSON 字串)
+	Favorite     bool      `json:"favorite"`                   // 是否為最愛
 }
 
 type Stats struct {
