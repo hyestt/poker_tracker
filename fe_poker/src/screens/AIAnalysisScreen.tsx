@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIn
 import { theme } from '../theme';
 import { buildFrequenciesViewModel } from '../viewmodels/FrequenciesViewModel';
 import { FrequenciesChart } from '../components/FrequenciesChart';
-import { Hand } from '../models';
+import { Hand, Session } from '../models';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import revenueCatService from '../services/RevenueCatService';
 import { UserPreferencesService } from '../services/UserPreferences';
+import { generateShareText } from '../utils/handTextGenerator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -19,8 +20,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [loadingMessage, setLoadingMessage] = useState('Initializing AI Solver...');
   const progressAnim = useState(new Animated.Value(0))[0];
   const [currentHand, setCurrentHand] = useState<Hand>(route.params.hand);
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [quotaInfo, setQuotaInfo] = useState<{canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean} | null>(null);
-  const { getHand, updateHand } = useSessionStore();
+  const { getHand, getSession, updateHand } = useSessionStore();
   const insets = useSafeAreaInsets();
 
   // Progress animation function
@@ -32,7 +34,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       'Evaluating turn decisions...',
       'Processing river scenarios...',
       'Generating recommendations...',
-      'Finalizing analysis...'
+      'Finalizing analysis...',
     ];
 
     let currentStep = 0;
@@ -44,11 +46,11 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       // Progress only goes up to 90% (90% * currentStep / messages.length)
       const progress = Math.min((currentStep / messages.length) * 90, 90);
       setLoadingProgress(progress);
-      
+
       if (currentStep < messages.length) {
         setLoadingMessage(messages[currentStep]);
       }
-      
+
       // Animate progress bar
       Animated.timing(progressAnim, {
         toValue: progress,
@@ -69,7 +71,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const completeProgress = () => {
     setLoadingProgress(100);
     setLoadingMessage('Analysis complete!');
-    
+
     Animated.timing(progressAnim, {
       toValue: 100,
       duration: 300,
@@ -144,13 +146,18 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       console.log('Loaded latest hand data from sessionStore:', latestHand);
       console.log('Has existing analysis:', !!latestHand.analysis);
 
+      // 同時加載 session 資訊
+      const session = await getSession(latestHand.sessionId);
+      console.log('Loaded session data:', session);
+
       setCurrentHand(latestHand);
+      setCurrentSession(session);
 
       // 如果有分析結果，直接顯示
       if (latestHand.analysis) {
         console.log('✅ Found cached analysis, displaying it');
         setAnalysis(latestHand.analysis);
-        
+
         // 使用已存的 sections（本地 SQLite 或 API 回存）
         if (latestHand.analysisSections && latestHand.analysisSections.trim()) {
           try {
@@ -211,7 +218,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
     setLoading(true);
     const progressInterval = simulateProgress();
-    
+
     try {
       // Check if we already have analysis (unless forcing reanalysis)
       if (!forceReanalyze && currentHand.analysis) {
@@ -276,28 +283,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
   };
 
-  // 生成完整的手牌歷史文本（類似 Share 功能）
-  const generateHandHistoryText = (handData: Hand): string => {
-    const villainText = handData.villains?.map((v, i) =>
-      `Villain ${i + 1}: ${v.position || 'Unknown'} - ${v.holeCards || 'Unknown'}`
-    ).join('\n') || 'No villains';
 
-    return `Poker Hand Details
-
-Hero: ${handData.position || 'Unknown'} - ${handData.holeCards || 'Unknown'}
-Board: ${handData.board || 'No flop shown'}
-
-Villains:
-${villainText}
-
-Hand Details:
-${handData.details || 'No details'}
-
-Note:
-${handData.note || 'No note'}
-
-Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
-  };
 
   // 真正的AI分析功能
   const performRealAIAnalysis = async (handData: Hand): Promise<{ text: string; sections?: { summary: string; preflop: string; flop: string; turn: string; river: string } }> => {
@@ -306,8 +292,12 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       const userPreferences = await UserPreferencesService.getPreferences();
       const userLanguage = userPreferences.language || 'English';
 
-      // 生成完整的手牌歷史文本
-      const handHistoryText = generateHandHistoryText(handData);
+      // 生成完整的手牌歷史文本（使用Share格式，但移除"Shared from LiveHand"標記）
+      if (!currentSession) {
+        throw new Error('Session information is required for AI analysis');
+      }
+      const shareText = generateShareText(handData, currentSession);
+      const handHistoryText = shareText.replace('\n\nShared from LiveHand', '');
 
       const requestPayload = {
         handDetails: handHistoryText,
@@ -454,7 +444,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
 
   // 以花色顏色渲染撲克牌文字（♠黑、♥紅、♦藍、♣綠）
   const renderColoredCardsText = (value?: string) => {
-    if (!value || !value.trim()) return 'Unknown';
+    if (!value || !value.trim()) {return 'Unknown';}
     const colorMap: Record<string, string> = {
       '♠': '#FFFFFF', // 黑桃
       '♥': '#FF4C4C', // 紅心
@@ -470,7 +460,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       nodes.push(
         <Text key={`c-${idx}`} style={{ color }}>{rank}{suit}</Text>
       );
-      if (idx < tokens.length - 1) nodes.push(<Text key={`c-sp-${idx}`}> </Text>);
+      if (idx < tokens.length - 1) {nodes.push(<Text key={`c-sp-${idx}`}> </Text>);}
     });
     return nodes;
   };
@@ -501,7 +491,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     const nodes: React.ReactNode[] = [];
 
     const pushText = (title: string, value?: string) => {
-      if (!value || !String(value).trim()) return;
+      if (!value || !String(value).trim()) {return;}
       nodes.push(
         <Text key={`h-${title}`} style={[styles.analysisSubTitle, { marginTop: nodes.length ? theme.spacing.md : 0 }]}>
           {title}
@@ -515,9 +505,9 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     // Rating 置頂（Summary 或街道）
     if (obj.rating) {
       nodes.push(
-        <Text key={`rating`} style={[styles.analysisSubTitle, { marginTop: 0 }]}>Rating</Text>
+        <Text key={'rating'} style={[styles.analysisSubTitle, { marginTop: 0 }]}>Rating</Text>
       );
-      nodes.push(<Text key={`rating-val`} style={styles.analysisText}>{String(obj.rating)}</Text>);
+      nodes.push(<Text key={'rating-val'} style={styles.analysisText}>{String(obj.rating)}</Text>);
     }
 
     // Frequencies 物件（放在 Rating 下方）
@@ -525,7 +515,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       const vm = buildFrequenciesViewModel(obj.frequencies as Record<string, unknown>);
       if (vm.entries.length > 0) {
         nodes.push(
-          <View key={`freq-chart`} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
+          <View key={'freq-chart'} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
             <FrequenciesChart entries={vm.entries} noteMayNotSum100={vm.mayNotSum100} />
           </View>
         );
@@ -567,10 +557,10 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       const stars = (overallMatch[1] || '').trim();
       const rest = (overallMatch[2] || '').trim();
       if (stars) {
-        blocks['rating'] = { key: 'rating', content: [stars] };
+        blocks.rating = { key: 'rating', content: [stars] };
       }
       if (rest) {
-        blocks['summary'] = { key: 'summary', content: [rest] };
+        blocks.summary = { key: 'summary', content: [rest] };
       }
     }
 
@@ -580,10 +570,10 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     let mm: RegExpExecArray | null;
     while ((mm = inlineRe.exec(normalized)) !== null) {
       let k = mm[1].toLowerCase();
-      if (k === 'action') k = 'player action';
-      if (k === 'recommendation') k = 'gto recommendation';
-      if (k === 'frequency' || k === 'betting frequencies') k = 'frequencies';
-      if (k === 'overall') k = 'rating & summary';
+      if (k === 'action') {k = 'player action';}
+      if (k === 'recommendation') {k = 'gto recommendation';}
+      if (k === 'frequency' || k === 'betting frequencies') {k = 'frequencies';}
+      if (k === 'overall') {k = 'rating & summary';}
       matches.push({ key: k, start: mm.index });
     }
     if (matches.length > 0) {
@@ -605,13 +595,13 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       if (m) {
         let key = m[1].toLowerCase();
         // 別名標籤正規化
-        if (key === 'action') key = 'player action';
-        if (key === 'recommendation') key = 'gto recommendation';
-        if (key === 'frequency' || key === 'betting frequencies') key = 'frequencies';
-        if (key === 'overall') key = 'rating & summary';
+        if (key === 'action') {key = 'player action';}
+        if (key === 'recommendation') {key = 'gto recommendation';}
+        if (key === 'frequency' || key === 'betting frequencies') {key = 'frequencies';}
+        if (key === 'overall') {key = 'rating & summary';}
         currentKey = key;
         const firstLine = m[2]?.trim() ? [m[2].trim()] : [];
-        if (!blocks[key]) blocks[key] = { key, content: [] };
+        if (!blocks[key]) {blocks[key] = { key, content: [] };}
         blocks[key].content.push(...firstLine);
       } else if (currentKey) {
         blocks[currentKey].content.push(line);
@@ -654,15 +644,15 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
     for (const k of order) {
       if (k === 'rating') {
         // Rating 或 Rating & Summary 任一存在都優先顯示
-        if (blocks['rating']) pushBlock('Rating', 'rating');
-        else if (blocks['rating & summary']) pushBlock('Rating', 'rating & summary');
+        if (blocks.rating) {pushBlock('Rating', 'rating');}
+        else if (blocks['rating & summary']) {pushBlock('Rating', 'rating & summary');}
         continue;
       }
-      if (k === 'rating & summary') continue; // 已處理
-      if (k === 'player action') pushBlock('Player Action', 'player action');
-      if (k === 'gto recommendation') pushBlock('GTO Recommendation', 'gto recommendation');
-      if (k === 'frequencies') pushBlock('Frequencies', 'frequencies');
-      if (k === 'summary') pushBlock('Summary', 'summary');
+      if (k === 'rating & summary') {continue;} // 已處理
+      if (k === 'player action') {pushBlock('Player Action', 'player action');}
+      if (k === 'gto recommendation') {pushBlock('GTO Recommendation', 'gto recommendation');}
+      if (k === 'frequencies') {pushBlock('Frequencies', 'frequencies');}
+      if (k === 'summary') {pushBlock('Summary', 'summary');}
     }
 
     return nodes;
@@ -771,11 +761,11 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Analyzing your hand...</Text>
         <Text style={styles.loadingSubText}>{loadingMessage}</Text>
-        
+
         {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <Animated.View 
+            <Animated.View
               style={[
                 styles.progressFill,
                 {
@@ -783,9 +773,9 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
                     inputRange: [0, 100],
                     outputRange: ['0%', '100%'],
                     extrapolate: 'clamp',
-                  })
-                }
-              ]} 
+                  }),
+                },
+              ]}
             />
           </View>
           <Text style={styles.progressText}>{Math.round(loadingProgress)}%</Text>

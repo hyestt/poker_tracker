@@ -23,13 +23,13 @@ const frequencyLabelMap: Record<string, string> = {
 };
 
 const toLabel = (key: string): string => {
-  if (frequencyLabelMap[key]) return frequencyLabelMap[key];
+  if (frequencyLabelMap[key]) {return frequencyLabelMap[key];}
   const normalized = key.replace(/_/g, ' ');
   return normalized.replace(/\b\w/g, (m) => m.toUpperCase());
 };
 
 const parsePercent = (value: unknown): number => {
-  if (value == null) return 0;
+  if (value == null) {return 0;}
   let num = 0;
   if (typeof value === 'number') {
     num = value;
@@ -45,9 +45,9 @@ const parsePercent = (value: unknown): number => {
 
 const rankColor = (rank: number): string => {
   // Top3 採更亮的品牌色，其餘為藍色系
-  if (rank === 1) return '#4ECDC4';
-  if (rank === 2) return '#F7B733';
-  if (rank === 3) return '#FF6B6B';
+  if (rank === 1) {return '#4ECDC4';}
+  if (rank === 2) {return '#F7B733';}
+  if (rank === 3) {return '#FF6B6B';}
   return '#3B82F6';
 };
 

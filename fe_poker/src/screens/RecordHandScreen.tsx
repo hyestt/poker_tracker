@@ -498,7 +498,7 @@ River: HJ Check BTN Check`;
 
       console.log('🎯 [RecordHandScreen] Navigating to HandDetail with handId:', hand.id);
       // Navigate to HandDetail with the freshly created hand for optimistic render
-      navigation.navigate('HandDetail', { 
+      navigation.navigate('HandDetail', {
         handId: hand.id,
         sessionId: sessionId,
         initialHand: hand,

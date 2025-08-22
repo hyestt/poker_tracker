@@ -166,3 +166,39 @@
   - User prompt只包含實際的手牌數據，符合OpenAI API設計原則
   - 這應該能顯著提升AI分析的準確度和一致性
   - API調用現在使用正確的System和User message角色分離
+
+### 2025-01-07 - 統一手牌文字生成格式
+- **Task**: 將Share功能和AI分析功能的手牌文字生成統一，使用相同的完整格式
+- **Files Modified**: 
+  - 新增 `fe_poker/src/utils/handTextGenerator.ts`: 統一的文字生成工具函數
+  - `fe_poker/src/screens/HandDetailScreen.tsx`: 使用新的工具函數
+  - `fe_poker/src/screens/AIAnalysisScreen.tsx`: 使用新的工具函數並加載session資訊
+- **Changes Made**:
+  - ✅ 創建統一的 `generateShareText` 和 `generateHandHistoryText` 函數
+  - ✅ AI分析現在使用與Share功能相同的完整格式（包含Location、Blinds、Date等）
+  - ✅ 在AIAnalysisScreen中加載session資訊以提供完整的手牌上下文
+  - ✅ 保持向後兼容性，沒有session資訊時使用簡化格式
+- **Status**: ✅ 完成
+- **Notes**: 
+  - AI分析現在會收到與Share功能完全相同的手牌文字格式
+  - 包含完整的session資訊：Location、Blinds、Date等
+  - 這應該能顯著提升AI分析的準確度，因為提供了更多上下文資訊
+  - 統一了手牌文字生成的邏輯，減少代碼重複
+  - 確保AI分析使用最新且最完整的手牌資料
+
+### 2025-01-07 - 簡化文字生成函數
+- **Task**: 移除 `generateHandHistoryText` 函數，AI分析直接使用 `generateShareText`
+- **Files Modified**: 
+  - `fe_poker/src/utils/handTextGenerator.ts`: 移除 `generateHandHistoryText` 函數
+  - `fe_poker/src/screens/AIAnalysisScreen.tsx`: 改用 `generateShareText` 並移除 "Shared from LiveHand" 標記
+- **Changes Made**:
+  - ✅ 移除 `generateHandHistoryText` 函數，簡化代碼結構
+  - ✅ AI分析現在直接使用 `generateShareText` 函數
+  - ✅ 通過 `replace()` 移除 "Shared from LiveHand" 標記
+  - ✅ 添加 session 資訊檢查，確保AI分析有完整的上下文
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 代碼更簡潔，只有一個文字生成函數
+  - AI分析使用與Share功能完全相同的格式（除了品牌標記）
+  - 確保AI分析總是包含完整的session資訊
+  - 如果沒有session資訊會拋出錯誤，確保資料完整性

@@ -5,6 +5,7 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import { theme } from '../theme';
 import { Hand, Session, Villain } from '../models';
 import { formatDate } from '../utils/dateFormat';
+import { generateShareText } from '../utils/handTextGenerator';
 import revenueCatService from '../services/RevenueCatService';
 
 export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
@@ -28,7 +29,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
           const handData = await getHand(handId);
           const sessionData = await getSession(handData.sessionId);
-          if (!isMounted) return;
+          if (!isMounted) {return;}
           setHand(handData);
           setSession(sessionData);
 
@@ -40,7 +41,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
           console.error('Failed to load hand/session:', error);
           Alert.alert('Error', 'Failed to load hand details');
         } finally {
-          if (isMounted) setLoading(false);
+          if (isMounted) {setLoading(false);}
         }
       };
 
@@ -156,39 +157,14 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
     </View>
   );
 
-  const generateShareText = () => {
+  const generateShareTextLocal = () => {
     if (!hand || !session) {return '';}
-
-    const villainText = hand.villains?.map((v, i) =>
-      `Villain ${i + 1}: ${v.position || 'Unknown'} - ${v.holeCards || 'Unknown'}`
-    ).join('\n') || 'No villains';
-
-    return `Poker Hand Details
-
-Location: ${session.location}
-Blinds: $${session.smallBlind}/$${session.bigBlind}
-Date: ${formatDate(session.date)}
-
-Hero: ${hand.position || 'Unknown'} - ${hand.holeCards || 'Unknown'}
-Board: ${hand.board || 'No flop shown'}
-
-Villains:
-${villainText}
-
-Hand Details:
-${hand.details || 'No details'}
-
-Note:
-${hand.note || 'No note'}
-
-Result: ${hand.result >= 0 ? '+' : ''}$${hand.result}
-
-Shared from LiveHand`;
+    return generateShareText(hand, session);
   };
 
   const handleShare = async () => {
     try {
-      const shareText = generateShareText();
+      const shareText = generateShareTextLocal();
       await Share.share({
         message: shareText,
         title: 'Poker Hand Details',

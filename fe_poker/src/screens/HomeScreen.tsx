@@ -523,7 +523,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       styles.filterDropdownText,
                       selectedFilter === option.key && styles.selectedFilterDropdownText,
                     ]}>
-                      {option.key === 'favorites' ? 'Starred' : 
+                      {option.key === 'favorites' ? 'Starred' :
                        option.key === 'analyzed' ? 'Analyzed' : option.label}
                     </Text>
                     {option.key === 'favorites' && (
