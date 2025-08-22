@@ -55,6 +55,8 @@ Schema to output (exact keys):
       "bet_75": "0-100%",
       "bet_100": "0-100%",
       "call": "0-100%",
+      "raise 3x": "0-100%",
+      "raise 5x": "0-100%",
       "fold": "0-100%"
     },
     "rating": "",
@@ -70,6 +72,8 @@ Schema to output (exact keys):
       "bet_75": "0-100%",
       "bet_100": "0-100%",
       "call": "0-100%",
+      "raise 3x": "0-100%",
+      "raise 5x": "0-100%",
       "fold": "0-100%"
     },
     "rating": "",
@@ -85,6 +89,8 @@ Schema to output (exact keys):
       "bet_75": "0-100%",
       "bet_100": "0-100%",
       "call": "0-100%",
+      "raise 3x": "0-100%",
+      "raise 5x": "0-100%",
       "fold": "0-100%"
     },
     "rating": "",
