@@ -1,0 +1,30 @@
+## Project Log
+
+### 2025-01-07 - OpenAI Model Update (Final)
+- **Task**: 更改 OpenAI 模型從 GPT-4o 到 GPT-4o-mini
+- **Files Modified**: 
+  - `be_poker/services/openai_service.go`: 第44行，將 `openai.GPT4o` 改為 `openai.GPT4oMini`
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功將模型設定更改為 GPT-4o-mini
+  - 無linting錯誤
+  - 變更影響手牌分析功能的AI模型選擇
+  - 此修改將降低API成本同時保持良好的分析品質
+
+### 2025-01-07 - UI Text Update: GTO Analysis to AI Solver
+- **Task**: 將所有用戶可見的 "GTO Analysis" 文字改為 "AI Solver"
+- **Files Modified**: 
+  - `fe_poker/src/screens/HomeScreen.tsx`: 更新配額標籤文字
+  - `fe_poker/src/screens/AIAnalysisScreen.tsx`: 更新分析結果標題和配額警告訊息
+  - `fe_poker/src/screens/HandDetailScreen.tsx`: 更新按鈕文字和警告訊息
+  - `fe_poker/src/screens/SubscriptionScreen.tsx`: 更新功能描述
+  - `fe_poker/src/services/RevenueCatService.ts`: 更新註釋文字
+  - `fe_poker/src/screens/RecordHandScreen.tsx`: 更新註釋
+  - `fe_poker/src/screens/SettingsScreen.tsx`: 更新語言設定標籤
+  - `fe_poker/src/utils/testPremiumModel.ts`: 更新測試註釋
+  - `fe_poker/App.tsx`: 更新頁面標題
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功將所有用戶可見的 "GTO Analysis" 更改為 "AI Solver"
+  - 保持了函數名稱和內部變數名稱不變以避免破壞現有功能
+  - 提升了產品的用戶體驗，使用更直觀的 "AI Solver" 稱呼

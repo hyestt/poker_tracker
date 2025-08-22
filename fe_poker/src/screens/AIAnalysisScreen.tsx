@@ -137,10 +137,10 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
     if (!quotaStatus.canUse && (forceReanalyze || !currentHand.analysis)) {
       Alert.alert(
-        'GTO Analysis Limit Reached',
-        quotaStatus.isPremium
+        'AI Solver Limit Reached',
+        quotaStatus.isPremiu
           ? 'Please try again later.'
-          : 'You\'ve used your 15 free weekly GTO analyses. Upgrade to Premium for unlimited analysis.',
+          : 'You\'ve used your 15 free weekly AI Solver analyses. Upgrade to Premium for unlimited analysis.',
         quotaStatus.isPremium
           ? [{ text: 'OK' }]
           : [
@@ -719,7 +719,7 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
           <Text style={styles.quotaExceededMessage}>
             {quotaInfo.isPremium
               ? 'You\'ve reached your analysis limit for this week. Please try again next week.'
-              : 'You\'ve used your 15 free GTO analyses for this week. Upgrade to Premium for unlimited analysis.'}
+              : 'You\'ve used your 15 free AI Solver analyses for this week. Upgrade to Premium for unlimited analysis.'}
           </Text>
 
           {!quotaInfo.isPremium && (
@@ -763,9 +763,9 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
           </View>
         </View>
 
-        {/* GTO Analysis Result */}
+        {/* AI Solver Result */}
         <View style={styles.analysisCard}>
-          <Text style={styles.analysisCardTitle}>GTO Analysis Result</Text>
+          <Text style={styles.analysisCardTitle}>AI Solver Result</Text>
           <View style={styles.analysisContent}>
             {sections ? (
               <>

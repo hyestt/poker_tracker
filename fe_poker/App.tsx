@@ -98,7 +98,7 @@ function HomeStack() {
       <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
       <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
       <Stack.Screen name="PokerKeyboard" component={PokerKeyboardScreen} options={{ title: 'Choose Cards' }} />
-      <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'GTO Analysis' }} />
+      <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Solver' }} />
     </Stack.Navigator>
   );
 }
@@ -138,7 +138,7 @@ const SessionsStack = () => (
     <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
     <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
     <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details', headerBackTitle: 'Back' }} />
-    <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'GTO Analysis' }} />
+    <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Solver' }} />
     <Stack.Screen
       name="PokerKeyboard"
       component={PokerKeyboardScreen}

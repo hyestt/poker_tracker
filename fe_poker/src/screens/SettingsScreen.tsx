@@ -309,7 +309,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           <Text style={styles.sectionTitle}>App Settings</Text>
 
           <TouchableOpacity style={styles.menuItem} onPress={() => setShowLanguageModal(true)}>
-            <Text style={styles.menuText}>GTO Analysis Language</Text>
+            <Text style={styles.menuText}>AI Solver Language</Text>
             <View style={styles.languageDisplay}>
               <Text style={styles.languageText}>{getCurrentLanguageLabel()}</Text>
               <Text style={styles.menuArrow}>›</Text>

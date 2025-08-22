@@ -377,7 +377,7 @@ class RevenueCatService {
     console.log('🧪 Test mode: Premium status cleared');
   }
 
-  // ==================== GTO Analysis Quota Management ====================
+  // ==================== AI Solver Quota Management ====================
 
   async getGTOAnalysisQuota(): Promise<GTOAnalysisQuota> {
     try {
@@ -477,7 +477,7 @@ class RevenueCatService {
       quota.usedCount += 1;
       await AsyncStorage.setItem('gto_analysis_quota', JSON.stringify(quota));
 
-      console.log(`🎯 GTO Analysis used. Remaining free: ${quota.maxFreeCount - quota.usedCount}`);
+      console.log(`🎯 AI Solver used. Remaining free: ${quota.maxFreeCount - quota.usedCount}`);
       return true;
     } catch (error) {
       console.error('Failed to use GTO analysis:', error);
@@ -489,7 +489,7 @@ class RevenueCatService {
   async resetGTOQuotaForTesting(): Promise<void> {
     try {
       await AsyncStorage.removeItem('gto_analysis_quota');
-      console.log('🧪 Test mode: GTO Analysis quota reset');
+      console.log('🧪 Test mode: AI Solver quota reset');
     } catch (error) {
       console.error('Failed to reset GTO quota:', error);
     }

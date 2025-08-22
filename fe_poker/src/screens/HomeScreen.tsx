@@ -609,7 +609,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       {quotaInfo && !quotaInfo.isPremium && (
         <View style={styles.quotaContainer}>
           <View style={styles.quotaItem}>
-            <Text style={styles.quotaLabel}>GTO Analysis:</Text>
+            <Text style={styles.quotaLabel}>AI Solver:</Text>
             <Text style={[styles.quotaValue, quotaInfo.gtoRemaining === 0 && styles.quotaExhausted]}>
               {quotaInfo.gtoRemaining === -1 ? '∞' : quotaInfo.gtoRemaining} left this week
             </Text>

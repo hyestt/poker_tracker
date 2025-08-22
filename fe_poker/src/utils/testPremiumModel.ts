@@ -4,7 +4,7 @@ import revenueCatService from '../services/RevenueCatService';
 export const TestPremiumModel = {
   // Test quota system
   async testQuotaSystem() {
-    console.log('🧪 Testing GTO Analysis Quota System...');
+    console.log('🧪 Testing AI Solver Quota System...');
 
     try {
       // Reset quota first

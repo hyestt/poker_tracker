@@ -264,7 +264,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
           <View style={styles.checkmarkContainer}>
             <Text style={styles.checkmark}>✓</Text>
           </View>
-          <Text style={styles.featureText}>Unlimited GTO solver analysis</Text>
+          <Text style={styles.featureText}>Unlimited AI solver analysis</Text>
         </View>
         <View style={styles.featureItem}>
           <View style={styles.checkmarkContainer}>

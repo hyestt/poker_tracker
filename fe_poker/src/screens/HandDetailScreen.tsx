@@ -354,10 +354,10 @@ Shared from LiveHand`;
           onPress={() => {
             if (gtoQuotaInfo && !gtoQuotaInfo.canUse && !hand?.analysis) {
               Alert.alert(
-                'GTO Analysis Limit Reached',
+                'AI Solver Limit Reached',
                 gtoQuotaInfo.isPremium
                   ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
-                  : 'You\'ve used your 15 free GTO analyses for today. Upgrade to Premium for unlimited analysis.',
+                  : 'You\'ve used your 15 free AI Solver analyses for today. Upgrade to Premium for unlimited analysis.',
                 gtoQuotaInfo.isPremium
                   ? [{ text: 'OK' }]
                   : [
@@ -376,8 +376,8 @@ Shared from LiveHand`;
         >
           <Text style={styles.primaryButtonText}>
             {hand.analysis
-              ? 'View GTO Analysis'
-              : `GTO Analysis${gtoQuotaInfo && !gtoQuotaInfo.isPremium && gtoQuotaInfo.remainingFree >= 0 ? ` (${gtoQuotaInfo.remainingFree})` : ''}`}
+              ? 'View AI Solver'
+              : `AI Solver${gtoQuotaInfo && !gtoQuotaInfo.isPremium && gtoQuotaInfo.remainingFree >= 0 ? ` (${gtoQuotaInfo.remainingFree})` : ''}`}
           </Text>
         </TouchableOpacity>
       </View>

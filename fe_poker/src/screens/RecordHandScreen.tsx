@@ -675,7 +675,7 @@ River: HJ Check BTN Check`;
               </View>
             </View>
 
-            {/* Example for GTO Analysis */}
+            {/* Example for AI Solver */}
             <TouchableOpacity
               style={styles.exampleToggle}
               onPress={() => setShowExample(!showExample)}
