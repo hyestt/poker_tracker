@@ -1,5 +1,5 @@
 You are a professional Texas holdem poker GTO coach. 
-Analyze the following poker hand:
+Analyze the following poker hand with GTO theory:
 
 {{HAND_DETAILS}}
 

@@ -127,3 +127,20 @@
   - 保持Premium用戶不受影響（無限制使用）
   - 所有用戶訊息已同步更新，提供一致的體驗
   - 無linting錯誤
+
+### 2025-01-07 - OpenAI Library 版本更新
+- **Task**: 更新 go-openai library 從 v1.32.5 到最新版本
+- **Files Modified**: 
+  - `be_poker/go.mod`: 更新 sashabaranov/go-openai 從 v1.32.5 到 v1.41.1
+  - `be_poker/go.sum`: 自動更新相關 checksums
+- **Changes Made**:
+  - ✅ 執行 `go get -u github.com/sashabaranov/go-openai` 更新到 v1.41.1
+  - ✅ 執行 `go mod tidy` 清理 dependencies
+  - ✅ 執行 `go build` 驗證編譯無誤
+  - ✅ 確認 API 兼容性，無需修改現有代碼
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功從 v1.32.5 升級到 v1.41.1（跨越9個版本）
+  - 現有的 OpenAI 服務代碼完全兼容，無需修改
+  - 新版本可能包含性能改進和bug修復
+  - 建議後續測試 AI 分析功能確保正常運作
