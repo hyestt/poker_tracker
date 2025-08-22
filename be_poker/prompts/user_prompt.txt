@@ -1,0 +1,5 @@
+Please analyze the following poker hand:
+
+{{HAND_DETAILS}}
+
+Please provide a comprehensive GTO analysis following the format and rules specified in the system prompt.

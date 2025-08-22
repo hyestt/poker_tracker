@@ -144,3 +144,25 @@
   - 現有的 OpenAI 服務代碼完全兼容，無需修改
   - 新版本可能包含性能改進和bug修復
   - 建議後續測試 AI 分析功能確保正常運作
+
+### 2025-01-07 - 修正OpenAI API Prompt結構
+- **Task**: 修正OpenAI API的prompt結構，正確分離system和user prompts
+- **問題**: 原本將 {{HAND_DETAILS}} 放在system prompt中，違反OpenAI API最佳實踐
+- **Files Modified**: 
+  - 新增 `be_poker/prompts/system_prompt.txt`: 包含角色定義、格式要求和分析規則
+  - 新增 `be_poker/prompts/user_prompt.txt`: 包含實際的手牌數據和分析請求
+  - `be_poker/services/prompt_manager.go`: 新增 GetSystemPrompt() 和 GetUserPrompt() 方法
+  - `be_poker/services/openai_service.go`: 更新為使用分離的system和user messages
+- **Changes Made**:
+  - ✅ 創建專門的system prompt包含所有格式規則和角色定義
+  - ✅ 創建簡潔的user prompt僅包含手牌數據
+  - ✅ 更新OpenAI API調用使用正確的message結構
+  - ✅ 保持向後兼容性（舊的GetHandAnalysisPrompt方法仍可用）
+  - ✅ 修正linting錯誤
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 解決了 {{HAND_DETAILS}} 不應放在system prompt的問題
+  - System prompt現在只包含角色定義和格式要求
+  - User prompt只包含實際的手牌數據，符合OpenAI API設計原則
+  - 這應該能顯著提升AI分析的準確度和一致性
+  - API調用現在使用正確的System和User message角色分離

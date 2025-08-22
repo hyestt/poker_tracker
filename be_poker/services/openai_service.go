@@ -27,15 +27,25 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 		return "", fmt.Errorf("OpenAI service not available: API key not set")
 	}
 
-	// 使用prompt管理器獲取prompt
+	// 使用prompt管理器獲取分離的system和user prompts
 	promptManager := NewPromptManager()
-	prompt, err := promptManager.GetHandAnalysisPrompt(handDetails, language)
+
+	// 獲取system prompt
+	systemPrompt, err := promptManager.GetSystemPrompt(language)
 	if err != nil {
-		// 錯誤處理：記錄錯誤並使用fallback prompt
-		fmt.Printf("Error reading prompt file: %v\n", err)
-		prompt = fmt.Sprintf("As a professional poker coach, please analyze the following poker hand:\n\nHand Details: %s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand\n\nPlease respond in %s, keep it concise but insightful.", handDetails, language)
+		// 錯誤處理：記錄錯誤並使用fallback system prompt
+		fmt.Printf("Error reading system prompt file: %v\n", err)
+		systemPrompt = fmt.Sprintf("You are a professional Texas Hold'em poker GTO coach. Analyze poker hands and provide strategic recommendations in %s.", language)
+	}
+
+	// 獲取user prompt
+	userPrompt, err := promptManager.GetUserPrompt(handDetails)
+	if err != nil {
+		// 錯誤處理：記錄錯誤並使用fallback user prompt
+		fmt.Printf("Error reading user prompt file: %v\n", err)
+		userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand", handDetails)
 	} else {
-		fmt.Printf("Successfully loaded prompt from file\n")
+		fmt.Printf("Successfully loaded prompts from files\n")
 	}
 
 	resp, err := s.client.CreateChatCompletion(
@@ -44,8 +54,12 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 			Model: openai.GPT4o,
 			Messages: []openai.ChatCompletionMessage{
 				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
 					Role:    openai.ChatMessageRoleUser,
-					Content: prompt,
+					Content: userPrompt,
 				},
 			},
 			MaxTokens:   2400,
@@ -58,7 +72,7 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 	}
 
 	if len(resp.Choices) == 0 {
-		return "", fmt.Errorf("No response from OpenAI")
+		return "", fmt.Errorf("no response from OpenAI")
 	}
 
 	return resp.Choices[0].Message.Content, nil
