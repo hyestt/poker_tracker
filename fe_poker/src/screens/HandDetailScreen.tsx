@@ -357,7 +357,7 @@ Shared from LiveHand`;
                 'AI Solver Limit Reached',
                 gtoQuotaInfo.isPremium
                   ? 'You\'ve reached your analysis limit for today. Please try again tomorrow.'
-                  : 'You\'ve used your 15 free AI Solver analyses for today. Upgrade to Premium for unlimited analysis.',
+                  : 'You\'ve used your 3 free AI Solver analyses for this week. Upgrade to Premium for unlimited analysis.',
                 gtoQuotaInfo.isPremium
                   ? [{ text: 'OK' }]
                   : [

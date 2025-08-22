@@ -110,3 +110,20 @@
   - 提供更長的載入動畫時間，適合較慢的API回應
   - 進度條不會在API未完成時顯示100%，避免用戶混淆
   - 保持了視覺上的流暢性和一致性
+
+### 2025-01-07 - AI分析次數限制調整
+- **Task**: 將AI分析每週限制從15次改為3次
+- **Files Modified**: 
+  - `fe_poker/src/services/RevenueCatService.ts`: 三個地方的 maxFreeCount 從 15 改為 3
+  - `fe_poker/src/screens/AIAnalysisScreen.tsx`: 兩個用戶訊息中的 "15" 改為 "3"
+  - `fe_poker/src/screens/HandDetailScreen.tsx`: 一個用戶訊息中的 "15" 改為 "3"，同時修正時間單位從 "today" 改為 "this week"
+- **Changes Made**:
+  - ✅ 更新配額邏輯：每週免費AI分析次數從15次調整為3次
+  - ✅ 更新所有相關UI訊息，確保用戶看到正確的限制說明
+  - ✅ 修正HandDetailScreen中的時間描述錯誤（原本寫"今天"應該是"本週"）
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功降低AI分析使用頻率，有助於控制OpenAI API成本
+  - 保持Premium用戶不受影響（無限制使用）
+  - 所有用戶訊息已同步更新，提供一致的體驗
+  - 無linting錯誤
