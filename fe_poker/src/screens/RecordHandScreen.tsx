@@ -169,13 +169,17 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
       let exampleText = '';
 
       if (caseNumber === 1) {
-        exampleText = `Preflop: UTG Bet 15 BTN Raise 45 UTG Call
-Flop: UTG Check BTN Bet 30 UTG Call
-Turn: BTN Bet 100 UTG Fold`;
+        exampleText = `Preflop: UTG Bet $15 BTN Raise $45 UTG Call
+
+Flop: UTG Check BTN Bet $30 UTG Call
+
+Turn: BTN Bet $100 UTG Fold`;
       } else if (caseNumber === 2) {
-        exampleText = `Preflop: HJ Call 2 BTN Raise 10 HJ Call
-Flop: HJ Check BTN Bet 20 HJ Call
+        exampleText = `Preflop: HJ Call $2 BTN Raise $10 HJ Call
+Flop: HJ Check BTN Bet $20 HJ Call
+
 Turn: HJ Check BTN Check
+
 River: HJ Check BTN Check`;
       }
 
@@ -689,8 +693,9 @@ River: HJ Check BTN Check`;
               <View style={styles.exampleContainer}>
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
-                  • Focus on betting action{'\n'}
-                  • Provide more context for the hand{'\n'}
+                  • One line per street: Preflop / Flop / Turn / River{'\n'}
+                  • Write Position + Action + $ (only when betting){'\n'}
+                  • Example: Preflop: UTG Bet $15 BTN Raise $45 UTG Call{'\n'}
                 </Text>
                 <View style={styles.exampleButtonsContainer}>
                   <TouchableOpacity
