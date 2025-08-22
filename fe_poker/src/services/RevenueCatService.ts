@@ -497,10 +497,12 @@ class RevenueCatService {
 
   // Helper method to get the start of the current week (Monday)
   private getWeekStart(date: Date): Date {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    return new Date(d.setDate(diff));
+    const localDate = new Date(date);
+    const dayOfWeek = localDate.getDay();
+    const diffToMonday = localDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust when day is Sunday
+    const monday = new Date(localDate.setDate(diffToMonday));
+    monday.setHours(0, 0, 0, 0); // normalize to local midnight
+    return monday;
   }
 }
 
