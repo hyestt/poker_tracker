@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Animated } from 'react-native';
 import { theme } from '../theme';
 import { buildFrequenciesViewModel } from '../viewmodels/FrequenciesViewModel';
 import { FrequenciesChart } from '../components/FrequenciesChart';
@@ -15,10 +15,67 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [sections, setSections] = useState<{ summary: string; preflop: string; flop: string; turn: string; river: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'preflop' | 'flop' | 'turn' | 'river'>('summary');
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('Initializing AI Solver...');
+  const progressAnim = useState(new Animated.Value(0))[0];
   const [currentHand, setCurrentHand] = useState<Hand>(route.params.hand);
   const [quotaInfo, setQuotaInfo] = useState<{canUse: boolean; isPremium: boolean; remainingFree: number; needsPremium: boolean} | null>(null);
   const { getHand, updateHand } = useSessionStore();
   const insets = useSafeAreaInsets();
+
+  // Progress animation function
+  const simulateProgress = () => {
+    const messages = [
+      'Initializing AI Solver...',
+      'Analyzing preflop strategy...',
+      'Calculating flop frequencies...',
+      'Evaluating turn decisions...',
+      'Processing river scenarios...',
+      'Generating recommendations...',
+      'Finalizing analysis...'
+    ];
+
+    let currentStep = 0;
+    setLoadingProgress(0);
+    setLoadingMessage(messages[0]);
+
+    const interval = setInterval(() => {
+      currentStep++;
+      // Progress only goes up to 90% (90% * currentStep / messages.length)
+      const progress = Math.min((currentStep / messages.length) * 90, 90);
+      setLoadingProgress(progress);
+      
+      if (currentStep < messages.length) {
+        setLoadingMessage(messages[currentStep]);
+      }
+      
+      // Animate progress bar
+      Animated.timing(progressAnim, {
+        toValue: progress,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+
+      // Stop at 90% and wait for actual completion
+      if (progress >= 90) {
+        clearInterval(interval);
+      }
+    }, 2100); // 15 seconds / 7 steps = ~2.1 seconds per step
+
+    return interval;
+  };
+
+  // Function to complete progress to 100%
+  const completeProgress = () => {
+    setLoadingProgress(100);
+    setLoadingMessage('Analysis complete!');
+    
+    Animated.timing(progressAnim, {
+      toValue: 100,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
 
   console.log('AIAnalysisScreen mounted with hand:', currentHand);
   console.log('Hand has existing analysis:', !!currentHand.analysis);
@@ -138,7 +195,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     if (!quotaStatus.canUse && (forceReanalyze || !currentHand.analysis)) {
       Alert.alert(
         'AI Solver Limit Reached',
-        quotaStatus.isPremiu
+        quotaStatus.isPremium
           ? 'Please try again later.'
           : 'You\'ve used your 15 free weekly AI Solver analyses. Upgrade to Premium for unlimited analysis.',
         quotaStatus.isPremium
@@ -153,10 +210,14 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
 
     setLoading(true);
+    const progressInterval = simulateProgress();
+    
     try {
       // Check if we already have analysis (unless forcing reanalysis)
       if (!forceReanalyze && currentHand.analysis) {
         console.log('✅ Using cached analysis, skipping API call');
+        completeProgress();
+        clearInterval(progressInterval);
         setAnalysis(currentHand.analysis);
         setLoading(false);
         return;
@@ -168,6 +229,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const quotaUsed = await revenueCatService.useGTOAnalysis();
       if (!quotaUsed) {
         Alert.alert('Error', 'Unable to use GTO analysis at this time');
+        clearInterval(progressInterval);
         setLoading(false);
         return;
       }
@@ -179,6 +241,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       // Execute the actual AI analysis
       const analysisResult = await performRealAIAnalysis(currentHand);
       console.log('AI analysis completed:', analysisResult);
+
+      // Complete progress to 100%
+      completeProgress();
 
       // Update hand data
       const updatedHand = {
@@ -204,7 +269,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     } catch (error) {
       console.error('AI analysis error:', error);
       Alert.alert('Error', 'Failed to perform AI analysis');
+      clearInterval(progressInterval);
     } finally {
+      clearInterval(progressInterval);
       setLoading(false);
     }
   };
@@ -703,7 +770,26 @@ Result: ${handData.result >= 0 ? '+' : ''}$${handData.result}`;
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>Analyzing your hand...</Text>
-        <Text style={styles.loadingSubText}>This may take few seconds</Text>
+        <Text style={styles.loadingSubText}>{loadingMessage}</Text>
+        
+        {/* Progress Bar */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <Animated.View 
+              style={[
+                styles.progressFill,
+                {
+                  width: progressAnim.interpolate({
+                    inputRange: [0, 100],
+                    outputRange: ['0%', '100%'],
+                    extrapolate: 'clamp',
+                  })
+                }
+              ]} 
+            />
+          </View>
+          <Text style={styles.progressText}>{Math.round(loadingProgress)}%</Text>
+        </View>
       </View>
     );
   }
@@ -948,6 +1034,29 @@ const styles = StyleSheet.create({
     fontSize: theme.font.size.small,
     color: theme.colors.gray,
     marginTop: theme.spacing.xs,
+  },
+  progressContainer: {
+    width: '80%',
+    marginTop: theme.spacing.lg,
+    alignItems: 'center',
+  },
+  progressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.xs,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
   scrollContainer: {
     flex: 1,
