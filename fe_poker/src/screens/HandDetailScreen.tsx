@@ -338,7 +338,7 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
                   ? [{ text: 'OK' }]
                   : [
                       { text: 'Maybe Later', style: 'cancel' },
-                      { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') },
+                      { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }) },
                     ]
               );
             } else {

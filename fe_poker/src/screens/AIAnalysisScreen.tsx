@@ -209,7 +209,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           ? [{ text: 'OK' }]
           : [
               { text: 'Maybe Later', style: 'cancel' },
-              { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Subscription') },
+              { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }) },
             ]
       );
       setLoading(false);
@@ -801,7 +801,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           {!quotaInfo.isPremium && (
             <TouchableOpacity
               style={styles.upgradeToPremiumButton}
-              onPress={() => navigation.navigate('Subscription')}
+              onPress={() => navigation.navigate('Settings', { screen: 'Subscription' })}
             >
               <Text style={styles.upgradeToPremiumButtonText}>Upgrade to Premium</Text>
             </TouchableOpacity>

@@ -81,10 +81,10 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         // Load quota information
         try {
           const gtoQuota = await revenueCatService.canUseGTOAnalysis();
-          const handQuota = await revenueCatService.canCreateHand();
+          const handRemaining = premium ? -1 : Math.max(0, 10 - hands.length);
           setQuotaInfo({
             gtoRemaining: gtoQuota.remainingFree,
-            handRemaining: handQuota.remainingFree,
+            handRemaining,
             isPremium: premium,
           });
         } catch (error) {
@@ -301,7 +301,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             {
               text: 'Upgrade',
               style: 'default',
-              onPress: () => navigation.navigate('Subscription'),
+              onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
             },
           ]
         );

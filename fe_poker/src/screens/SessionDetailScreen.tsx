@@ -7,7 +7,7 @@ import revenueCatService from '../services/RevenueCatService';
 import { Input } from '../components/Input';
 import { CustomDateTimePicker } from '../components/DateTimePicker';
 
-export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
+export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: { sessionId: string } } }> = ({ navigation, route }) => {
   const { sessionId } = route.params;
   const { sessions, hands, fetchSessions, fetchHands, deleteHand, toggleFavorite, endSession } = useSessionStore();
   const [loading, setLoading] = useState(true);
@@ -93,7 +93,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
     if (navigation.canGoBack()) {
       const state = navigation.getState();
       // Check if SessionsList is in the stack
-      const sessionListIndex = state.routes.findIndex(route => route.name === 'SessionsList');
+      const sessionListIndex = state.routes.findIndex((route: any) => route.name === 'SessionsList');
       if (sessionListIndex !== -1 && sessionListIndex < state.index) {
         // Pop to SessionsList
         navigation.pop(state.index - sessionListIndex);
@@ -179,7 +179,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: any }> = ({
             {
               text: 'Upgrade',
               style: 'default',
-              onPress: () => navigation.navigate('Subscription'),
+              onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
             },
           ]
         );
