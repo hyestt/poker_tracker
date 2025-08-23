@@ -57,17 +57,12 @@ func (s *ClaudeService) AnalyzeHand(handDetails string, language string) (string
 		systemPrompt = fmt.Sprintf("You are a professional Texas Hold'em poker GTO coach. Analyze poker hands and provide strategic recommendations in %s.", language)
 	}
 
-	// 獲取user prompt（優先使用 JSON 格式）
+	// 獲取user prompt（使用 JSON 格式）
 	userPrompt, err := promptManager.GetSimpleJSONUserPrompt(handDetails, language)
 	if err != nil {
-		// 如果 JSON 格式失敗，回退到文字格式
-		fmt.Printf("JSON prompt failed, falling back to text format: %v\n", err)
-		userPrompt, err = promptManager.GetUserPrompt(handDetails)
-		if err != nil {
-			// 錯誤處理：記錄錯誤並使用fallback user prompt
-			fmt.Printf("Error reading user prompt file: %v\n", err)
-			userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand", handDetails)
-		}
+		// 如果 JSON 格式失敗，使用硬編碼的fallback prompt
+		fmt.Printf("JSON prompt failed, using fallback prompt: %v\n", err)
+		userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand", handDetails)
 	} else {
 		fmt.Printf("Successfully loaded JSON prompts from files\n")
 	}
@@ -76,7 +71,7 @@ func (s *ClaudeService) AnalyzeHand(handDetails string, language string) (string
 		context.Background(),
 		anthropic.MessagesRequest{
 			Model:     s.modelName,
-			MaxTokens: 2400,
+			MaxTokens: 1800,
 			System:    systemPrompt,
 			Messages: []anthropic.Message{
 				anthropic.NewUserTextMessage(userPrompt),

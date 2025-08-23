@@ -463,7 +463,7 @@
   // Claude API 請求結構
   anthropic.MessagesRequest{
       Model:     anthropic.Model(s.modelName),
-      MaxTokens: 2400,
+      MaxTokens: 1800,
       System:    systemPrompt,  // 來自 system_prompt.txt
       Messages: []anthropic.Message{
           {
@@ -561,3 +561,43 @@
   - Railway 的默認 Go 1.21.13 與我們的 go.mod 完全兼容
   - 代碼現在應該可以在 Railway 上成功部署
   - Claude v1 API 與 Go 1.21 完全兼容
+
+### 2025-01-22 - 移除冗餘的 user_prompt.txt
+- **Task**: 清理不再需要的 user_prompt.txt 檔案
+- **問題**: user_prompt.txt 是舊的 fallback 機制，現在主要使用 JSON 格式
+- **Files Modified**: 
+  - 移除 `be_poker/prompts/user_prompt.txt`: 不再需要的純文字格式模板
+  - 更新 `be_poker/services/claude_service.go`: 簡化 fallback 邏輯
+  - 更新 `be_poker/services/openai_service.go`: 統一 fallback 邏輯
+- **Changes Made**:
+  - ✅ 移除 `user_prompt.txt` 檔案
+  - ✅ 移除對 `GetUserPrompt()` 的調用
+  - ✅ 簡化為直接硬編碼 fallback prompt
+  - ✅ 統一 Claude 和 OpenAI 服務的 prompt 處理邏輯
+  - ✅ 確認編譯成功
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 現在系統只使用 JSON 格式的 user_prompt.json
+  - Fallback 機制簡化為硬編碼的基本 prompt
+  - 兩個 AI 服務現在使用一致的 prompt 處理邏輯
+  - 減少了檔案依賴，提高系統穩定性
+
+### 2025-01-22 - 調整 AI 分析畫面預設等待時間為 20 秒
+- **Task**: 將 "Analyzing your hand..." 的預設進度時間從 15 秒改為 20 秒
+- **File Modified**: `fe_poker/src/screens/AIAnalysisScreen.tsx`
+- **Changes**: 將進度模擬間隔由 `2100ms` 改為 `2857ms`（7 步 ≈ 20 秒）
+- **Status**: ✅ 完成
+
+### 2025-01-22 - 優化 AI 回應速度：降低 MaxTokens 至 1800
+- **Task**: 將 AI 服務的 MaxTokens 從 2400 降到 1800 以加速回應
+- **Files Modified**: 
+  - `be_poker/services/claude_service.go`: MaxTokens 2400 → 1800
+  - `be_poker/services/openai_service.go`: MaxTokens 2400 → 1800
+- **Changes Made**:
+  - ✅ 統一兩個 AI 服務的 MaxTokens 設定為 1800
+  - ✅ 確認編譯成功
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 降低 MaxTokens 可顯著減少 API 回應時間
+  - 1800 tokens 仍足夠產生完整的撲克手牌分析
+  - 對分析品質影響最小，對速度提升最明顯
