@@ -304,6 +304,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		HandDetails string `json:"handDetails"`
 		Language    string `json:"language,omitempty"`
+		Model       string `json:"model,omitempty"` // 新增模型選擇
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -317,21 +318,38 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 初始化 OpenAI 服務
-	openaiService := services.NewOpenAIService()
-	if openaiService == nil {
-		http.Error(w, "OpenAI service not available - please check API key configuration", http.StatusServiceUnavailable)
-		return
-	}
-
 	// 獲取語言設定，如果沒有則使用預設值
 	language := request.Language
 	if language == "" {
 		language = "English"
 	}
-	log.Printf("ℹ️ Using language: %s for analysis", language)
 
-	analysis, err := openaiService.AnalyzeHand(request.HandDetails, language)
+	// 獲取模型設定，如果沒有則使用預設值
+	modelName := request.Model
+	if modelName == "" {
+		modelName = "claude-sonnet-4-20250514" // 預設模型 - 暫時改用 Claude
+	}
+
+	log.Printf("ℹ️ Using language: %s and model: %s for analysis", language, modelName)
+
+	// 創建 AI 服務工廠
+	aiFactory := services.NewAIServiceFactory()
+
+	// 根據模型名稱確定提供商
+	aiModel := aiFactory.GetModelByName(modelName)
+	if aiModel == nil {
+		http.Error(w, "Unsupported model: "+modelName, http.StatusBadRequest)
+		return
+	}
+
+	// 創建對應的 AI 服務
+	aiService, err := aiFactory.CreateService(aiModel.Provider, modelName)
+	if err != nil {
+		http.Error(w, "AI service not available: "+err.Error(), http.StatusServiceUnavailable)
+		return
+	}
+
+	analysis, err := aiService.AnalyzeHand(request.HandDetails, language)
 	if err != nil {
 		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -387,5 +405,32 @@ func ToggleFavorite(w http.ResponseWriter, r *http.Request) {
 	response := map[string]bool{
 		"favorite": newFavorite,
 	}
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetAvailableModels 獲取所有可用的 AI 模型
+func GetAvailableModels(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 啟用 CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// 創建 AI 服務工廠並獲取可用模型
+	aiFactory := services.NewAIServiceFactory()
+	models := aiFactory.GetAvailableModels()
+
+	response := struct {
+		Models []services.AIModel `json:"models"`
+	}{
+		Models: models,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }

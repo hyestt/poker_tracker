@@ -120,6 +120,15 @@ func RegisterRoutes() {
 		handlers.ToggleFavorite(w, r)
 	})
 
+	// 獲取可用的 AI 模型
+	http.HandleFunc("/models", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		handlers.GetAvailableModels(w, r)
+	})
+
 	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {

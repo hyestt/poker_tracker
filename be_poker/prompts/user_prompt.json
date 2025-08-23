@@ -35,5 +35,5 @@
     "gto_solver_style": true,
     "streets_to_analyze": ["preflop", "flop", "turn", "river"]
   },
-  "prompt_text": "Please analyze the following poker hand using GTO solver principles. Provide comprehensive analysis including action frequencies, ratings, and strategic recommendations for each street. Follow the format and rules specified in the system prompt."
+  "prompt_text": "Please analyze the following poker hand using strict GTO solver principles. Provide comprehensive analysis including action frequencies, ratings, and strategic recommendations for each street. Follow the format and rules specified in the system prompt."
 }
