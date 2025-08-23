@@ -1,8 +1,8 @@
-# Privacy Policy - LiveHand Poker Tracker
+# Privacy Policy - AI Solver Poker Tracker
 
 Effective Date: August 17, 2025
 
-LiveHand Poker Tracker values your privacy. This Privacy Policy explains how we handle information when you use our app.
+AI Solver Poker Tracker values your privacy. This Privacy Policy explains how we handle information when you use our app.
 
 ## Information We Do Not Collect
 - We do not collect, store, or share any personal information such as name, email, or phone number.

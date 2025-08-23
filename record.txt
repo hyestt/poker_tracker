@@ -202,3 +202,69 @@
   - AI分析使用與Share功能完全相同的格式（除了品牌標記）
   - 確保AI分析總是包含完整的session資訊
   - 如果沒有session資訊會拋出錯誤，確保資料完整性
+
+### 2025-01-07 - 修復 React Native iOS 建置錯誤
+- **Task**: 修復 React Native 0.80 與 Xcode 16.4 和 Node.js v22 的兼容性問題
+- **問題**: UnhandledPromiseRejection、iOS 建置失敗 (exit code 65)、CLANG 警告設定問題
+- **Files Modified**: 
+  - 清理並重新安裝所有相依性 (node_modules, Pods, build cache)
+  - 修復 npm 快取權限問題
+  - 創建並執行 Xcode 專案設定修復腳本
+- **Changes Made**:
+  - ✅ 清理所有建置快取和相依性
+  - ✅ 修復 npm 快取權限問題 (`sudo chown -R 501:20 "/Users/glenhsu/.npm-cache"`)
+  - ✅ 使用 `--legacy-peer-deps` 重新安裝相依性
+  - ✅ 重新安裝 iOS pods
+  - ✅ 修復 Xcode 專案設定：
+    - 禁用 CLANG_WARN_DOCUMENTATION_COMMENTS
+    - 禁用 CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER
+    - 禁用 GCC_WARN_PEDANTIC、VALIDATE_PRODUCT、GCC_WARN_UNDECLARED_SELECTOR
+    - 設定 iOS 部署目標為 13.0
+    - 設定 C++ 標準為 c++20
+    - 配置警告標誌
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功解決 React Native 0.80 與 Xcode 16.4 的兼容性問題
+  - 建置現在正常進行，沒有 export 錯誤
+  - 不需要升級 React Native 版本即可修復問題
+  - 使用腳本自動化修復 Xcode 設定，提高效率
+
+### 2025-01-07 - 修復應用程式啟動崩潰問題
+- **Task**: 修復應用程式啟動時的 "LiveHandApp has not been registered" 錯誤
+- **問題**: iOS 應用程式嘗試啟動名為 "LiveHandApp" 的 React Native 模組，但 app.json 中註冊的是 "AISolverApp"
+- **Files Modified**: 
+  - `fe_poker/ios/PokerTrackerApp/AppDelegate.swift`: 修正模組名稱從 "LiveHandApp" 到 "AISolverApp"
+- **Changes Made**:
+  - ✅ 診斷崩潰日誌，發現 React Native 模組名稱不匹配問題
+  - ✅ 修復 AppDelegate.swift 中的 `withModuleName` 參數
+  - ✅ 重新建置並測試應用程式啟動
+  - ✅ 驗證應用程式成功安裝並運行在 iPhone 16 Pro 模擬器上
+
+### 2025-01-07 - 更新應用程式命名為 AI Solver
+- **Task**: 將應用程式顯示名稱和啟動畫面從 "LiveHand" 更改為 "AI Solver"
+- **Files Modified**: 
+  - `fe_poker/ios/PokerTrackerApp/Info.plist`: 更新 CFBundleDisplayName
+  - `fe_poker/ios/PokerTrackerApp/LaunchScreen.storyboard`: 更新啟動畫面文字
+  - `fe_poker/android/app/src/main/res/values/strings.xml`: 更新 Android 應用程式名稱
+  - `fe_poker/android/settings.gradle`: 更新專案名稱
+  - `fe_poker/android/app/src/main/java/com/livehandapp/MainActivity.kt`: 更新主要組件名稱
+- **Changes Made**:
+  - ✅ iOS 顯示名稱：LiveHand → AI Solver
+  - ✅ Android 應用程式名稱：LiveHand → AI Solver
+  - ✅ 啟動畫面標題：LiveHand → AI Solver
+  - ✅ 啟動畫面副標題：Powered by LiveHand Team → Powered by AI Solver Team
+  - ✅ Android 專案名稱：LiveHandApp → AISolverApp
+  - ✅ Android 主要組件名稱：LiveHandApp → AISolverApp
+  - ✅ 保持 Bundle ID 不變：com.glen.livehand (維持應用程式身份)
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 應用程式現在在主畫面顯示為 "AI Solver"
+  - 啟動畫面已更新為新的品牌名稱
+  - Bundle ID 保持不變以維持應用程式的身份和數據連續性
+  - 所有平台 (iOS/Android) 的命名已統一更新
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功修復應用程式崩潰問題
+  - 應用程式現在可以正常啟動和運行
+  - Bundle ID: com.glen.livehand，進程 ID: 29569
+  - 確認應用程式在模擬器中正常運行

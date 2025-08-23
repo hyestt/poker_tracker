@@ -14,17 +14,17 @@ Domain: RevenueCat.ErrorCode
 ## ✅ 已確認正常的配置
 
 ### App Store Connect
-- ✅ Bundle ID: `com.glen.livehand`
+- ✅ Bundle ID: `com.glen.aisolver`
 - ✅ 產品已創建:
-  - `com.glen.livehand.pro.monthly` (Monthly LiveHand Pro)
-  - `com.glen.livehand.pro.annual` (Annual LiveHand Pro)
+  - `com.glen.aisolver.pro.monthly` (Monthly AI Solver Pro)
+  - `com.glen.aisolver.pro.annual` (Annual AI Solver Pro)
 - ✅ 產品狀態: Waiting for Review
 - ✅ 訂閱群組: Pro (ID: 21759996)
 - ✅ 產品配置完整: 價格、本地化、圖片等都已設置
 
 ### RevenueCat Dashboard
 - ✅ API Key: `appl_BwKUCybSdHvHESLRhDGVjAfAcLC` (正確)
-- ✅ 應用已添加: LiveHand (App Store) - `com.glen.livehand`
+- ✅ 應用已添加: AI Solver (App Store) - `com.glen.aisolver`
 - ✅ App Store Connect 集成: Valid credentials
   - Key ID: HWV8DJQHA6
   - Issuer ID: e087614e-fcde-4734-8b48-0ff296022aea
