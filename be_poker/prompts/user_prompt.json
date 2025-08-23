@@ -1,0 +1,39 @@
+{
+  "request_type": "poker_hand_analysis",
+  "analysis_format": "comprehensive_gto",
+  "hand_data": {
+    "session_info": {
+      "stakes": {
+        "small_blind": "{{SMALL_BLIND}}",
+        "big_blind": "{{BIG_BLIND}}"
+      }
+    },
+    "hero": {
+      "position": "{{HERO_POSITION}}",
+      "hole_cards": "{{HERO_HOLE_CARDS}}"
+    },
+    "villains": [
+      {
+        "id": "{{VILLAIN_ID}}",
+        "position": "{{VILLAIN_POSITION}}",
+        "hole_cards": "{{VILLAIN_HOLE_CARDS}}"
+      }
+    ],
+    "board": {
+      "flop": "{{FLOP_CARDS}}",
+      "turn": "{{TURN_CARD}}",
+      "river": "{{RIVER_CARD}}"
+    },
+    "hand_details": "{{HAND_DETAILS}}",
+    "notes": "{{HAND_NOTES}}"
+  },
+  "analysis_requirements": {
+    "language": "{{LANGUAGE}}",
+    "output_format": "json_only",
+    "include_frequencies": true,
+    "include_ratings": true,
+    "gto_solver_style": true,
+    "streets_to_analyze": ["preflop", "flop", "turn", "river"]
+  },
+  "prompt_text": "Please analyze the following poker hand using GTO solver principles. Provide comprehensive analysis including action frequencies, ratings, and strategic recommendations for each street. Follow the format and rules specified in the system prompt."
+}

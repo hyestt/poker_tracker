@@ -268,3 +268,28 @@
   - 應用程式現在可以正常啟動和運行
   - Bundle ID: com.glen.livehand，進程 ID: 29569
   - 確認應用程式在模擬器中正常運行
+
+### 2025-01-07 - 將 User Prompt 轉換為 JSON 格式
+- **Task**: 將目前的純文字 user prompt 轉換為結構化的 JSON 格式，提升 AI 分析的準確性和一致性
+- **Files Modified**: 
+  - 新增 `be_poker/prompts/user_prompt.json`: JSON 格式的 user prompt 模板
+  - 新增 `be_poker/prompts/user_prompt_example.json`: 完整的 JSON prompt 範例
+  - `be_poker/services/prompt_manager.go`: 新增 JSON prompt 支援功能
+  - `be_poker/services/openai_service.go`: 更新為優先使用 JSON 格式
+- **Changes Made**:
+  - ✅ 設計結構化的 JSON prompt 格式，包含：
+    - 手牌基本資訊 (session_info, hero, villains, board)
+    - 動作序列 (action_sequence by street)
+    - 分析需求 (language, output_format, frequencies)
+  - ✅ 新增 `GetJSONUserPrompt()` 方法支援完整 JSON 格式
+  - ✅ 新增 `GetSimpleJSONUserPrompt()` 方法支援簡化 JSON 格式
+  - ✅ 更新 OpenAI service 優先使用 JSON 格式，失敗時回退到文字格式
+  - ✅ 創建 JSON prompt 結構定義和範例檔案
+  - ✅ 測試驗證 JSON prompt 功能正常運作
+- **Status**: ✅ 完成
+- **Notes**: 
+  - JSON 格式提供更結構化的手牌資訊，有助於 AI 更準確分析
+  - 保持向後兼容性，系統會自動回退到文字格式如果 JSON 失敗
+  - 支援兩種 JSON 格式：完整格式（包含所有手牌細節）和簡化格式（僅包含必要資訊）
+  - 所有變更都通過編譯測試，無 linting 錯誤
+  - 為未來更精確的 AI 分析奠定基礎

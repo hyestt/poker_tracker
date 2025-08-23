@@ -38,14 +38,19 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 		systemPrompt = fmt.Sprintf("You are a professional Texas Hold'em poker GTO coach. Analyze poker hands and provide strategic recommendations in %s.", language)
 	}
 
-	// 獲取user prompt
-	userPrompt, err := promptManager.GetUserPrompt(handDetails)
+	// 獲取user prompt（優先使用 JSON 格式）
+	userPrompt, err := promptManager.GetSimpleJSONUserPrompt(handDetails, language)
 	if err != nil {
-		// 錯誤處理：記錄錯誤並使用fallback user prompt
-		fmt.Printf("Error reading user prompt file: %v\n", err)
-		userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand", handDetails)
+		// 如果 JSON 格式失敗，回退到文字格式
+		fmt.Printf("JSON prompt failed, falling back to text format: %v\n", err)
+		userPrompt, err = promptManager.GetUserPrompt(handDetails)
+		if err != nil {
+			// 錯誤處理：記錄錯誤並使用fallback user prompt
+			fmt.Printf("Error reading user prompt file: %v\n", err)
+			userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand", handDetails)
+		}
 	} else {
-		fmt.Printf("Successfully loaded prompts from files\n")
+		fmt.Printf("Successfully loaded JSON prompts from files\n")
 	}
 
 	resp, err := s.client.CreateChatCompletion(
