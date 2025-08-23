@@ -329,7 +329,7 @@ class RevenueCatService {
     return [
       {
         id: '$rc_annual',
-        title: 'LiveHand Pro Annual',
+        title: 'AI Solver Pro Annual',
         description: 'All premium features unlocked',
         price: '$120',
         period: 'Year',
@@ -338,7 +338,7 @@ class RevenueCatService {
       },
       {
         id: '$rc_monthly',
-        title: 'LiveHand Pro Monthly',
+        title: 'AI Solver Pro Monthly',
         description: 'All premium features unlocked',
         price: '$14.99',
         period: 'Month',

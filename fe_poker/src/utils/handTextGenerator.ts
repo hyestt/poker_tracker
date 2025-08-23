@@ -29,7 +29,7 @@ ${hand.note || 'No note'}
 
 Result: ${hand.result >= 0 ? '+' : ''}$${hand.result}
 
-Shared from LiveHand`;
+Shared from AI Solver`;
 };
 
 

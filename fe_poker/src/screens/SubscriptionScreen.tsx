@@ -158,7 +158,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
 
       Alert.alert(
         'Purchase Successful!',
-        'Thank you for subscribing to LiveHand Premium!',
+        'Thank you for subscribing to AI Solver Premium!',
         [{ text: 'OK', onPress: () => loadSubscriptionData() }]
       );
     } catch (error: any) {
@@ -252,10 +252,10 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         </TouchableOpacity>
       </View>
 
-      {/* Header with LiveHand Logo */}
+      {/* Header with AI Solver Logo */}
       <View style={styles.header}>
         <Image source={require('../../assets/appstore.png')} style={styles.logoImage} resizeMode="contain" />
-        <Text style={styles.title}>LiveHand Pro</Text>
+        <Text style={styles.title}>AI Solver Pro</Text>
       </View>
 
       {/* Features List */}
@@ -347,7 +347,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
             : '$rc_monthly';
           const planData = {
             id: productId,
-            title: 'LiveHand Premium',
+            title: 'AI Solver Premium',
             description: 'All premium features unlocked',
             price: selectedPlan === 'annual' ? '$120/year' : '$14.99/month',
             period: selectedPlan === 'annual' ? 'Year' : 'Month',

@@ -12,7 +12,7 @@ export class DatabaseService {
   private static isInitializing: boolean = false;
   private static readonly DB_NAME = 'poker_tracker.db';
   private static readonly DB_VERSION = '1.2';
-  private static readonly DB_DISPLAY_NAME = 'LiveHand Database';
+  private static readonly DB_DISPLAY_NAME = 'AI Solver Database';
   private static readonly DB_SIZE = 200000;
 
   // 初始化數據庫

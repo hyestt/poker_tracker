@@ -62,8 +62,8 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 					Content: userPrompt,
 				},
 			},
-			MaxTokens:   2300,
-			Temperature: 0.2,
+			MaxTokens:   2400,
+			Temperature: 0.3,
 		},
 	)
 

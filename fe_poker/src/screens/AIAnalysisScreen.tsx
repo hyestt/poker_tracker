@@ -292,12 +292,27 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const userPreferences = await UserPreferencesService.getPreferences();
       const userLanguage = userPreferences.language || 'English';
 
-      // 生成完整的手牌歷史文本（使用Share格式，但移除"Shared from LiveHand"標記）
-      if (!currentSession) {
-        throw new Error('Session information is required for AI analysis');
+      // 生成完整的手牌歷史文本（使用Share格式，但移除"Shared from AI Solver"標記）
+      // 若首次點擊時 session 尚未載入，使用最小可用內容作為後備，避免第一次就失敗
+      let handHistoryText = '';
+      if (currentSession) {
+        const shareText = generateShareText(handData, currentSession);
+        handHistoryText = shareText.replace('\n\nShared from AI Solver', '');
+      } else {
+        const villainsText = (handData.villains || [])
+          .map((v, i) => `Villain ${i + 1}: ${v.position || 'Unknown'} - ${v.holeCards || 'Unknown'}`)
+          .join('\n');
+        handHistoryText = [
+          'Poker Hand Details',
+          '',
+          `Hero: ${handData.position || 'Unknown'} - ${handData.holeCards || 'Unknown'}`,
+          `Board: ${handData.board || 'No flop shown'}`,
+          villainsText ? `Villains:\n${villainsText}` : 'Villains: None',
+          '',
+          'Hand Details:',
+          handData.details || 'No details',
+        ].join('\n');
       }
-      const shareText = generateShareText(handData, currentSession);
-      const handHistoryText = shareText.replace('\n\nShared from LiveHand', '');
 
       const requestPayload = {
         handDetails: handHistoryText,

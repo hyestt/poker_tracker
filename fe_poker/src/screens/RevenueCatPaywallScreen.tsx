@@ -59,7 +59,7 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
       if (isPremium) {
         Alert.alert(
           'Welcome to Premium!',
-          'Thank you for upgrading to LiveHand Pro!',
+          'Thank you for upgrading to AI Solver Pro!',
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
       }
@@ -95,7 +95,7 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
       if (isPremium) {
         Alert.alert(
           'Welcome to Premium!',
-          'Thank you for upgrading to LiveHand Pro!',
+          'Thank you for upgrading to AI Solver Pro!',
           [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
       }
@@ -172,7 +172,7 @@ export const RevenueCatPaywallScreen: React.FC<{ navigation: any }> = ({ navigat
         {paywallAvailable ? (
           <>
             <View style={styles.headerContent}>
-              <Text style={styles.title}>LiveHand Pro</Text>
+              <Text style={styles.title}>AI Solver Pro</Text>
               <Text style={styles.subtitle}>Unlock all premium features</Text>
             </View>
 
