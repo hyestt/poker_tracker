@@ -293,3 +293,25 @@
   - 支援兩種 JSON 格式：完整格式（包含所有手牌細節）和簡化格式（僅包含必要資訊）
   - 所有變更都通過編譯測試，無 linting 錯誤
   - 為未來更精確的 AI 分析奠定基礎
+
+### 2025-01-22 - 修復 iOS 建置錯誤
+- **Task**: 解決 React Codegen 和 PIF transfer session 相關的建置錯誤
+- **問題**: 
+  - Xcode 顯示 "Could not compute dependency graph: MsgHandlingError"
+  - React Codegen 找不到建置輸入檔案
+  - VFS overlay 檔案遺失
+- **Files Modified**: 
+  - 清理並重新安裝所有相依性和快取
+- **Changes Made**:
+  - ✅ 清理 Xcode DerivedData 快取
+  - ✅ 移除並重新安裝 node_modules
+  - ✅ 清理 npm 快取
+  - ✅ 移除並重新安裝 iOS Pods
+  - ✅ 重新生成 React Native Codegen 檔案
+  - ✅ 重新開啟 Xcode workspace
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功解決 React Codegen 相關的建置錯誤
+  - 所有相依性都已重新安裝並正確配置
+  - Xcode workspace 現在可以正常開啟和建置
+  - 建議在 Xcode 中進行建置以獲得更好的錯誤診斷
