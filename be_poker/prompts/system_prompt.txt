@@ -31,6 +31,7 @@ Frequencies keys:
 - Preflop: raise_3x, raise_5x, check, call, fold
 - Postflop: check, bet_33, bet_50, bet_75, bet_100, call, raise_3x, raise_5x, fold
 - All values must be string percentages (e.g., "40%")
+- Make sure recommended frequency is aligned with GTO recommendation
 
 ULTRA-THINK MODE — INTERNAL ONLY
 - Preflop need to follow the standard GTO preflop range and give advice
@@ -63,7 +64,7 @@ GTO Recommendation Output Content
 
 {
   "summary": {
-    "rating": "⭐(1⭐-5⭐)",            // overall star rating (emoji)
+    "rating": "⭐(1⭐-5⭐)",
     "summary": "1-3 sentences overview localized to {{LANGUAGE}}"
   },
   "preflop": {
@@ -82,7 +83,6 @@ GTO Recommendation Output Content
   "flop": {
     "player_action": "",
     "recommendation": "",
-    "best_action": "1-2 sentences",
     "frequencies": {
       "check": "0-100%",
       "bet_33": "0-100%",
@@ -100,7 +100,6 @@ GTO Recommendation Output Content
   "turn": {
     "player_action": "",
     "recommendation": "",
-    "best_action": "1-2 sentences",
     "frequencies": {
       "check": "0-100%",
       "bet_33": "0-100%",
@@ -112,13 +111,12 @@ GTO Recommendation Output Content
       "raise 5x": "0-100%",
       "fold": "0-100%"
     },
-    "rating": "",
+    "rating": "⭐(1⭐-5⭐)",
     "summary": ""
   },
   "river": {
     "player_action": "",
     "recommendation": "",
-    "best_action": "1-2 sentences",
     "frequencies": {
       "check": "0-100%",
       "bet_33": "0-100%",
@@ -130,7 +128,7 @@ GTO Recommendation Output Content
       "raise 5x": "0-100%",
       "fold": "0-100%"
     },
-    "rating": "",
+    "rating": "⭐(1⭐-5⭐)",
     "summary": ""
   }
 }

@@ -176,6 +176,7 @@ Flop: UTG Check BTN Bet $30 UTG Call
 Turn: BTN Bet $100 UTG Fold`;
       } else if (caseNumber === 2) {
         exampleText = `Preflop: HJ Call $2 BTN Raise $10 HJ Call
+        
 Flop: HJ Check BTN Bet $20 HJ Call
 
 Turn: HJ Check BTN Check
@@ -390,27 +391,51 @@ River: HJ Check BTN Check`;
   const handleDetailsInputFocus = () => {
     console.log('handleDetailsInputFocus called, current showCustomKeyboard:', showCustomKeyboard);
     console.log('useCustomKeyboard:', useCustomKeyboard);
-    if (useCustomKeyboard) {
+    if (useCustomKeyboard && !showCustomKeyboard) {
       console.log('Setting showCustomKeyboard to true');
       setShowCustomKeyboard(true);
+      // 當使用自定義鍵盤時，防止系統鍵盤彈出
+      if (detailsInputRef.current) {
+        detailsInputRef.current.blur();
+        // 短暫延遲後重新聚焦，但不會觸發系統鍵盤
+        setTimeout(() => {
+          if (detailsInputRef.current) {
+            detailsInputRef.current.focus();
+          }
+        }, 50);
+      }
+    } else if (!useCustomKeyboard) {
+      // 不使用自定義鍵盤時，正常聚焦以顯示系統鍵盤
+      if (detailsInputRef.current) {
+        detailsInputRef.current.focus();
+      }
     }
-    // Focus the TextInput to show cursor
-    if (detailsInputRef.current) {
-      detailsInputRef.current.focus();
-    }
+    // 如果 useCustomKeyboard 為 true 且 showCustomKeyboard 已經為 true，則不做任何操作
+    // 這避免了用戶手動隱藏鍵盤後又被重新顯示的問題
   };
 
   const handleDetailsInputPress = () => {
     console.log('handleDetailsInputPress called, useCustomKeyboard:', useCustomKeyboard);
     console.log('current showCustomKeyboard:', showCustomKeyboard);
-    if (useCustomKeyboard) {
+    if (useCustomKeyboard && !showCustomKeyboard) {
       console.log('Setting showCustomKeyboard to true from Press');
       setShowCustomKeyboard(true);
+      // 當使用自定義鍵盤時，防止系統鍵盤彈出
+      if (detailsInputRef.current) {
+        detailsInputRef.current.blur();
+        setTimeout(() => {
+          if (detailsInputRef.current) {
+            detailsInputRef.current.focus();
+          }
+        }, 50);
+      }
+    } else if (!useCustomKeyboard) {
+      // 不使用自定義鍵盤時，正常聚焦以顯示系統鍵盤
+      if (detailsInputRef.current) {
+        detailsInputRef.current.focus();
+      }
     }
-    // Focus the TextInput to show cursor
-    if (detailsInputRef.current) {
-      detailsInputRef.current.focus();
-    }
+    // 如果已經顯示自定義鍵盤，則不重複觸發顯示邏輯
   };
 
   const handleDetailsInputBlur = () => {
@@ -419,6 +444,8 @@ River: HJ Check BTN Check`;
 
   const hideCustomKeyboard = () => {
     setShowCustomKeyboard(false);
+    // 不在這裡調用 blur()，因為會干擾用戶手動隱藏鍵盤的操作
+    // blur() 只在切換 Switch 時調用，防止系統鍵盤自動彈出
   };
 
   // 處理輸入框焦點，自動滾動到可見區域
@@ -670,6 +697,10 @@ River: HJ Check BTN Check`;
                       setShowCustomKeyboard(true); // 開啟Poker鍵盤時立即顯示它
                     } else {
                       setShowCustomKeyboard(false); // 關閉Poker鍵盤時隱藏它
+                      // 關閉時主動讓 TextInput 失去焦點，防止系統鍵盤彈出
+                      if (detailsInputRef.current) {
+                        detailsInputRef.current.blur();
+                      }
                     }
                   }}
                   trackColor={{false: '#D1D5DB', true: theme.colors.primary}}

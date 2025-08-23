@@ -315,3 +315,46 @@
   - 所有相依性都已重新安裝並正確配置
   - Xcode workspace 現在可以正常開啟和建置
   - 建議在 Xcode 中進行建置以獲得更好的錯誤診斷
+
+### 2025-01-22 - 修復 Poker Keyboard 關閉後文字彈窗不消失問題
+- **Task**: 解決關閉 Poker Keyboard 後系統文字輸入法彈窗無法消失的問題
+- **問題**: 
+  - 當關閉 Poker Keyboard 時，系統會自動彈出原生文字輸入法
+  - 文字彈窗持續顯示，點擊其他地方也無法消失
+  - TextInput 焦點狀態管理不當
+- **Files Modified**: 
+  - `fe_poker/src/screens/RecordHandScreen.tsx`: 修改焦點管理邏輯
+- **Changes Made**:
+  - ✅ 修改 `hideCustomKeyboard()` 函數，關閉時主動讓 TextInput 失去焦點
+  - ✅ 更新 Switch `onValueChange` 邏輯，關閉 Poker Keyboard 時調用 blur()
+  - ✅ 改善 `handleDetailsInputFocus()` 和 `handleDetailsInputPress()` 函數
+  - ✅ 添加智能焦點管理：使用自定義鍵盤時先 blur 再 focus，防止系統鍵盤彈出
+  - ✅ 保持不使用自定義鍵盤時的正常行為
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 解決了 TextInput focus 狀態和 showSoftInputOnFocus 設定衝突的問題
+  - 使用 blur() + setTimeout focus 的技巧防止系統鍵盤干擾
+  - 確保自定義鍵盤與系統鍵盤之間的平滑切換
+  - 無 linting 錯誤，代碼品質良好
+
+### 2025-01-22 - 修復 Hide 按鈕無法隱藏 Poker Keyboard 問題
+- **Task**: 解決點擊 Hide 按鈕後 Poker Keyboard 沒有成功隱藏的問題
+- **問題**: 
+  - 點擊 Hide 按鈕後 Poker Keyboard 沒有隱藏
+  - 焦點管理邏輯衝突，blur() 後立即重新觸發顯示
+  - 用戶手動隱藏鍵盤後被重新顯示
+- **Files Modified**: 
+  - `fe_poker/src/screens/RecordHandScreen.tsx`: 精確調整焦點管理邏輯
+- **Changes Made**:
+  - ✅ 移除 `hideCustomKeyboard()` 中的 blur() 調用，避免干擾手動隱藏操作
+  - ✅ 修改 `handleDetailsInputFocus()` 添加 `!showCustomKeyboard` 條件檢查
+  - ✅ 修改 `handleDetailsInputPress()` 添加 `!showCustomKeyboard` 條件檢查
+  - ✅ 防止已顯示的鍵盤被重複觸發顯示邏輯
+  - ✅ 保留 Switch 切換時的 blur() 邏輯以防止系統鍵盤彈出
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 解決了焦點管理邏輯衝突導致的鍵盤無法隱藏問題
+  - 區分手動隱藏操作和自動切換操作的不同處理邏輯
+  - 確保用戶手動隱藏鍵盤後不會被重新顯示
+  - Hide 按鈕現在正確工作，不會被焦點管理干擾
+  - 保持了系統鍵盤防彈出的功能
