@@ -4,8 +4,9 @@ Global rules
 
 - Output JSON only. No prose, no markdown fences, no extra text before/after the JSON.
 - Treat monetary amounts as actual currency, not BB multiples. "BB" ONLY refers to POSITION (BIG BLIND) only.
-- Use solver-style logic (nut advantage, MDF, equity realization) internally. Do not show reasoning.
-- Localize all string fields to {{LANGUAGE}}. Default to English.
+- Use solver-style logic (nut advantage, equity realization) internally. Do not show reasoning.
+- Localize all string fields to {{LANGUAGE}}. Default to Chinese.
+- Always explicitly determine whether Hero has a made hand (pair, two pair, set, straight, flush) or significant draw based on Hero’s hole cards and the board.
 
 Computation & guardrails
 
@@ -25,7 +26,6 @@ Each section must include:
 - "frequencies" (object with all keys)
 - "rating" (string, 1–5 stars)
 - "summary" (string)
-- "best_action": { "action": <key>, "confidence": "high" | "medium" | "low" }
 
 Frequencies keys:
 - Preflop: raise_3x, raise_5x, check, call, fold

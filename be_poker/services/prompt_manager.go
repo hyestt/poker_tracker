@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -160,6 +161,54 @@ type JSONPrompt struct {
 	PromptText string `json:"prompt_text"`
 }
 
+// normalizeSuits replaces suit symbols and shorthand letters with plural English words.
+// Examples:
+//   - "A♣ K♣" -> "Aclubs Kclubs"
+//   - "A♦ 7♣ 2♠" -> "Adiamonds 7clubs 2spades"
+//   - "Ac Kh Qd" -> "Aclubs Khearts Qdiamonds"
+func normalizeSuits(s string) string {
+	if s == "" {
+		return s
+	}
+
+	// 1) Replace Unicode suit symbols with plural words
+	replacer := strings.NewReplacer(
+		"♣", "clubs",
+		"♦", "diamonds",
+		"♥", "hearts",
+		"♠", "spades",
+	)
+	out := replacer.Replace(s)
+
+	// 2) Replace shorthand suit letters when they appear as rank+suit tokens (e.g., Ac, Kh, Qd, 10s)
+	//    Match tokens like: 10|[2-9]|[TJQKA] followed by [cdhs] at word boundary
+	re := regexp.MustCompile(`(?i)\b(10|[2-9]|[tjqka])[cdhs]\b`)
+	out = re.ReplaceAllStringFunc(out, func(m string) string {
+		// last character is the suit letter
+		suit := strings.ToLower(m[len(m)-1:])
+		base := m[:len(m)-1]
+		switch suit {
+		case "c":
+			return base + "clubs"
+		case "d":
+			return base + "diamonds"
+		case "h":
+			return base + "hearts"
+		case "s":
+			return base + "spades"
+		default:
+			return m
+		}
+	})
+
+	// 3) Insert hyphen between rank and suit words, preserving trailing punctuation
+	//    e.g., Aclubs -> A-clubs, 8spades -> 8-spades
+	reHyphen := regexp.MustCompile(`(?i)(10|[2-9]|[tjqka])(clubs|diamonds|hearts|spades)([^A-Za-z]|$)`)
+	out = reHyphen.ReplaceAllString(out, `$1-$2$3`)
+
+	return out
+}
+
 // 新方法：獲取 JSON 格式的 user prompt
 func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, holeCards, board, result, notes string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "user_prompt.json")
@@ -176,17 +225,19 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 		return "", fmt.Errorf("failed to parse JSON prompt: %v", err)
 	}
 
-	// 替換變數
-	prompt.HandData.HandDetails = handDetails
+	// 替換變數（花色正規化）
+	prompt.HandData.HandDetails = normalizeSuits(handDetails)
 	prompt.AnalysisRequirements.Language = language
 	prompt.HandData.Hero.Position = heroPosition
-	prompt.HandData.Hero.HoleCards = holeCards
+	prompt.HandData.Hero.HoleCards = normalizeSuits(holeCards)
 	prompt.HandData.Result = result
-	prompt.HandData.Notes = notes
+	prompt.HandData.Notes = normalizeSuits(notes)
 
 	// 處理 board 卡片
 	if board != "" {
-		boardCards := strings.Fields(board)
+		// 先正規化，再切分
+		normalizedBoard := normalizeSuits(board)
+		boardCards := strings.Fields(normalizedBoard)
 		if len(boardCards) >= 3 {
 			prompt.HandData.Board.Flop = strings.Join(boardCards[:3], " ")
 		}
@@ -209,9 +260,12 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 
 // 獲取簡化的 JSON user prompt（只包含必要資訊）
 func (pm *PromptManager) GetSimpleJSONUserPrompt(handDetails, language string) (string, error) {
+	// 先做花色正規化
+	normalized := normalizeSuits(handDetails)
+
 	simplePrompt := map[string]interface{}{
 		"request_type": "poker_hand_analysis",
-		"hand_details": handDetails,
+		"hand_details": normalized,
 		"language":     language,
 		"prompt_text":  "Please analyze the following poker hand using GTO solver principles. Provide comprehensive analysis including action frequencies, ratings, and strategic recommendations for each street. Follow the format and rules specified in the system prompt.",
 	}

@@ -601,3 +601,43 @@
   - 降低 MaxTokens 可顯著減少 API 回應時間
   - 1800 tokens 仍足夠產生完整的撲克手牌分析
   - 對分析品質影響最小，對速度提升最明顯
+
+### 2025-01-22 - 建立 Claude 4 API Python 客戶端
+- **Task**: 建立 Python script 來讀取 system_prompt 和 user_prompt，呼叫 Claude 4 API 產生回應
+- **Files Created**: 
+  - `claude_api_client.py`: 主要的 Claude API 客戶端 script
+  - `requirements.txt`: Python 依賴套件清單
+  - `CLAUDE_API_USAGE.md`: 詳細使用說明文件
+  - `hand_history.txt`: 手牌歷史範例檔案
+- **Features Implemented**:
+  - ✅ 讀取 `be_poker/prompts/system_prompt_2.txt` 和 `user_prompt_2.json`
+  - ✅ 支援 prompt 模板變數替換 ({{LANGUAGE}}, {{HAND_DETAILS}} 等)
+  - ✅ 完整的命令列介面支援多種參數
+  - ✅ 錯誤處理和 API 認證管理
+  - ✅ 支援多種 Claude 模型選擇，預設使用 Claude Sonnet 4
+  - ✅ 可選的結果輸出到檔案功能
+  - ✅ **新功能**: hand_history.txt 檔案支援，可直接貼入手牌歷史進行分析
+- **Usage Examples**:
+  - 基本使用: `python3 claude_api_client.py`
+  - 使用手牌歷史: `python3 claude_api_client.py --use-hand-history --language "Chinese"`
+  - 自定義手牌: `python3 claude_api_client.py --hero-cards "AhAd" --position "UTG" --language "Chinese"`
+  - 儲存結果: `python3 claude_api_client.py --output "result.json"`
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 成功安裝 anthropic 套件並測試 script 功能
+  - 使用與後端 Go 服務相同的 Claude Sonnet 4 模型 (`claude-sonnet-4-20250514`)
+  - 支援與後端 Go 服務相同的 prompt 結構和變數替換
+  - 新增 hand_history.txt 功能讓用戶可直接貼入 PokerStars 等格式的手牌歷史
+  - 提供完整的中文使用說明和範例
+  - 可作為獨立工具或整合到其他 Python 專案中使用
+  - 環境變數 ANTHROPIC_API_KEY 需要正確設定才能使用
+  - 測試確認可正常分析手牌並產生詳細的 GTO 建議
+
+### 2025-08-24 - 移動 v2 版 prompt 檔案至 model_testing
+- **Task**: 將 `be_poker/prompts/user_prompt_2.json` 與 `be_poker/prompts/system_prompt_2.txt` 移動到 `model_testing/`
+- **Reason**: 兩者僅用於離線與實驗；主系統維持使用 `system_prompt.txt` 與 `user_prompt.json`
+- **Files Modified**:
+  - `model_testing/user_prompt_2.json`
+  - `model_testing/system_prompt_2.txt`
+- **Impact**: 不影響後端服務與既有流程；減少 `be_poker/prompts` 目錄混淆
+- **Status**: ✅ 完成
