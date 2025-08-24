@@ -277,3 +277,20 @@ func (pm *PromptManager) GetSimpleJSONUserPrompt(handDetails, language string) (
 
 	return string(jsonBytes), nil
 }
+
+// 讀取 Validator Prompt 模板，並替換 {{LANGUAGE}}, {{ORIGINAL_HAND_JSON}}, {{PRIMARY_OUTPUT}}
+func (pm *PromptManager) GetValidatorPrompt(originalHandJSON, primaryOutput, language string) (string, error) {
+	path := filepath.Join(pm.promptsDir, "validator_prompt.txt")
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read validator prompt: %v", err)
+	}
+	prompt := string(content)
+	if language == "" {
+		language = "English"
+	}
+	prompt = strings.ReplaceAll(prompt, "{{LANGUAGE}}", language)
+	prompt = strings.ReplaceAll(prompt, "{{ORIGINAL_HAND_JSON}}", originalHandJSON)
+	prompt = strings.ReplaceAll(prompt, "{{PRIMARY_OUTPUT}}", primaryOutput)
+	return prompt, nil
+}

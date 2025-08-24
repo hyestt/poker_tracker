@@ -54,7 +54,7 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 
 	// 處理villains JSON
 	villainsJSON := "[]"
-	if hand.Villains != nil && len(hand.Villains) > 0 {
+	if len(hand.Villains) > 0 {
 		villainsBytes, err := json.Marshal(hand.Villains)
 		if err == nil {
 			villainsJSON = string(villainsBytes)
@@ -304,7 +304,10 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		HandDetails string `json:"handDetails"`
 		Language    string `json:"language,omitempty"`
-		Model       string `json:"model,omitempty"` // 新增模型選擇
+		Model       string `json:"model,omitempty"` // 單模型（向後相容）
+		Validate    bool   `json:"validate,omitempty"`
+		Primary     string `json:"primary,omitempty"`
+		Validator   string `json:"validator,omitempty"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -324,51 +327,100 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		language = "English"
 	}
 
-	// 獲取模型設定，如果沒有則使用預設值（OpenAI GPT-4o）
-	modelName := request.Model
-	if modelName == "" {
-		modelName = "gpt-4o"
+	// 預設開啟驗證：若未明確指定，設為 true。若明確傳 false 或 query ?validate=false 則關閉。
+	if r.URL.Query().Get("validate") == "false" {
+		request.Validate = false
+	} else if r.URL.Query().Get("validate") == "true" {
+		request.Validate = true
+	} else {
+		// body 未提供 validate，採用預設 true
+		if !request.Validate {
+			request.Validate = true
+		}
 	}
 
-	log.Printf("ℹ️ Using language: %s and model: %s for analysis", language, modelName)
+	// 單模型（向後相容）：當未開啟 validate 時，沿用原有流程
+	if !request.Validate {
+		// 獲取模型設定，如果沒有則使用預設值（OpenAI GPT-4o）
+		modelName := request.Model
+		if modelName == "" {
+			modelName = "gpt-4o"
+		}
 
-	// 創建 AI 服務工廠
-	aiFactory := services.NewAIServiceFactory()
+		log.Printf("ℹ️ Using language: %s and model: %s for analysis", language, modelName)
 
-	// 根據模型名稱確定提供商
-	aiModel := aiFactory.GetModelByName(modelName)
-	if aiModel == nil {
-		http.Error(w, "Unsupported model: "+modelName, http.StatusBadRequest)
+		// 創建 AI 服務工廠
+		aiFactory := services.NewAIServiceFactory()
+
+		// 根據模型名稱確定提供商
+		aiModel := aiFactory.GetModelByName(modelName)
+		if aiModel == nil {
+			http.Error(w, "Unsupported model: "+modelName, http.StatusBadRequest)
+			return
+		}
+
+		// 創建對應的 AI 服務
+		aiService, err := aiFactory.CreateService(aiModel.Provider, modelName)
+		if err != nil {
+			http.Error(w, "AI service not available: "+err.Error(), http.StatusServiceUnavailable)
+			return
+		}
+
+		analysis, err := aiService.AnalyzeHand(request.HandDetails, language)
+		if err != nil {
+			http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// 解析為 sections
+		sections := services.ParseHandAnalysis(analysis)
+
+		// 返回分析結果（含 sections）
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		analysisDate := time.Now().Format(time.RFC3339)
+		response := map[string]interface{}{
+			"analysis": analysis,
+			"date":     analysisDate,
+			"sections": sections,
+		}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	// 創建對應的 AI 服務
-	aiService, err := aiFactory.CreateService(aiModel.Provider, modelName)
+	// 兩階段模式（primary+validator）。預設 primary=gpt-4o, validator=claude-sonnet-4-20250514
+	primary := request.Primary
+	if primary == "" {
+		primary = "gpt-4o"
+	}
+	validator := request.Validator
+	if validator == "" {
+		validator = "claude-sonnet-4-20250514"
+	}
+	log.Printf("ℹ️ Two-stage analysis enabled. primary=%s validator=%s lang=%s", primary, validator, language)
+
+	orch := services.NewTwoModelOrchestrator()
+	result, err := orch.Run(r.Context(), request.HandDetails, language, primary, validator)
 	if err != nil {
-		http.Error(w, "AI service not available: "+err.Error(), http.StatusServiceUnavailable)
+		http.Error(w, "Orchestrated analysis failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	analysis, err := aiService.AnalyzeHand(request.HandDetails, language)
-	if err != nil {
-		http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// ⚠️ 注意：分析結果不保存到後端資料庫，只返回給前端
-	// 前端會將結果保存到本地 SQLite
-
-	// 解析為 sections
-	sections := services.ParseHandAnalysis(analysis)
-
-	// 返回分析結果（含 sections）
+	sections := services.ParseHandAnalysis(result.FinalOutput)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	analysisDate := time.Now().Format(time.RFC3339)
 	response := map[string]interface{}{
-		"analysis": analysis,
-		"date":     analysisDate,
-		"sections": sections,
+		"analysis":          result.FinalOutput,
+		"date":              analysisDate,
+		"sections":          sections,
+		"primary_output":    result.PrimaryOutput,
+		"validation_report": result.Validation,
+		"validation_status": result.ValidationState,
+		"telemetry": map[string]int64{
+			"primary_ms":   result.PrimaryMs,
+			"validator_ms": result.ValidationMs,
+		},
 	}
 	json.NewEncoder(w).Encode(response)
 }

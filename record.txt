@@ -641,3 +641,18 @@
   - `model_testing/system_prompt_2.txt`
 - **Impact**: 不影響後端服務與既有流程；減少 `be_poker/prompts` 目錄混淆
 - **Status**: ✅ 完成
+
+### 2025-08-24 - 後端雙模型驗證流程（預設關閉，前端零改動）
+- **Task**: 新增 GPT‑4 主分析 + Sonnet 4 驗證的 orchestrator，並擴充 `/analyze` 參數
+- **Files Modified / Added**:
+  - `be_poker/services/orchestrator.go`（新增）：TwoModelOrchestrator、ValidationReport、合併與門檻
+  - `be_poker/handlers/hand.go`：擴充 `AnalyzeHand` 支援 `validate`, `primary`, `validator`；回傳 `validation_report` 等
+- **Behavior**:
+  - 預設 `validate=false`，維持舊行為；前端不需改
+  - `validate=true` 時流程：GPT‑4 產生 `primary_output` → Sonnet 4 產生 `validation_report`
+  - 門檻：overall ≥ 0.85 覆蓋所有修正；0.75–0.85 覆蓋白名單；其餘跳過
+  - 回傳新增欄位：`primary_output`、`validation_report`、`validation_status`、`telemetry`
+- **Status**: ✅ 完成
+- **Notes**:
+  - 後端已通過 `go build`，無 linter 錯誤
+  - 保證向後相容；若驗證失敗/逾時自動回退主輸出

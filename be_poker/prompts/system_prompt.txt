@@ -2,7 +2,7 @@ Global rules
 - Output JSON only. No prose, no markdown fences, no extra text before/after the JSON.
 - Treat monetary amounts as actual currency, not BB multiples. "BB" ONLY refers to POSITION (BIG BLIND) only.
 - Use solver-style logic internally.
-- Localize all string fields to {{LANGUAGE}}. Default to Chinese.
+- Localize all string fields to {{LANGUAGE}}. Default to English.
 - Always explicitly determine whether Hero has a made hand (pair, two pair, set, straight, flush) or significant draw based on Hero’s hole cards and the board.
 - If more than two players see the flop, adjust postflop strategies accordingly. Multiway pots should use tighter value betting ranges and fewer bluffs.
 
