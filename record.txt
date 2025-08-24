@@ -656,3 +656,51 @@
 - **Notes**:
   - 後端已通過 `go build`，無 linter 錯誤
   - 保證向後相容；若驗證失敗/逾時自動回退主輸出
+
+### 2025-01-22 - 將 AI Analysis 等待時間調整為18秒
+- **Task**: 將 AI Analysis 畫面的進度條等待時間從12秒延長到18秒
+- **Files Modified**: 
+  - `fe_poker/src/screens/AIAnalysisScreen.tsx`: 更新 setInterval 間隔時間
+- **Changes Made**:
+  - ✅ 將進度條間隔從 1715ms 改為 2571ms（18秒 ÷ 7步）
+  - ✅ 更新註釋說明新的時間計算：18 seconds / 7 steps ≈ 2.571 seconds per step
+  - ✅ 確認無 linting 錯誤
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 延長載入動畫時間，為用戶提供更充裕的等待體驗
+  - 進度條仍然在API完成前最多顯示90%，API完成後跳到100%
+  - 保持了原有的7個階段和流暢的動畫效果
+
+### 2025-01-22 - 更新訂閱畫面Logo為AI Solver品牌
+- **Task**: 將SubscriptionScreen中顯示的logo從舊的LiveHand標誌更新為新的AI Solver品牌標誌
+- **Files Modified**: 
+  - `fe_poker/assets/appstore.png`: 更新為新的AI Solver logo圖片
+- **Changes Made**:
+  - ✅ 從專案根目錄複製新的AI Solver logo到 `fe_poker/assets/appstore.png`
+  - ✅ 訂閱畫面現在顯示正確的AI Solver品牌標誌
+  - ✅ 保持原有的圖片路徑和載入方式不變
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 解決了用戶反應的logo不匹配問題
+  - 訂閱畫面的品牌一致性現在已改善
+  - logo檔案位置：`fe_poker/assets/appstore.png`
+  - 使用方式：`require('../../assets/appstore.png')` 在SubscriptionScreen中
+
+### 2025-01-22 - iOS建置錯誤修復：清理快取並重建
+- **Task**: 解決iOS模擬器CoreSimulator.SimError錯誤，清理快取並重新建置應用程式
+- **Problem**: CoreSimulator.SimError code=405，"Unable to lookup in current state: Shutdown"
+- **Actions Taken**:
+  - ✅ 移除 `node_modules` 目錄
+  - ✅ 移除 `ios/Pods` 目錄  
+  - ✅ 移除 `ios/build` 目錄
+  - ✅ 清理 npm 快取 (`npm cache clean --force`)
+  - ✅ 清理 Xcode DerivedData (`rm -rf ~/Library/Developer/Xcode/DerivedData`)
+  - ✅ 重新安裝 npm 依賴 (`npm install --legacy-peer-deps`)
+  - ✅ 重新安裝 iOS Pods (`pod install`)
+  - ✅ 在iPhone 16 Pro模擬器上成功重建並啟動應用程式
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 解決了iOS模擬器的CoreSimulator錯誤
+  - 應用程式現在可以正常在iPhone 16 Pro模擬器上運行
+  - 包含了logo更新，訂閱畫面應該顯示正確的AI Solver品牌標誌
+  - 建置過程中有一些CocoaPods警告，但不影響功能

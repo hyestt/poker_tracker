@@ -62,7 +62,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (progress >= 90) {
         clearInterval(interval);
       }
-    }, 1715); // 12 seconds / 7 steps ≈ 1.715 seconds per step
+    }, 2571); // 18 seconds / 7 steps ≈ 2.571 seconds per step
 
     return interval;
   };

@@ -109,39 +109,29 @@ func (o *TwoModelOrchestrator) Run(ctx context.Context, handDetails string, lang
 	vMs := time.Since(t1).Milliseconds()
 	if vErr != nil {
 		res.ValidationMs = vMs
+		res.ValidationState = "failed"
 		return res, nil
 	}
 
 	// Try parse validator JSON
 	var report ValidationReport
 	if err := json.Unmarshal([]byte(clipToJSONDoc(validatorRaw)), &report); err != nil {
-		// validator returned non-JSON; skip
+		// validator returned non-JSON; fail and keep primary
 		res.ValidationMs = vMs
+		res.ValidationState = "failed"
 		return res, nil
 	}
 
 	res.Validation = &report
 	res.ValidationMs = vMs
 
-	// Merge per thresholds
-	switch {
-	case report.Overall >= 0.85:
-		// Apply all corrections
-		merged, mErr := mergeWithCorrections(primaryOut, report.Corrections, true)
-		if mErr == nil {
-			res.FinalOutput = merged
-			res.ValidationState = "applied_all"
-		}
-	case report.Overall >= 0.75:
-		// Apply whitelist only
-		merged, mErr := mergeWithCorrections(primaryOut, report.Corrections, false)
-		if mErr == nil {
-			res.FinalOutput = merged
-			res.ValidationState = "applied_whitelist"
-		}
-	default:
-		// keep primary
-		res.ValidationState = "skipped"
+	// Always apply all corrections (no thresholds)
+	merged, mErr := mergeWithCorrections(primaryOut, report.Corrections, true)
+	if mErr == nil {
+		res.FinalOutput = merged
+		res.ValidationState = "applied_all"
+	} else {
+		res.ValidationState = "failed"
 	}
 
 	return res, nil

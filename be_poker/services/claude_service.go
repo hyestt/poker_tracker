@@ -71,7 +71,7 @@ func (s *ClaudeService) AnalyzeHand(handDetails string, language string) (string
 		context.Background(),
 		anthropic.MessagesRequest{
 			Model:     s.modelName,
-			MaxTokens: 1800,
+			MaxTokens: 1500,
 			System:    systemPrompt,
 			Messages: []anthropic.Message{
 				anthropic.NewUserTextMessage(userPrompt),
