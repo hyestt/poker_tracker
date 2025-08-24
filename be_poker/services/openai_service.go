@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sashabaranov/go-openai"
+	openai "github.com/openai/openai-go"
+	"github.com/openai/openai-go/option"
+	"github.com/openai/openai-go/packages/param"
+	"github.com/openai/openai-go/responses"
 )
 
 type OpenAIService struct {
-	client    *openai.Client
+	client    openai.Client
 	modelName string
 }
 
@@ -19,10 +22,10 @@ func NewOpenAIService() *OpenAIService {
 		return nil
 	}
 
-	client := openai.NewClient(apiKey)
+	client := openai.NewClient(option.WithAPIKey(apiKey))
 	return &OpenAIService{
 		client:    client,
-		modelName: "gpt-4o", // 預設模型
+		modelName: "gpt-5-mini", // 預設模型
 	}
 }
 
@@ -42,57 +45,31 @@ func (s *OpenAIService) GetModelName() string {
 }
 
 func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string, error) {
-	if s.client == nil {
-		return "", fmt.Errorf("OpenAI service not available: API key not set")
-	}
-
 	// 使用prompt管理器獲取分離的system和user prompts
-	promptManager := NewPromptManager()
-
-	// 獲取system prompt
-	systemPrompt, err := promptManager.GetSystemPrompt(language)
+	pm := NewPromptManager()
+	systemPrompt, err := pm.GetSystemPrompt(language)
 	if err != nil {
-		// 錯誤處理：記錄錯誤並使用fallback system prompt
-		fmt.Printf("Error reading system prompt file: %v\n", err)
 		systemPrompt = fmt.Sprintf("You are a professional Texas Hold'em poker GTO coach. Analyze poker hands and provide strategic recommendations in %s.", language)
 	}
-
-	// 獲取user prompt（使用 JSON 格式）
-	userPrompt, err := promptManager.GetSimpleJSONUserPrompt(handDetails, language)
+	userPrompt, err := pm.GetSimpleJSONUserPrompt(handDetails, language)
 	if err != nil {
-		// 如果 JSON 格式失敗，使用硬編碼的fallback prompt
-		fmt.Printf("JSON prompt failed, using fallback prompt: %v\n", err)
-		userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand", handDetails)
-	} else {
-		fmt.Printf("Successfully loaded JSON prompts from files\n")
+		userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s", handDetails)
 	}
 
-	resp, err := s.client.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model: s.modelName,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: systemPrompt,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: userPrompt,
-				},
-			},
-			MaxTokens:   1700,
-			Temperature: 0.2,
-		},
-	)
+	input := fmt.Sprintf("System:\n%s\n\nUser:\n%s", systemPrompt, userPrompt)
+	params := responses.ResponseNewParams{
+		Model:           s.modelName,
+		Input:           responses.ResponseNewParamsInputUnion{OfString: param.NewOpt[string](input)},
+		MaxOutputTokens: param.NewOpt[int64](1800),
+	}
 
+	resp, err := s.client.Responses.New(context.Background(), params)
 	if err != nil {
-		return "", fmt.Errorf("OpenAI API error: %v", err)
+		return "", fmt.Errorf("OpenAI API error: %w", err)
 	}
-
-	if len(resp.Choices) == 0 {
-		return "", fmt.Errorf("no response from OpenAI")
+	out := resp.OutputText()
+	if out == "" {
+		return resp.RawJSON(), nil
 	}
-
-	return resp.Choices[0].Message.Content, nil
+	return out, nil
 }

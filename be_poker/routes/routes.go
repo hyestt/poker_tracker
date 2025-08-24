@@ -102,6 +102,15 @@ func RegisterRoutes() {
 		w.Write([]byte("Test route works"))
 	})
 
+	// Debug: call GPT-5-mini via backend (Responses API)
+	http.HandleFunc("/debug/gpt5mini", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w, r)
+		if r.Method == "OPTIONS" {
+			return
+		}
+		handlers.DebugGpt5Mini(w, r)
+	})
+
 	// 暫時註釋掉analyze路由
 	http.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)

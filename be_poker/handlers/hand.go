@@ -327,24 +327,19 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		language = "English"
 	}
 
-	// 預設開啟驗證：若未明確指定，設為 true。若明確傳 false 或 query ?validate=false 則關閉。
-	if r.URL.Query().Get("validate") == "false" {
-		request.Validate = false
-	} else if r.URL.Query().Get("validate") == "true" {
+	// 預設關閉驗證（不使用雙模型）。只有明確指定 validate=true 才啟用。
+	if r.URL.Query().Get("validate") == "true" || request.Validate {
 		request.Validate = true
 	} else {
-		// body 未提供 validate，採用預設 true
-		if !request.Validate {
-			request.Validate = true
-		}
+		request.Validate = false
 	}
 
 	// 單模型（向後相容）：當未開啟 validate 時，沿用原有流程
 	if !request.Validate {
-		// 獲取模型設定，如果沒有則使用預設值（OpenAI GPT-4o）
+		// 獲取模型設定，如果沒有則使用預設值（OpenAI GPT-4）
 		modelName := request.Model
 		if modelName == "" {
-			modelName = "gpt-4o"
+			modelName = "gpt-5-mini"
 		}
 
 		log.Printf("ℹ️ Using language: %s and model: %s for analysis", language, modelName)
