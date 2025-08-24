@@ -180,6 +180,11 @@ const App = () => {
           console.log('Initializing RevenueCat...');
           await RevenueCatService.initialize();
           console.log('RevenueCat initialized');
+          // 在開發模式下，啟用無限次 AI 分析（模擬 Premium 並重置配額）
+          if (__DEV__) {
+            await RevenueCatService.setTestPremiumStatus(true);
+            await RevenueCatService.resetGTOQuotaForTesting();
+          }
         } catch (rcError) {
           console.warn('RevenueCat initialization failed, continuing without premium features:', rcError);
         }

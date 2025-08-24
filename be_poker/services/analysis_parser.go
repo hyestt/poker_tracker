@@ -67,19 +67,65 @@ func tryParseJSON(s string) (AnalysisSections, bool) {
 	}
 	res := AnalysisSections{}
 	if v, ok := tmp["summary"]; ok {
-		res.Summary = toString(v)
+		// Handle both string and object formats
+		if summaryObj, ok := v.(map[string]interface{}); ok {
+			if summaryText, ok := summaryObj["summary"]; ok {
+				res.Summary = toString(summaryText)
+			}
+		} else {
+			res.Summary = toString(v)
+		}
 	}
-	if v, ok := tmp["preflop"]; ok {
-		res.Preflop = toString(v)
+	// Accept alternative keys often returned by compact prompts
+	if v, ok := tmp["line"]; ok {
+		if res.Summary == "" {
+			res.Summary = toString(v)
+		} else {
+			res.Summary = strings.TrimSpace(res.Summary + "\n" + toString(v))
+		}
 	}
-	if v, ok := tmp["flop"]; ok {
-		res.Flop = toString(v)
+	// Handle preflop, flop, turn, river (both string and object formats)
+	extractStreetContent := func(key string) string {
+		if v, ok := tmp[key]; ok {
+			if streetObj, ok := v.(map[string]interface{}); ok {
+				// Only extract specific text fields, not frequencies or other objects
+				var parts []string
+				if summaryText, ok := streetObj["summary"]; ok {
+					if str := toString(summaryText); strings.TrimSpace(str) != "" {
+						parts = append(parts, str)
+					}
+				}
+				if playerAction, ok := streetObj["player_action"]; ok {
+					if str := toString(playerAction); strings.TrimSpace(str) != "" {
+						parts = append(parts, str)
+					}
+				}
+				if recommendation, ok := streetObj["recommendation"]; ok {
+					if str := toString(recommendation); strings.TrimSpace(str) != "" {
+						parts = append(parts, str)
+					}
+				}
+				return strings.Join(parts, " ")
+			} else {
+				return toString(v)
+			}
+		}
+		return ""
 	}
-	if v, ok := tmp["turn"]; ok {
-		res.Turn = toString(v)
-	}
-	if v, ok := tmp["river"]; ok {
-		res.River = toString(v)
+
+	res.Preflop = extractStreetContent("preflop")
+	res.Flop = extractStreetContent("flop")
+	res.Turn = extractStreetContent("turn")
+	res.River = extractStreetContent("river")
+	if v, ok := tmp["notes"]; ok {
+		notes := toString(v)
+		if strings.TrimSpace(notes) != "" {
+			if res.Summary == "" {
+				res.Summary = notes
+			} else {
+				res.Summary = strings.TrimSpace(res.Summary + "\n" + notes)
+			}
+		}
 	}
 	return normalize(&res), true
 }

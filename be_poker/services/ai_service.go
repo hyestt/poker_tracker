@@ -19,6 +19,7 @@ type AIModel struct {
 
 // 預定義的可用模型
 var AvailableModels = []AIModel{
+	{Provider: OpenAIProvider, Name: "gpt-5-mini", Label: "GPT-5 Mini"},
 	{Provider: OpenAIProvider, Name: "gpt-4o", Label: "GPT-4o"},
 	{Provider: OpenAIProvider, Name: "gpt-4o-mini", Label: "GPT-4o Mini"},
 	{Provider: ClaudeProvider, Name: "claude-sonnet-4-20250514", Label: "Claude Sonnet 4"},
@@ -46,14 +47,14 @@ func (f *AIServiceFactory) CreateService(provider AIProvider, modelName string) 
 	case OpenAIProvider:
 		service := NewOpenAIService()
 		if service == nil {
-			return nil, fmt.Errorf("OpenAI service not available: API key not set")
+			return nil, fmt.Errorf("openai service not available: api key not set")
 		}
 		service.SetModel(modelName)
 		return service, nil
 	case ClaudeProvider:
 		service := NewClaudeService()
 		if service == nil {
-			return nil, fmt.Errorf("Claude service not available: API key not set")
+			return nil, fmt.Errorf("claude service not available: api key not set")
 		}
 		service.SetModel(modelName)
 		return service, nil

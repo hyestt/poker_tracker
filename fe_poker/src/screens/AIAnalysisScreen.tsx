@@ -13,7 +13,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [analysis, setAnalysis] = useState<string>('');
-  const [sections, setSections] = useState<{ summary: string; preflop: string; flop: string; turn: string; river: string } | null>(null);
+  // sections 支援字串或物件（物件包含 frequencies/recommendation 等欄位）
+  const [sections, setSections] = useState<{ summary: any; preflop: any; flop: any; turn: any; river: any } | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'preflop' | 'flop' | 'turn' | 'river'>('summary');
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -286,7 +287,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
 
   // 真正的AI分析功能
-  const performRealAIAnalysis = async (handData: Hand): Promise<{ text: string; sections?: { summary: string; preflop: string; flop: string; turn: string; river: string } }> => {
+  const performRealAIAnalysis = async (handData: Hand): Promise<{ text: string; sections?: { summary: any; preflop: any; flop: any; turn: any; river: any } }> => {
     try {
       // 獲取用戶語言設定
       const userPreferences = await UserPreferencesService.getPreferences();
@@ -346,8 +347,31 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       console.log('API analysis result received successfully');
       console.log('🔍 Raw API result:', JSON.stringify(result, null, 2));
       const apiText: string = result.analysis || 'No analysis available';
-      const apiSections = result.sections as { summary: string; preflop: string; flop: string; turn: string; river: string } | undefined;
-      console.log('🔍 Extracted sections:', JSON.stringify(apiSections, null, 2));
+      // 優先使用後端提供的 analysis_object（完整物件），否則退回 sections
+      let apiSections = (result.analysis_object
+        ? { summary: result.analysis_object.summary, preflop: result.analysis_object.preflop, flop: result.analysis_object.flop, turn: result.analysis_object.turn, river: result.analysis_object.river }
+        : (result.sections as { summary: any; preflop: any; flop: any; turn: any; river: any } | undefined));
+
+      // 最後備援：若 sections 缺失但 analysis 是可解析的 JSON（常見於只返回某一街道的情況），嘗試從 analysis 建立物件 sections
+      if (!apiSections) {
+        const trimmed = (apiText || '').trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed === 'object') {
+              apiSections = {
+                summary: parsed.summary ?? undefined,
+                preflop: parsed.preflop ?? undefined,
+                flop: parsed.flop ?? undefined,
+                turn: parsed.turn ?? undefined,
+                river: parsed.river ?? undefined,
+              } as any;
+            }
+          } catch {/* ignore */}
+        }
+      }
+
+      console.log('🔍 Extracted sections (prefer object, with analysis fallback):', JSON.stringify(apiSections, null, 2));
       return { text: apiText, sections: apiSections };
     } catch (error) {
       console.error('Real AI analysis error:', error);
@@ -420,12 +444,20 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   };
   // 前端備援解析已移除：新手牌僅依賴後端 sections；無 sections 時以 Summary-only 呈現
 
-  const getFirstAvailableTab = (s: { summary: string; preflop: string; flop: string; turn: string; river: string }) => {
-    if (s.summary?.trim()) {return 'summary' as const;}
-    if (s.preflop?.trim()) {return 'preflop' as const;}
-    if (s.flop?.trim()) {return 'flop' as const;}
-    if (s.turn?.trim()) {return 'turn' as const;}
-    if (s.river?.trim()) {return 'river' as const;}
+  const getFirstAvailableTab = (s: { summary: any; preflop: any; flop: any; turn: any; river: any }) => {
+    const hasContent = (v: any) => {
+      if (v == null) {return false;}
+      if (typeof v === 'string') {return Boolean(v.trim());}
+      if (typeof v === 'object') {
+        return Boolean(v.summary || v.recommendation || v.player_action || (v.frequencies && Object.keys(v.frequencies).length > 0) || v.rating);
+      }
+      return false;
+    };
+    if (hasContent(s.summary)) {return 'summary' as const;}
+    if (hasContent(s.preflop)) {return 'preflop' as const;}
+    if (hasContent(s.flop)) {return 'flop' as const;}
+    if (hasContent(s.turn)) {return 'turn' as const;}
+    if (hasContent(s.river)) {return 'river' as const;}
     return 'summary' as const;
   };
 
@@ -480,26 +512,54 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     return nodes;
   };
 
+  // 將 rating 正規化為多顆星的顯示（1~5 顆）
+  const renderRatingStars = (value: any) => {
+    const raw = String(value || '').trim();
+    // 先數已有的星星（含變體）
+    const starCount = (raw.match(/[⭐★]/g) || []).length;
+    if (starCount >= 1 && starCount <= 5) {
+      return '⭐'.repeat(starCount);
+    }
+    // 嘗試擷取 1-5 的數字：若有多個（例如 "1-5" 範例字樣），取最大值避免誤判為 1
+    const digits = raw.match(/[1-5]/g);
+    if (digits && digits.length > 0) {
+      const n = Math.max(...digits.map(d => parseInt(d, 10)));
+      return '⭐'.repeat(n);
+    }
+    // 否則回傳原字串（避免隱藏資訊）
+    return raw || '';
+  };
+
   // 以標籤區塊方式渲染（優先）：支援「物件 JSON」與「標籤字串」兩種格式
   const renderStructuredAnalysis = (input: any) => {
     if (!input) {return null;}
 
-    // 若為 JSON 字串，先嘗試解析
-    if (typeof input === 'string') {
-      const trimmed = input.trim();
-      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-        try { return renderFromObject(JSON.parse(trimmed)); } catch {}
+    try {
+      // 若為 JSON 字串，先嘗試解析
+      if (typeof input === 'string') {
+        const trimmed = input.trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+          try { 
+            const parsed = JSON.parse(trimmed);
+            return renderFromObject(parsed); 
+          } catch {
+            // JSON 解析失敗，回退到字串渲染
+          }
+        }
+        // 否則走字串標籤解析
+        return renderFromLabeledString(trimmed);
       }
-      // 否則走字串標籤解析
-      return renderFromLabeledString(trimmed);
-    }
 
-    // 若為物件，直接渲染
-    if (typeof input === 'object') {
-      return renderFromObject(input);
-    }
+      // 若為物件，直接渲染
+      if (typeof input === 'object' && input !== null) {
+        return renderFromObject(input);
+      }
 
-    return null;
+      return null;
+    } catch (error) {
+      // 如果渲染出錯，回退到簡單文字顯示
+      return <Text style={styles.analysisText}>Analysis rendering error</Text>;
+    }
   };
 
   const renderFromObject = (obj: any) => {
@@ -522,20 +582,29 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       nodes.push(
         <Text key={'rating'} style={[styles.analysisSubTitle, { marginTop: 0 }]}>Rating</Text>
       );
-      nodes.push(<Text key={'rating-val'} style={styles.analysisText}>{String(obj.rating)}</Text>);
+      nodes.push(
+        <Text key={'rating-val'} style={styles.analysisText}>
+          {renderRatingStars(obj.rating)}
+        </Text>
+      );
     }
 
     // Frequencies 物件（放在 Rating 下方）
-    if (obj.frequencies && typeof obj.frequencies === 'object') {
-      const vm = buildFrequenciesViewModel(obj.frequencies as Record<string, unknown>);
-      if (vm.entries.length > 0) {
-        nodes.push(
-          <View key={'freq-chart'} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
-            <FrequenciesChart entries={vm.entries} noteMayNotSum100={vm.mayNotSum100} />
-          </View>
-        );
+    try {
+      if (obj && typeof obj === 'object' && obj.frequencies && typeof obj.frequencies === 'object') {
+        const vm = buildFrequenciesViewModel(obj.frequencies as Record<string, unknown>);
+        if (vm && vm.entries && vm.entries.length > 0) {
+          // 只在有非 0% 的數據時顯示圖表
+          nodes.push(
+            <View key={'freq-chart'} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
+              <FrequenciesChart entries={vm.entries} noteMayNotSum100={vm.mayNotSum100} />
+            </View>
+          );
+        } else {
+          // 沒有非 0% 的數據時，完全不顯示備援清單，避免出現一堆 0%
+        }
       }
-    }
+    } catch {}
 
     // Player Action / Recommendation
     pushText('Player Action', obj.player_action);
@@ -666,7 +735,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (k === 'rating & summary') {continue;} // 已處理
       if (k === 'player action') {pushBlock('Player Action', 'player action');}
       if (k === 'gto recommendation') {pushBlock('GTO Recommendation', 'gto recommendation');}
-      if (k === 'frequencies') {pushBlock('Frequencies', 'frequencies');}
+      // 跳過 frequencies 文字渲染，因為已經有頻率圖表了
+      // if (k === 'frequencies') {pushBlock('Frequencies', 'frequencies');}
       if (k === 'summary') {pushBlock('Summary', 'summary');}
     }
 
@@ -682,6 +752,11 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
+
+      // 跳過頻率相關的文字行（如 "Bet 75%: 60%", "Check: 40%" 等）
+      if (trimmedLine.match(/^(Bet \d+%|Check|Call|Fold|Raise \d+X):\s*\d+%$/)) {
+        return; // 跳過這行
+      }
 
       if (trimmedLine.startsWith('### ')) {
         // 處理 ### 標題
@@ -888,7 +963,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
                 { key: 'river', label: 'R' },
               ] as const
             ).map((t) => {
-              const disabled = !((sections as any)[t.key]?.trim());
+              const val: any = (sections as any)[t.key];
+              const disabled = !(typeof val === 'string' ? val.trim() : val);
               const isActive = activeTab === (t.key as any);
               return (
                 <TouchableOpacity

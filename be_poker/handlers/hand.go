@@ -8,6 +8,7 @@ import (
 	"poker_tracker_backend/db"
 	"poker_tracker_backend/models"
 	"poker_tracker_backend/services"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -367,17 +368,53 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// 解析為 sections
-		sections := services.ParseHandAnalysis(analysis)
+		// Debug logging for analysis parsing
+		log.Printf("🔍 RAW ANALYSIS OUTPUT (first 300 chars): %s", truncate(analysis, 300))
 
-		// 返回分析結果（含 sections）
+		// 嘗試將輸出清洗為合法 JSON（若可能），同時保留可解析的對象
+		canonical := strings.TrimSpace(analysis)
+		var analysisObj map[string]any
+		if idxStart := strings.Index(canonical, "{"); idxStart >= 0 {
+			if idxEnd := strings.LastIndex(canonical, "}"); idxEnd > idxStart {
+				candidate := canonical[idxStart : idxEnd+1]
+				var tmp map[string]any
+				if json.Unmarshal([]byte(candidate), &tmp) == nil {
+					if b, err := json.Marshal(tmp); err == nil {
+						canonical = string(b)
+						analysisObj = tmp
+					}
+				}
+			}
+		}
+
+		// 解析為 sections（基於 canonical 字串）
+		sections := services.ParseHandAnalysis(canonical)
+		log.Printf("🔍 PARSED SECTIONS - Summary: %s | Preflop: %s | Flop: %s | Turn: %s | River: %s",
+			truncate(sections.Summary, 100),
+			truncate(sections.Preflop, 50),
+			truncate(sections.Flop, 50),
+			truncate(sections.Turn, 50),
+			truncate(sections.River, 50))
+
+		// 返回分析結果（含 sections）。如果有結構化物件，優先回傳物件版 sections
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		analysisDate := time.Now().Format(time.RFC3339)
 		response := map[string]interface{}{
-			"analysis": analysis,
+			"analysis": canonical,
 			"date":     analysisDate,
-			"sections": sections,
+		}
+		if analysisObj != nil {
+			response["analysis_object"] = analysisObj
+			response["sections"] = map[string]any{
+				"summary": analysisObj["summary"],
+				"preflop": analysisObj["preflop"],
+				"flop":    analysisObj["flop"],
+				"turn":    analysisObj["turn"],
+				"river":   analysisObj["river"],
+			}
+		} else {
+			response["sections"] = sections
 		}
 		json.NewEncoder(w).Encode(response)
 		return
@@ -453,6 +490,14 @@ func ToggleFavorite(w http.ResponseWriter, r *http.Request) {
 		"favorite": newFavorite,
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+func truncate(s string, maxLen int) string {
+	clean := strings.ReplaceAll(strings.TrimSpace(s), "\n", " ")
+	if len(clean) <= maxLen {
+		return clean
+	}
+	return clean[:maxLen] + "..."
 }
 
 // GetAvailableModels 獲取所有可用的 AI 模型
