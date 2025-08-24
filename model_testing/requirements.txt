@@ -1,0 +1,3 @@
+# AI API Python 客戶端依賴套件
+anthropic>=0.40.0
+openai>=1.0.0

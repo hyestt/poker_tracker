@@ -22,7 +22,7 @@ func NewOpenAIService() *OpenAIService {
 	client := openai.NewClient(apiKey)
 	return &OpenAIService{
 		client:    client,
-		modelName: "gpt-4o-mini", // 預設模型
+		modelName: "gpt-4o", // 預設模型
 	}
 }
 
@@ -81,8 +81,8 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 					Content: userPrompt,
 				},
 			},
-			MaxTokens:   1800,
-			Temperature: 0.3,
+			MaxTokens:   2000,
+			Temperature: 0.1,
 		},
 	)
 

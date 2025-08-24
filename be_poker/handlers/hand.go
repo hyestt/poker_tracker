@@ -324,10 +324,10 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		language = "English"
 	}
 
-	// 獲取模型設定，如果沒有則使用預設值
+	// 獲取模型設定，如果沒有則使用預設值（OpenAI GPT-4o）
 	modelName := request.Model
 	if modelName == "" {
-		modelName = "claude-sonnet-4-20250514" // 預設模型 - 暫時改用 Claude
+		modelName = "gpt-4o"
 	}
 
 	log.Printf("ℹ️ Using language: %s and model: %s for analysis", language, modelName)

@@ -62,7 +62,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (progress >= 90) {
         clearInterval(interval);
       }
-    }, 2857); // 20 seconds / 7 steps ≈ 2.857 seconds per step
+    }, 1715); // 12 seconds / 7 steps ≈ 1.715 seconds per step
 
     return interval;
   };
@@ -367,7 +367,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   // 模擬AI分析功能（作為備用）
   const simulateAIAnalysis = async (handData: Hand): Promise<string> => {
     // 模擬網絡延遲
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise<void>(resolve => setTimeout(resolve, 3000));
 
     const position = handData.position || 'Unknown';
     const result = handData.result;
