@@ -725,7 +725,8 @@ River: HJ Check BTN Check`;
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
                   • One line per street: Preflop / Flop / Turn / River{'\n'}
-                  • Write Position + Action + $ (only when betting){'\n'}
+                  • Write Position + Action + $Amount (only when betting){'\n'}
+                  • Remember to add a $ sign in front of the amount{'\n'}
                   • Example: Preflop: UTG Bet $15 BTN Raise $45 UTG Call{'\n'}
                 </Text>
                 <View style={styles.exampleButtonsContainer}>
