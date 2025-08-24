@@ -704,3 +704,123 @@
   - 應用程式現在可以正常在iPhone 16 Pro模擬器上運行
   - 包含了logo更新，訂閱畫面應該顯示正確的AI Solver品牌標誌
   - 建置過程中有一些CocoaPods警告，但不影響功能
+
+### 2025-01-22 - 調整Hand Creation配額並隱藏顯示
+- **Task**: 將免費用戶的Hand Creation限制從10手改為20手，並隱藏Home畫面的Hand Creation配額顯示
+- **Files Modified**: 
+  - `fe_poker/src/screens/HomeScreen.tsx`: 更新配額計算、限制檢查和UI顯示
+  - `fe_poker/src/screens/SessionDetailScreen.tsx`: 更新手牌創建限制檢查
+- **Changes Made**:
+  - ✅ 更新配額計算：`Math.max(0, 10 - hands.length)` → `Math.max(0, 20 - hands.length)`
+  - ✅ 移除Home畫面中的"Hand Creation: X left total"顯示
+  - ✅ 更新HomeScreen中的限制檢查：`hands.length >= 10` → `hands.length >= 20`
+  - ✅ 更新SessionDetailScreen中的限制檢查：`hands.length >= 10` → `hands.length >= 20`
+  - ✅ 更新所有相關的錯誤訊息和註釋
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 免費用戶現在可以創建最多20手牌（之前是10手）
+  - Home畫面現在只顯示AI Solver配額，不再顯示Hand Creation配額
+  - 所有限制檢查邏輯都已同步更新
+  - 無linting錯誤，代碼品質良好
+
+### 2025-01-22 - 調整AI Solver配額顯示位置
+- **Task**: 將AI Solver配額信息從排序按鈕下方移動到Filter按鈕的正下方
+- **Files Modified**: 
+  - `fe_poker/src/screens/HomeScreen.tsx`: 重新排列UI元素位置
+- **Changes Made**:
+  - ✅ 將AI Solver配額區塊從Sort Options下方移動到Filter按鈕下方
+  - ✅ 保持配額信息的顯示邏輯和樣式不變
+  - ✅ 改善了UI的視覺層次結構
+- **New UI Order**:
+  1. Filter Section (All Hands下拉選單和☰ Filter按鈕)
+  2. **AI Solver配額信息** (新位置)
+  3. Sort Options (Date/Amount按鈕)
+  4. Usage Hint
+  5. Hands List
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 配額信息現在更靠近Filter控制區域，提升用戶體驗
+  - 保持了原有的條件顯示邏輯（僅對免費用戶顯示）
+  - 無linting錯誤，UI結構更清晰
+
+### 2025-01-22 - 緊湊化AI Solver配額顯示
+- **Task**: 將AI Solver配額信息與Date/Amount排序按鈕放在同一行，並簡化顯示格式
+- **Files Modified**: 
+  - `fe_poker/src/screens/HomeScreen.tsx`: 重構配額顯示為緊湊型格式
+- **Changes Made**:
+  - ✅ 移除獨立的配額區塊，整合到sortContainer中
+  - ✅ 簡化顯示格式：`AI Solver: X left this week` → `AI Solver: X/week`
+  - ✅ 新增緊湊型樣式：`compactQuotaContainer` 和 `compactQuotaText`
+  - ✅ 使用 `marginLeft: 'auto'` 將配額信息對齊到右側
+- **New Layout**:
+  - **同一行顯示**: [Date] [Amount] ... [AI Solver: 2/week]
+  - **緊湊設計**: 小尺寸、灰色文字、圓角背景
+  - **自動對齊**: 配額信息自動對齊到行的右側
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 顯著節省垂直空間，UI更緊湊
+  - 保持功能性的同時提升視覺效率
+  - 配額信息仍僅對免費用戶顯示
+  - 樣式與現有排序按鈕保持一致性
+  - 無linting錯誤，代碼品質良好
+
+### 2025-01-22 - 強化Premium用戶配額隱藏邏輯
+- **Task**: 確保升級到Premium後AI Solver配額信息完全不會顯示
+- **Files Modified**: 
+  - `fe_poker/src/screens/HomeScreen.tsx`: 加強Premium用戶的配額隱藏條件
+- **Changes Made**:
+  - ✅ 增強顯示條件檢查：`!quotaInfo.isPremium && !isPremium && quotaInfo.gtoRemaining !== -1`
+  - ✅ 雙重Premium狀態檢查：同時檢查quotaInfo.isPremium和isPremium
+  - ✅ 無限配額過濾：當gtoRemaining為-1時不顯示配額
+  - ✅ 簡化顯示邏輯：移除不必要的三元運算符
+- **Protection Logic**:
+  - **雙重檢查**: quotaInfo.isPremium (配額物件) + isPremium (狀態變數)
+  - **無限過濾**: gtoRemaining !== -1 避免顯示無限符號
+  - **狀態同步**: 確保訂閱狀態變更時立即生效
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 提供多層保護確保Premium用戶不會看到配額限制
+  - 防止因狀態同步延遲導致的短暫顯示問題
+  - 覆蓋所有可能的Premium狀態變更情境
+  - RevenueCatService.isPremiumUser()已提供完善的Premium判斷邏輯
+  - 無linting錯誤，邏輯穩健可靠
+
+### 2025-01-22 - 調整AI Solver配額文字顏色為白色
+- **Task**: 將AI Solver配額顯示的文字顏色從灰色改為白色，提升可讀性
+- **Files Modified**: 
+  - `fe_poker/src/screens/HomeScreen.tsx`: 更新compactQuotaText樣式
+- **Changes Made**:
+  - ✅ 文字顏色變更：`theme.colors.gray` → `'#fff'`
+  - ✅ 保持其他樣式屬性不變（字體大小、字重等）
+- **Visual Impact**:
+  - **Before**: 灰色文字 (theme.colors.gray)
+  - **After**: 白色文字 (#fff)
+  - **Contrast**: 在深色背景上提供更好的對比度和可讀性
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 改善了在深色主題下的文字可讀性
+  - 與其他白色文字元素保持視覺一致性
+  - 無linting錯誤，樣式更新成功
+
+### 2025-01-22 - 實現AI Solver配額動態顏色顯示
+- **Task**: 將AI Solver配額文字改為橙色，配額用完時顯示紅色警告
+- **Files Modified**: 
+  - `fe_poker/src/screens/HomeScreen.tsx`: 實現動態顏色邏輯和新增對應樣式
+- **Changes Made**:
+  - ✅ 移除固定白色，改為動態顏色判斷
+  - ✅ 新增條件樣式：`quotaInfo.gtoRemaining === 0 ? quotaExhaustedText : quotaAvailableText`
+  - ✅ 新增 `quotaAvailableText` 樣式：橙色 (#FF9500)
+  - ✅ 新增 `quotaExhaustedText` 樣式：紅色 (#FF3B30)
+  - ✅ 重構 `compactQuotaText` 移除顏色屬性，僅保留共用樣式
+- **Color Logic**:
+  - **有剩餘配額** (>0): 橙色 (#FF9500) - 表示正常狀態
+  - **配額用完** (=0): 紅色 (#FF3B30) - 警告狀態，提醒用戶升級
+- **Visual States**:
+  - 🟠 "AI Solver: 2/week" (橙色 - 正常)
+  - 🔴 "AI Solver: 0/week" (紅色 - 警告)
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 提供清晰的視覺反饋，幫助用戶了解配額狀態
+  - 橙色保持友好的提醒，紅色明確警告配額不足
+  - 顏色選擇符合用戶體驗設計原則
+  - 無linting錯誤，邏輯實現完善

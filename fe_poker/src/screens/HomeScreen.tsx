@@ -81,7 +81,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         // Load quota information
         try {
           const gtoQuota = await revenueCatService.canUseGTOAnalysis();
-          const handRemaining = premium ? -1 : Math.max(0, 10 - hands.length);
+          const handRemaining = premium ? -1 : Math.max(0, 20 - hands.length);
           setQuotaInfo({
             gtoRemaining: gtoQuota.remainingFree,
             handRemaining,
@@ -286,16 +286,16 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleAddButtonPress = async () => {
     console.log('➕ [HomeScreen] Add button pressed, current hands count:', hands.length);
     try {
-      // 檢查手牌數量限制（免費用戶最多10手牌）
+      // 檢查手牌數量限制（免費用戶最多20手牌）
       console.log('💎 [HomeScreen] Checking premium status...');
       const premium = await revenueCatService.isPremiumUser();
       console.log('💎 [HomeScreen] Premium status:', premium);
 
-      if (!premium && hands.length >= 10) {
-        console.warn('⚠️ [HomeScreen] Free user limit reached - 10 hands max');
+      if (!premium && hands.length >= 20) {
+        console.warn('⚠️ [HomeScreen] Free user limit reached - 20 hands max');
         Alert.alert(
           'Upgrade Required',
-          'You have reached the free limit of 10 hands. Please upgrade to Premium to add more hands.',
+          'You have reached the free limit of 20 hands. Please upgrade to Premium to add more hands.',
           [
             { text: 'Cancel', style: 'cancel' },
             {
@@ -603,25 +603,19 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
         ))}
+        
+        {/* Compact Quota Status - Only show for non-premium users */}
+        {quotaInfo && !quotaInfo.isPremium && !isPremium && quotaInfo.gtoRemaining !== -1 && (
+          <View style={styles.compactQuotaContainer}>
+            <Text style={[
+              styles.compactQuotaText,
+              quotaInfo.gtoRemaining === 0 ? styles.quotaExhaustedText : styles.quotaAvailableText
+            ]}>
+              AI Solver: {quotaInfo.gtoRemaining}/week
+            </Text>
+          </View>
+        )}
       </View>
-
-      {/* Quota Status */}
-      {quotaInfo && !quotaInfo.isPremium && (
-        <View style={styles.quotaContainer}>
-          <View style={styles.quotaItem}>
-            <Text style={styles.quotaLabel}>AI Solver:</Text>
-            <Text style={[styles.quotaValue, quotaInfo.gtoRemaining === 0 && styles.quotaExhausted]}>
-              {quotaInfo.gtoRemaining === -1 ? '∞' : quotaInfo.gtoRemaining} left this week
-            </Text>
-          </View>
-          <View style={styles.quotaItem}>
-            <Text style={styles.quotaLabel}>Hand Creation:</Text>
-            <Text style={[styles.quotaValue, quotaInfo.handRemaining === 0 && styles.quotaExhausted]}>
-              {quotaInfo.handRemaining === -1 ? '∞' : quotaInfo.handRemaining} left total
-            </Text>
-          </View>
-        </View>
-      )}
 
       {/* Usage Hint */}
       {filteredHands.length > 0 && (
@@ -1069,6 +1063,23 @@ const styles = StyleSheet.create({
   selectedSortOptionText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  compactQuotaContainer: {
+    marginLeft: 'auto',
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.button,
+    backgroundColor: theme.colors.inputBg,
+  },
+  compactQuotaText: {
+    fontSize: theme.font.size.small,
+    fontWeight: '500',
+  },
+  quotaAvailableText: {
+    color: '#FF9500', // 橘色 - 有剩餘配額時
+  },
+  quotaExhaustedText: {
+    color: '#FF3B30', // 紅色 - 配額用完時
   },
   dateRangeDisplay: {
     textAlign: 'center',

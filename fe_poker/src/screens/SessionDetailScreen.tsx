@@ -168,12 +168,12 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
 
   const handleAddButtonPress = async () => {
     try {
-      // 檢查手牌數量限制（免費用戶最多10手牌）
+      // 檢查手牌數量限制（免費用戶最多20手牌）
       const premium = await revenueCatService.isPremiumUser();
-      if (!premium && hands.length >= 10) {
+      if (!premium && hands.length >= 20) {
         Alert.alert(
           'Upgrade Required',
-          'You have reached the free limit of 10 hands. Please upgrade to Premium to add more hands.',
+          'You have reached the free limit of 20 hands. Please upgrade to Premium to add more hands.',
           [
             { text: 'Cancel', style: 'cancel' },
             {
