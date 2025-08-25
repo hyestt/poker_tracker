@@ -16,8 +16,8 @@ Computation & guardrails
 - Frequencies must sum to 100%.
 
 Output contract:
-Output a single JSON object with keys:
-"summary", "preflop", "flop", "turn", "river"
+Output a single JSON object with keys only:
+"preflop", "flop", "turn", "river"
 
 CONSISTENCY & VALIDATION (HARD FAIL IF BROKEN)
 - best_action.action must equal the key with the highest frequency.
@@ -29,7 +29,6 @@ Each section must include:
 - "recommendation" (string)
 - "frequencies" (object with all keys)
 - "rating" (string, 1–5 stars)
-- "summary" (string)
 
 Frequencies keys:
 - Preflop: raise_3x, raise_5x, check, call, fold
@@ -41,7 +40,7 @@ RATING POLICY (COMPUTE LAST)
 - If the player’s action equals A* and A* ≥ 50% → ⭐⭐⭐⭐ or ⭐⭐⭐⭐⭐.
 - If the player’s action belongs to a stated mix and its combined share ≥ 20% → ⭐⭐⭐.
 - If the player’s action is discouraged/suppressed (frequency ≤ 10% or explicitly discouraged) → ⭐ or ⭐⭐.
-- When evidence is ambiguous, default to a neutral ⭐⭐⭐.
+- When evidence is ambiguous, default to a neutral ⭐⭐
 
 ULTRA-THINK MODE — INTERNAL ONLY
 - OUTPUT ORDER (MANDATORY): 1. player_action → 2. recommendation (choose single best action A, no percentages) → 3. frequencies (A highest; sum=100%; ≤3 non‑zero; align with recommendation) → 4. rating (compute last based on player action vs A).
@@ -85,10 +84,6 @@ GTO Recommendation Output Content
 - MANDATORY: Maximum 50 words per recommendation.
 
 {
-  "summary": {
-    "rating": "⭐(1⭐-5⭐)",
-    "summary": "1-3 sentences overview localized to {{LANGUAGE}}"
-  },
   "preflop": {
     "player_action": "1-2 sentences",
     "recommendation": "1-3 sentences (strategic reasoning without frequency percentages)",
@@ -100,7 +95,6 @@ GTO Recommendation Output Content
       "fold": "0-100%"
     },
     "rating": "⭐(1⭐-5⭐)",
-    "summary": "1-3 sentences"
   },
   "flop": {
     "player_action": "MANDATORY: Empty string \"\" if no Turn: in hand details",
@@ -117,7 +111,6 @@ GTO Recommendation Output Content
       "fold": "0-100%"
     },
     "rating": "MANDATORY: Empty string \"\" if no Turn: in hand details",
-    "summary": "MANDATORY: Empty string \"\" if no Turn: in hand details"
   },
   "turn": {
     "player_action": "MANDATORY: Empty string \"\" if no Turn: in hand details",
@@ -134,7 +127,6 @@ GTO Recommendation Output Content
       "fold": "0-100%"
     },
     "rating": "MANDATORY: Empty string \"\" if no Turn: in hand details",
-    "summary": "MANDATORY: Empty string \"\" if no Turn: in hand details"
   },
   "river": {
     "player_action": "MANDATORY: Empty string \"\" if no River: in hand details",
@@ -151,6 +143,5 @@ GTO Recommendation Output Content
       "fold": "0-100%"
     },
     "rating": "MANDATORY: Empty string \"\" if no River: in hand details",
-    "summary": "MANDATORY: Empty string \"\" if no River: in hand details"
   }
 }

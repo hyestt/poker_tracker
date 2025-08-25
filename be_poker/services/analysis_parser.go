@@ -7,15 +7,14 @@ import (
 )
 
 type AnalysisSections struct {
-	Summary string `json:"summary"`
 	Preflop string `json:"preflop"`
 	Flop    string `json:"flop"`
 	Turn    string `json:"turn"`
 	River   string `json:"river"`
 }
 
-// ParseHandAnalysis tries to parse model output into five sections.
-// Priority: strict JSON -> markdown H2 headings -> label prefixes -> fallback all to Summary.
+// ParseHandAnalysis tries to parse model output into four streets.
+// Priority: strict JSON -> markdown H2 headings -> label prefixes -> fallback all to Preflop.
 func ParseHandAnalysis(text string) AnalysisSections {
 	clean := strings.TrimSpace(text)
 
@@ -29,18 +28,18 @@ func ParseHandAnalysis(text string) AnalysisSections {
 		}
 	}
 
-	// 2) Try markdown H2 headings (## Summary etc.)
+	// 2) Try markdown H2 headings (## Preflop/Flop/Turn/River)
 	if sec, ok := splitByHeadings(clean); ok {
 		return sec
 	}
 
-	// 3) Try label prefixes (Summary:, Preflop:, ...)
+	// 3) Try label prefixes (Preflop:, Flop:, ...)
 	if sec, ok := splitByLabels(clean); ok {
 		return sec
 	}
 
-	// 4) Fallback: put everything into Summary
-	return AnalysisSections{Summary: clean}
+	// 4) Fallback: put everything into Preflop
+	return AnalysisSections{Preflop: clean}
 }
 
 func emptySafe(s string) string {
@@ -52,7 +51,6 @@ func emptySafe(s string) string {
 }
 
 func normalize(sec *AnalysisSections) AnalysisSections {
-	sec.Summary = emptySafe(sec.Summary)
 	sec.Preflop = emptySafe(sec.Preflop)
 	sec.Flop = emptySafe(sec.Flop)
 	sec.Turn = emptySafe(sec.Turn)
@@ -66,35 +64,12 @@ func tryParseJSON(s string) (AnalysisSections, bool) {
 		return AnalysisSections{}, false
 	}
 	res := AnalysisSections{}
-	if v, ok := tmp["summary"]; ok {
-		// Handle both string and object formats
-		if summaryObj, ok := v.(map[string]interface{}); ok {
-			if summaryText, ok := summaryObj["summary"]; ok {
-				res.Summary = toString(summaryText)
-			}
-		} else {
-			res.Summary = toString(v)
-		}
-	}
-	// Accept alternative keys often returned by compact prompts
-	if v, ok := tmp["line"]; ok {
-		if res.Summary == "" {
-			res.Summary = toString(v)
-		} else {
-			res.Summary = strings.TrimSpace(res.Summary + "\n" + toString(v))
-		}
-	}
 	// Handle preflop, flop, turn, river (both string and object formats)
 	extractStreetContent := func(key string) string {
 		if v, ok := tmp[key]; ok {
 			if streetObj, ok := v.(map[string]interface{}); ok {
 				// Only extract specific text fields, not frequencies or other objects
 				var parts []string
-				if summaryText, ok := streetObj["summary"]; ok {
-					if str := toString(summaryText); strings.TrimSpace(str) != "" {
-						parts = append(parts, str)
-					}
-				}
 				if playerAction, ok := streetObj["player_action"]; ok {
 					if str := toString(playerAction); strings.TrimSpace(str) != "" {
 						parts = append(parts, str)
@@ -117,16 +92,6 @@ func tryParseJSON(s string) (AnalysisSections, bool) {
 	res.Flop = extractStreetContent("flop")
 	res.Turn = extractStreetContent("turn")
 	res.River = extractStreetContent("river")
-	if v, ok := tmp["notes"]; ok {
-		notes := toString(v)
-		if strings.TrimSpace(notes) != "" {
-			if res.Summary == "" {
-				res.Summary = notes
-			} else {
-				res.Summary = strings.TrimSpace(res.Summary + "\n" + notes)
-			}
-		}
-	}
 	return normalize(&res), true
 }
 
@@ -151,7 +116,7 @@ func clipToJSON(s string) (string, bool) {
 
 func splitByHeadings(s string) (AnalysisSections, bool) {
 	// (?mi) multiline + case-insensitive
-	re := regexp.MustCompile(`(?mi)^##\s*(Summary|Preflop|Flop|Turn|River)\s*$`)
+	re := regexp.MustCompile(`(?mi)^##\s*(Preflop|Flop|Turn|River)\s*$`)
 	idxs := re.FindAllStringIndex(s, -1)
 	labels := re.FindAllStringSubmatch(s, -1)
 	if len(idxs) == 0 {
@@ -173,7 +138,6 @@ func splitByHeadings(s string) (AnalysisSections, bool) {
 		parts[label] = content
 	}
 	res := AnalysisSections{
-		Summary: parts["summary"],
 		Preflop: parts["preflop"],
 		Flop:    parts["flop"],
 		Turn:    parts["turn"],
@@ -183,7 +147,7 @@ func splitByHeadings(s string) (AnalysisSections, bool) {
 }
 
 func splitByLabels(s string) (AnalysisSections, bool) {
-	re := regexp.MustCompile(`(?mi)^(Summary|Preflop|Flop|Turn|River)\s*:\s*$`)
+	re := regexp.MustCompile(`(?mi)^(Preflop|Flop|Turn|River)\s*:\s*$`)
 	idxs := re.FindAllStringIndex(s, -1)
 	labels := re.FindAllStringSubmatch(s, -1)
 	if len(idxs) == 0 {
@@ -205,7 +169,6 @@ func splitByLabels(s string) (AnalysisSections, bool) {
 		parts[label] = content
 	}
 	res := AnalysisSections{
-		Summary: parts["summary"],
 		Preflop: parts["preflop"],
 		Flop:    parts["flop"],
 		Turn:    parts["turn"],
@@ -218,9 +181,9 @@ func splitByLabels(s string) (AnalysisSections, bool) {
 func cleanTrailingHeaders(content string) string {
 	// Remove trailing headers like "## Flop", "Flop:", etc.
 	headerPatterns := []string{
-		`(?mi)^##\s*(Summary|Preflop|Flop|Turn|River)\s*$`,
-		`(?mi)^(Summary|Preflop|Flop|Turn|River)\s*:\s*$`,
-		`(?mi)^(Summary|Preflop|Flop|Turn|River)\s*$`,
+		`(?mi)^##\s*(Preflop|Flop|Turn|River)\s*$`,
+		`(?mi)^(Preflop|Flop|Turn|River)\s*:\s*$`,
+		`(?mi)^(Preflop|Flop|Turn|River)\s*$`,
 	}
 
 	for _, pattern := range headerPatterns {

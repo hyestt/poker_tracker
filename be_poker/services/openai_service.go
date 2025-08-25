@@ -173,36 +173,26 @@ func (s *OpenAIService) callResponsesRaw(input string) (string, error) {
 				"recommendation": map[string]any{"type": "string"},
 				"frequencies":    freq,
 				"rating":         map[string]any{"type": "string"},
-				"summary":        map[string]any{"type": "string"},
 			},
-			"required": []string{"player_action", "recommendation", "frequencies", "rating", "summary"},
+			"required": []string{"player_action", "recommendation", "frequencies", "rating"},
 		}
 	}
 	rootSchema := map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
 		"properties": map[string]any{
-			"summary": map[string]any{
-				"type":                 "object",
-				"additionalProperties": false,
-				"properties": map[string]any{
-					"rating":  map[string]any{"type": "string"},
-					"summary": map[string]any{"type": "string"},
-				},
-				"required": []string{"rating", "summary"},
-			},
 			"preflop": streetObj(preflopFreq),
 			"flop":    streetObj(postflopFreq),
 			"turn":    streetObj(postflopFreq),
 			"river":   streetObj(postflopFreq),
 		},
-		"required": []string{"summary", "preflop", "flop", "turn", "river"},
+		"required": []string{"preflop", "flop", "turn", "river"},
 	}
 
 	body := map[string]any{
 		"model":             s.modelName,
 		"input":             input,
-		"max_output_tokens": 4000,
+		"max_output_tokens": 3000,
 		"reasoning":         map[string]any{"effort": "low"},
 		// Responses API updated: use text.format for structured outputs
 		"text": map[string]any{

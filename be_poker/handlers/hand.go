@@ -471,8 +471,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 
 		// 解析為 sections（基於 canonical 字串）
 		sections := services.ParseHandAnalysis(canonical)
-		log.Printf("🔍 PARSED SECTIONS - Summary: %s | Preflop: %s | Flop: %s | Turn: %s | River: %s",
-			truncate(sections.Summary, 100),
+		log.Printf("🔍 PARSED SECTIONS - Preflop: %s | Flop: %s | Turn: %s | River: %s",
 			truncate(sections.Preflop, 50),
 			truncate(sections.Flop, 50),
 			truncate(sections.Turn, 50),
@@ -489,7 +488,6 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		if analysisObj != nil {
 			response["analysis_object"] = analysisObj
 			response["sections"] = map[string]any{
-				"summary": analysisObj["summary"],
 				"preflop": analysisObj["preflop"],
 				"flop":    analysisObj["flop"],
 				"turn":    analysisObj["turn"],

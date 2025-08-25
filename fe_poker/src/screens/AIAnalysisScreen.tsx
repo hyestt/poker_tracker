@@ -179,15 +179,15 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
             setLoading(false);
             return;
           } catch (e) {
-            console.warn('Failed to parse stored sections JSON, using Summary-only fallback');
-            setSections({ summary: latestHand.analysis, preflop: '', flop: '', turn: '', river: '' });
-            setActiveTab('summary');
+            console.warn('Failed to parse stored sections JSON, using Preflop-only fallback');
+            setSections({ summary: '', preflop: latestHand.analysis, flop: '', turn: '', river: '' });
+            setActiveTab('preflop');
             setLoading(false);
             return;
           }
         } else {
-          setSections({ summary: latestHand.analysis, preflop: '', flop: '', turn: '', river: '' });
-          setActiveTab('summary');
+          setSections({ summary: '', preflop: latestHand.analysis, flop: '', turn: '', river: '' });
+          setActiveTab('preflop');
           setLoading(false);
           return;
         }
@@ -282,7 +282,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
       setAnalysis(analysisResult.text);
       // 僅使用後端 sections；缺失時以 Summary-only 呈現
-      const s = analysisResult.sections || { summary: analysisResult.text, preflop: '', flop: '', turn: '', river: '' };
+      const s = analysisResult.sections || { summary: '', preflop: analysisResult.text, flop: '', turn: '', river: '' };
       setSections(s);
       setActiveTab(getFirstAvailableTab(s));
     } catch (error) {
@@ -488,12 +488,13 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       }
       return false;
     };
-    if (hasContent(s.summary)) {return 'summary' as const;}
+    // 不再使用 summary 作為可選 tab
     if (hasContent(s.preflop)) {return 'preflop' as const;}
     if (hasContent(s.flop)) {return 'flop' as const;}
     if (hasContent(s.turn)) {return 'turn' as const;}
     if (hasContent(s.river)) {return 'river' as const;}
-    return 'summary' as const;
+    // 若皆無，回退到 preflop（避免選到已移除的 summary）
+    return 'preflop' as const;
   };
 
 
@@ -645,8 +646,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     pushText('Player Action', obj.player_action);
     pushText('GTO Recommendation', obj.recommendation);
 
-    // Summary（街道/總結）
-    pushText('Summary', obj.summary);
+    // 移除 Summary 顯示（僅保留 GTO Recommendation 與其他必要區塊）
 
     return nodes.length ? nodes : null;
   };
@@ -655,9 +655,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     if (!text) {return null;}
 
     // 將文本切成區塊
-    const labels = ['Rating', 'Rating & Summary', 'Player Action', 'GTO Recommendation', 'Frequencies', 'Summary'];
+    const labels = ['Rating', 'Rating & Summary', 'Player Action', 'GTO Recommendation', 'Frequencies'];
     // 支援多種別名：Overall / Action / Recommendation / (Betting) Frequencies
-    const labelRegex = /^(Overall|Rating(?:\s*&\s*Summary)?|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies|Summary)\s*:\s*(.*)$/i;
+    const labelRegex = /^(Overall|Rating(?:\s*&\s*Summary)?|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies)\s*:\s*(.*)$/i;
 
     type Block = { key: string; content: string[] };
     const blocks: Record<string, Block> = {};
@@ -684,7 +684,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
 
     // 先進行全局掃描（比逐行更穩定）
-    const inlineRe = /(Overall|Rating\s*&\s*Summary|Rating|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies|Summary)\s*:/gi;
+    const inlineRe = /(Overall|Rating\s*&\s*Summary|Rating|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies)\s*:/gi;
     const matches: Array<{ key: string; start: number }> = [];
     let mm: RegExpExecArray | null;
     while ((mm = inlineRe.exec(normalized)) !== null) {
@@ -772,7 +772,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (k === 'gto recommendation') {pushBlock('GTO Recommendation', 'gto recommendation');}
       // 跳過 frequencies 文字渲染，因為已經有頻率圖表了
       // if (k === 'frequencies') {pushBlock('Frequencies', 'frequencies');}
-      if (k === 'summary') {pushBlock('Summary', 'summary');}
+      // 移除 Summary 區塊渲染
     }
 
     return nodes;
@@ -971,7 +971,6 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <View style={styles.analysisContent}>
             {sections ? (
               <>
-                {activeTab === 'summary' && renderStructuredAnalysis(sections.summary)}
                 {activeTab === 'preflop' && renderStructuredAnalysis(sections.preflop)}
                 {activeTab === 'flop' && renderStructuredAnalysis(sections.flop)}
                 {activeTab === 'turn' && renderStructuredAnalysis(sections.turn)}
@@ -992,7 +991,6 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <View style={styles.bottomTabBar}>
             {(
               [
-                { key: 'summary', label: 'S' },
                 { key: 'preflop', label: 'PF' },
                 { key: 'flop', label: 'F' },
                 { key: 'turn', label: 'T' },
