@@ -55,9 +55,10 @@ Validation
 
 GTO Recommendation Output Content
 - in the each street, clearly state if Hero's current hand has improved or made a strong hand or draw, such as a set, straight, flush, two pair, trips, top pair, or any significant draw. 
-- What are the recommended actions and sizing frequencies? What would be max EV play?
+- Provide strategic reasoning and explain the optimal approach, but DO NOT include specific frequency percentages in text (e.g., do not write "Bet 75%: 60%") - these are provided separately in the frequencies object
 - describe the board structure (monotone, dry board, wet board, rainbow board) and share how this impact the Hero's range
 - Be honest about pointing out the player's mistakes and help the player improve
+- Focus on WHY certain actions are optimal rather than repeating the frequency numbers
 
 {
   "summary": {
@@ -65,8 +66,8 @@ GTO Recommendation Output Content
     "summary": "1-3 sentences overview localized to {{LANGUAGE}}"
   },
   "preflop": {
-    "player_action": "1-3 sentences",
-    "recommendation": "1-5 sentences",
+    "player_action": "1-2 sentences",
+    "recommendation": "1-3 sentences (strategic reasoning without frequency percentages)",
     "frequencies": {
       "raise_3x": "0-100%",
       "raise_5x": "0-100%",
@@ -75,11 +76,11 @@ GTO Recommendation Output Content
       "fold": "0-100%"
     },
     "rating": "⭐(1⭐-5⭐)",
-    "summary": "2-3 sentences"
+    "summary": "1-3 sentences"
   },
   "flop": {
     "player_action": "",
-    "recommendation": "",
+    "recommendation": "(strategic reasoning without frequency percentages)",
     "frequencies": {
       "check": "0-100%",
       "bet_33": "0-100%",
@@ -96,7 +97,7 @@ GTO Recommendation Output Content
   },
   "turn": {
     "player_action": "",
-    "recommendation": "",
+    "recommendation": "(strategic reasoning without frequency percentages)",
     "frequencies": {
       "check": "0-100%",
       "bet_33": "0-100%",
@@ -113,7 +114,7 @@ GTO Recommendation Output Content
   },
   "river": {
     "player_action": "",
-    "recommendation": "",
+    "recommendation": "(strategic reasoning without frequency percentages)",
     "frequencies": {
       "check": "0-100%",
       "bet_33": "0-100%",

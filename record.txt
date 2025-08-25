@@ -824,3 +824,19 @@
   - 橙色保持友好的提醒，紅色明確警告配額不足
   - 顏色選擇符合用戶體驗設計原則
   - 無linting錯誤，邏輯實現完善
+
+### 2025-01-22 - 修復Debug模式問題：Debug & Testing區塊未顯示
+- **Task**: 解決模擬器中看不到Settings畫面Debug & Testing區塊的問題
+- **問題**: 應用程式在Release模式下運行，導致__DEV__檢查失敗，隱藏的debug功能無法顯示
+- **解決方案**: 
+  - ✅ 使用`npx react-native run-ios --mode Debug`以Debug模式重新啟動應用程式
+  - ✅ 確認應用程式現在從Release-iphonesimulator改為Debug-iphonesimulator
+- **Debug功能包含**:
+  - Toggle Premium Status (Test Mode): 測試Premium狀態切換
+  - Create 9 Test Hands: 創建9個測試手牌（測試20手限制）
+  - Create Welcome Demo Session: 創建歡迎示範session
+- **Status**: ✅ 完成
+- **Notes**: 
+  - Debug功能只在開發模式(__DEV__)下顯示，正式發布版本中不會出現
+  - Settings畫面現在應該顯示完整的Debug & Testing區塊
+  - 提供開發和測試時必要的調試工具

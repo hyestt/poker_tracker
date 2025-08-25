@@ -753,10 +753,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
 
-      // 跳過頻率相關的文字行（如 "Bet 75%: 60%", "Check: 40%" 等）
-      if (trimmedLine.match(/^(Bet \d+%|Check|Call|Fold|Raise \d+X):\s*\d+%$/)) {
-        return; // 跳過這行
-      }
+      // 解法1：通過 system prompt 防止 AI 生成重複的頻率文字
+      // 不再需要前端過濾器
 
       if (trimmedLine.startsWith('### ')) {
         // 處理 ### 標題
