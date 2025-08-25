@@ -57,10 +57,9 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 		systemPrompt = fmt.Sprintf("You are a professional Texas Hold'em poker GTO coach. Analyze poker hands and provide strategic recommendations in %s.", language)
 	}
 
-	userPrompt, err := pm.GetSimpleJSONUserPrompt(handDetails, language)
-	if err != nil {
-		userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s", handDetails)
-	}
+	// handDetails 現在應為基於 user_prompt.json 的結構化 JSON，由上游 handler 組裝完成。
+	// 不再回退到簡化 JSON；若不是 JSON，仍然直接傳遞（system prompt 會約束輸出）。
+	userPrompt := strings.TrimSpace(handDetails)
 
 	input := fmt.Sprintf("System:\n%s\n\nUser:\n%s", systemPrompt, userPrompt)
 
@@ -124,7 +123,7 @@ func (s *OpenAIService) AnalyzeHand(handDetails string, language string) (string
 		}
 	}
 
-	return raw, nil
+	return "", errors.New("empty OpenAI output")
 }
 
 // callResponsesRaw performs a manual HTTP POST to OpenAI Responses API so we can

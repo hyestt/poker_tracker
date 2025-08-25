@@ -309,6 +309,27 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		Validate    bool   `json:"validate,omitempty"`
 		Primary     string `json:"primary,omitempty"`
 		Validator   string `json:"validator,omitempty"`
+
+		// 結構化輸入（比照 Share）
+		HeroPosition     string   `json:"hero_position"`
+		HeroHoleCards    string   `json:"hero_hole_cards"`
+		Board            string   `json:"board"`
+		Result           string   `json:"result"`
+		Notes            string   `json:"notes"`
+		StreetsToAnalyze []string `json:"streets_to_analyze"`
+		Session          struct {
+			Location   string `json:"location"`
+			SmallBlind string `json:"small_blind"`
+			BigBlind   string `json:"big_blind"`
+			Date       string `json:"date"`
+			TableSize  string `json:"table_size"`
+		} `json:"session"`
+		Villains []struct {
+			ID        string `json:"id"`
+			Position  string `json:"position"`
+			HoleCards string `json:"hole_cards"`
+			StackSize string `json:"stack_size"`
+		} `json:"villains"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -316,9 +337,23 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 確保手牌資料完整
-	if request.HandDetails == "" {
-		http.Error(w, "Hand details are required for analysis", http.StatusBadRequest)
+	// 強制要求結構化輸入：缺少必要欄位則直接拒絕
+	missing := []string{}
+	if strings.TrimSpace(request.HeroPosition) == "" {
+		missing = append(missing, "hero_position")
+	}
+	if strings.TrimSpace(request.HeroHoleCards) == "" {
+		missing = append(missing, "hero_hole_cards")
+	}
+	// session.location 與 result 改為可選，不再列為缺少欄位
+	if strings.TrimSpace(request.Session.SmallBlind) == "" {
+		missing = append(missing, "session.small_blind")
+	}
+	if strings.TrimSpace(request.Session.BigBlind) == "" {
+		missing = append(missing, "session.big_blind")
+	}
+	if len(missing) > 0 {
+		http.Error(w, "Missing required fields: "+strings.Join(missing, ", "), http.StatusBadRequest)
 		return
 	}
 
@@ -362,7 +397,54 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		analysis, err := aiService.AnalyzeHand(request.HandDetails, language)
+		// 構建基於 @user_prompt.json 的結構化 user prompt
+		pm := services.NewPromptManager()
+		baseJSON, err := pm.GetJSONUserPrompt(
+			request.HandDetails,
+			language,
+			request.HeroPosition,
+			request.HeroHoleCards,
+			request.Board,
+			request.Result,
+			request.Notes,
+		)
+		if err != nil {
+			http.Error(w, "Failed to build user prompt: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// 注入 session / villains / streets_to_analyze
+		var userObj services.JSONPrompt
+		if err := json.Unmarshal([]byte(baseJSON), &userObj); err != nil {
+			http.Error(w, "Failed to parse user prompt: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		userObj.HandData.SessionInfo.Location = request.Session.Location
+		userObj.HandData.SessionInfo.Stakes.SmallBlind = request.Session.SmallBlind
+		userObj.HandData.SessionInfo.Stakes.BigBlind = request.Session.BigBlind
+		userObj.HandData.SessionInfo.Date = request.Session.Date
+		userObj.HandData.SessionInfo.TableType = request.Session.TableSize
+		if len(request.Villains) > 0 {
+			userObj.HandData.Villains = nil
+			for _, v := range request.Villains {
+				userObj.HandData.Villains = append(userObj.HandData.Villains, struct {
+					ID        string `json:"id"`
+					Position  string `json:"position"`
+					HoleCards string `json:"hole_cards"`
+					StackSize string `json:"stack_size,omitempty"`
+				}{ID: v.ID, Position: v.Position, HoleCards: v.HoleCards, StackSize: v.StackSize})
+			}
+		}
+		if len(request.StreetsToAnalyze) > 0 {
+			userObj.AnalysisRequirements.StreetsToAnalyze = request.StreetsToAnalyze
+		}
+		finalUserBytes, err := json.Marshal(userObj)
+		if err != nil {
+			http.Error(w, "Failed to serialize user prompt: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		analysis, err := aiService.AnalyzeHand(string(finalUserBytes), language)
 		if err != nil {
 			http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)
 			return

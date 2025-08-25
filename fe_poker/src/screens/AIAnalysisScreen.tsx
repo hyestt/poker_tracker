@@ -327,6 +327,22 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       }
 
       const requestPayload = {
+        hero_position: handData.position || '',
+        hero_hole_cards: handData.holeCards || '',
+        board: handData.board || '',
+        // Notes/result/location/table_size/stack_size intentionally omitted per backend contract
+        session: currentSession
+          ? {
+              small_blind: String((currentSession as any).smallBlind ?? ''),
+              big_blind: String((currentSession as any).bigBlind ?? ''),
+              date: (currentSession as any).date || '',
+            }
+          : { small_blind: '', big_blind: '', date: '' },
+        villains: (handData.villains || []).map((v: any, i: number) => ({
+          id: v.id || String(i + 1),
+          position: v.position || '',
+          hole_cards: v.holeCards || '',
+        })),
         handDetails: handHistoryText,
         language: userLanguage,
       };

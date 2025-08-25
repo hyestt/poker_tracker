@@ -111,24 +111,24 @@ type JSONPrompt struct {
 	AnalysisFormat string `json:"analysis_format"`
 	HandData       struct {
 		SessionInfo struct {
-			Location string `json:"location"`
+			Location string `json:"location,omitempty"`
 			Stakes   struct {
 				SmallBlind string `json:"small_blind"`
 				BigBlind   string `json:"big_blind"`
 			} `json:"stakes"`
-			Date      string `json:"date"`
-			TableType string `json:"table_type"`
+			Date      string `json:"date,omitempty"`
+			TableType string `json:"table_type,omitempty"`
 		} `json:"session_info"`
 		Hero struct {
 			Position  string `json:"position"`
 			HoleCards string `json:"hole_cards"`
-			StackSize string `json:"stack_size"`
+			StackSize string `json:"stack_size,omitempty"`
 		} `json:"hero"`
 		Villains []struct {
 			ID        string `json:"id"`
 			Position  string `json:"position"`
 			HoleCards string `json:"hole_cards"`
-			StackSize string `json:"stack_size"`
+			StackSize string `json:"stack_size,omitempty"`
 		} `json:"villains"`
 		Board struct {
 			Flop  string `json:"flop"`
@@ -147,8 +147,8 @@ type JSONPrompt struct {
 			River []interface{} `json:"river"`
 		} `json:"action_sequence"`
 		HandDetails string `json:"hand_details"`
-		Result      string `json:"result"`
-		Notes       string `json:"notes"`
+		Result      string `json:"result,omitempty"`
+		Notes       string `json:"notes,omitempty"`
 	} `json:"hand_data"`
 	AnalysisRequirements struct {
 		Language           string   `json:"language"`
@@ -156,7 +156,7 @@ type JSONPrompt struct {
 		IncludeFrequencies bool     `json:"include_frequencies"`
 		IncludeRatings     bool     `json:"include_ratings"`
 		GTOSolverStyle     bool     `json:"gto_solver_style"`
-		StreetsToAnalyze   []string `json:"streets_to_analyze"`
+		StreetsToAnalyze   []string `json:"streets_to_analyze,omitempty"`
 	} `json:"analysis_requirements"`
 	PromptText string `json:"prompt_text"`
 }
