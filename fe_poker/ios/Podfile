@@ -35,5 +35,16 @@ target 'PokerTrackerApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Force REACT_NATIVE_PATH to absolute path so Xcode script 'with-environment.sh' resolves
+    rn_abs_path = File.join(__dir__, '..', 'node_modules', 'react-native')
+    installer.aggregate_targets.each do |aggregate_target|
+      aggregate_target.user_project.build_configurations.each do |cfg|
+        cfg.build_settings['REACT_NATIVE_PATH'] = rn_abs_path
+      end
+    end
+    installer.pods_project.build_configurations.each do |cfg|
+      cfg.build_settings['REACT_NATIVE_PATH'] = rn_abs_path
+    end
   end
 end

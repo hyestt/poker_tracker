@@ -193,16 +193,16 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         }
       }
 
-      // 沒有緩存的分析，執行新分析
+      // 沒有緩存的分析，執行新分析（明確傳遞 session 以避免 state 尚未就緒）
       console.log('❌ No cached analysis found, performing new analysis');
-      await performAIAnalysis();
+      await performAIAnalysis(false, session);
     } catch (error) {
       console.error('Error loading hand data:', error);
-      await performAIAnalysis();
+      await performAIAnalysis(false, null);
     }
   };
 
-  const performAIAnalysis = async (forceReanalyze = false) => {
+  const performAIAnalysis = async (forceReanalyze = false, sessionOverride: Session | null = null) => {
     console.log('performAIAnalysis started, forceReanalyze:', forceReanalyze);
     console.log('Current hand analysis exists:', !!currentHand.analysis);
     console.log('Current hand analysis content:', currentHand.analysis ? 'YES' : 'NO');
@@ -257,8 +257,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const updatedQuotaStatus = await revenueCatService.canUseGTOAnalysis();
       setQuotaInfo(updatedQuotaStatus);
 
-      // Execute the actual AI analysis
-      const analysisResult = await performRealAIAnalysis(currentHand);
+      // Execute the actual AI analysis（優先使用傳入的 sessionOverride）
+      const analysisResult = await performRealAIAnalysis(currentHand, sessionOverride ?? currentSession);
       console.log('AI analysis completed:', analysisResult);
 
       // Complete progress to 100%
@@ -298,7 +298,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
 
   // 真正的AI分析功能
-  const performRealAIAnalysis = async (handData: Hand): Promise<{ text: string; sections?: { summary: any; preflop: any; flop: any; turn: any; river: any } }> => {
+  const performRealAIAnalysis = async (handData: Hand, sessionForRequest: Session | null = null): Promise<{ text: string; sections?: { summary: any; preflop: any; flop: any; turn: any; river: any } }> => {
     try {
       // 獲取用戶語言設定
       const userPreferences = await UserPreferencesService.getPreferences();
@@ -307,9 +307,13 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       // 生成完整的手牌歷史文本（使用Share格式，但移除"Shared from AI Solver"標記）
       // 若首次點擊時 session 尚未載入，使用最小可用內容作為後備，避免第一次就失敗
       let handHistoryText = '';
-      if (currentSession) {
-        const shareText = generateShareText(handData, currentSession);
-        handHistoryText = shareText.replace('\n\nShared from AI Solver', '');
+      const sessionToUse = sessionForRequest || currentSession;
+      if (sessionToUse) {
+        const shareText = generateShareText(handData, sessionToUse);
+        // 僅用於發送給 AI 的文本：轉換花色為完整英文，分享與 UI 不受影響
+        handHistoryText = convertCardSymbolsToEnglish(
+          shareText.replace('\n\nShared from AI Solver', '')
+        );
       } else {
         const villainsText = (handData.villains || [])
           .map((v, i) => `Villain ${i + 1}: ${v.position || 'Unknown'} - ${convertCardSymbolsToEnglish(v.holeCards || 'Unknown')}`)
@@ -326,22 +330,26 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         ].join('\n');
       }
 
+      // 若沒有可用的 session，直接提示並中止呼叫，避免 400
+      if (!sessionToUse || sessionToUse.smallBlind == null || sessionToUse.bigBlind == null) {
+        Alert.alert('Missing Session Info', 'Please ensure the session includes blinds (e.g., 1/2) before AI analysis.');
+        throw new Error('Session blinds missing');
+      }
+
       const requestPayload = {
         hero_position: handData.position || '',
-        hero_hole_cards: handData.holeCards || '',
-        board: handData.board || '',
+        hero_hole_cards: convertCardSymbolsToEnglish(handData.holeCards || ''),
+        board: convertCardSymbolsToEnglish(handData.board || ''),
         // Notes/result/location/table_size/stack_size intentionally omitted per backend contract
-        session: currentSession
-          ? {
-              small_blind: String((currentSession as any).smallBlind ?? ''),
-              big_blind: String((currentSession as any).bigBlind ?? ''),
-              date: (currentSession as any).date || '',
-            }
-          : { small_blind: '', big_blind: '', date: '' },
+        session: {
+          small_blind: String((sessionToUse as any).smallBlind ?? ''),
+          big_blind: String((sessionToUse as any).bigBlind ?? ''),
+          date: (sessionToUse as any).date || '',
+        },
         villains: (handData.villains || []).map((v: any, i: number) => ({
           id: v.id || String(i + 1),
           position: v.position || '',
-          hole_cards: v.holeCards || '',
+          hole_cards: convertCardSymbolsToEnglish(v.holeCards || ''),
         })),
         handDetails: handHistoryText,
         language: userLanguage,

@@ -168,6 +168,19 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
 
   const handleAddButtonPress = async () => {
     try {
+      // 若此 Session 已「結束」(有 cashOut)，不允許再加手牌，提示改為建立新 Session
+      if (session && session.cashOut !== undefined && session.cashOut !== null) {
+        Alert.alert(
+          'Session has ended',
+          'This welcome demo session is already ended. Create a new session to add hands?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Create New', onPress: () => navigation.navigate('NewSession') },
+          ]
+        );
+        return;
+      }
+
       // 檢查手牌數量限制（免費用戶最多20手牌）
       const premium = await revenueCatService.isPremiumUser();
       if (!premium && hands.length >= 20) {
