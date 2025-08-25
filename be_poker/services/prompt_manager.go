@@ -258,25 +258,7 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 	return string(jsonBytes), nil
 }
 
-// 獲取簡化的 JSON user prompt（只包含必要資訊）
-func (pm *PromptManager) GetSimpleJSONUserPrompt(handDetails, language string) (string, error) {
-	// 先做花色正規化
-	normalized := normalizeSuits(handDetails)
-
-	simplePrompt := map[string]interface{}{
-		"request_type": "poker_hand_analysis",
-		"hand_details": normalized,
-		"language":     language,
-		"prompt_text":  "Please analyze the following poker hand using GTO solver principles. Provide comprehensive analysis including action frequencies, ratings, and strategic recommendations for each street. Follow the format and rules specified in the system prompt.",
-	}
-
-	jsonBytes, err := json.MarshalIndent(simplePrompt, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal simple JSON prompt: %v", err)
-	}
-
-	return string(jsonBytes), nil
-}
+// Deprecated: GetSimpleJSONUserPrompt was removed. Use GetJSONUserPrompt with user_prompt.json instead.
 
 // 讀取 Validator Prompt 模板，並替換 {{LANGUAGE}}, {{ORIGINAL_HAND_JSON}}, {{PRIMARY_OUTPUT}}
 func (pm *PromptManager) GetValidatorPrompt(originalHandJSON, primaryOutput, language string) (string, error) {

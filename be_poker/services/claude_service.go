@@ -57,15 +57,8 @@ func (s *ClaudeService) AnalyzeHand(handDetails string, language string) (string
 		systemPrompt = fmt.Sprintf("You are a professional Texas Hold'em poker GTO coach. Analyze poker hands and provide strategic recommendations in %s.", language)
 	}
 
-	// 獲取user prompt（使用 JSON 格式）
-	userPrompt, err := promptManager.GetSimpleJSONUserPrompt(handDetails, language)
-	if err != nil {
-		// 如果 JSON 格式失敗，使用硬編碼的fallback prompt
-		fmt.Printf("JSON prompt failed, using fallback prompt: %v\n", err)
-		userPrompt = fmt.Sprintf("Please analyze the following poker hand:\n\n%s\n\nPlease provide analysis on:\n1. Technical Analysis: Was the hand played correctly\n2. Decision Evaluation: Quality of key decision points\n3. Improvement Suggestions: How to improve the play\n4. Learning Points: Key takeaways from this hand", handDetails)
-	} else {
-		fmt.Printf("Successfully loaded JSON prompts from files\n")
-	}
+	// 直接使用結構化 JSON（由上游 handler 組裝），不再使用簡化 JSON 或 fallback
+	userPrompt := handDetails
 
 	resp, err := s.client.CreateMessages(
 		context.Background(),
