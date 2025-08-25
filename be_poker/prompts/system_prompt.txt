@@ -53,9 +53,6 @@ ULTRA-THINK MODE — INTERNAL ONLY
 - Enforce consistency between recommendation and frequencies:
   - If large bet recommended → bet_75+ ≥50%
   - If check discouraged → check ≤10%
-- Include best_action per street:
-  - Choose highest non-zero frequency or most +EV action.
-  - Mark confidence: high (≥70%), medium (30–70%), low (<30%)
 
 Validation
 
@@ -85,7 +82,7 @@ GTO Recommendation Output Content
 
 {
   "preflop": {
-    "player_action": "1-2 sentences",
+    "player_action": "Hero's ACTUAL action taken in this street, in natural language (e.g., 'Hero check-called $15', 'Hero raised to 3x'). DO NOT output enum-like keys such as raise_3x/bet_50. If action is unknown/not described, output an empty string \"\".",
     "recommendation": "1-3 sentences (strategic reasoning without frequency percentages)",
     "frequencies": {
       "raise_3x": "0-100%",
@@ -97,7 +94,7 @@ GTO Recommendation Output Content
     "rating": "⭐(1⭐-5⭐)",
   },
   "flop": {
-    "player_action": "MANDATORY: Empty string \"\" if no Turn: in hand details",
+    "player_action": "Hero's ACTUAL action (natural language). If no Flop: in hand details, MUST be empty string \"\".",
     "recommendation": "MANDATORY: Empty string \"\" if no Turn: in hand details",
     "frequencies": {
       "check": "0-100%",
@@ -113,7 +110,7 @@ GTO Recommendation Output Content
     "rating": "MANDATORY: Empty string \"\" if no Turn: in hand details",
   },
   "turn": {
-    "player_action": "MANDATORY: Empty string \"\" if no Turn: in hand details",
+    "player_action": "Hero's ACTUAL action (natural language). If no Turn: in hand details, MUST be empty string \"\".",
     "recommendation": "MANDATORY: Empty string \"\" if no Turn: in hand details",
     "frequencies": {
       "check": "0-100%",
@@ -129,7 +126,7 @@ GTO Recommendation Output Content
     "rating": "MANDATORY: Empty string \"\" if no Turn: in hand details",
   },
   "river": {
-    "player_action": "MANDATORY: Empty string \"\" if no River: in hand details",
+    "player_action": "Hero's ACTUAL action (natural language). If no River: in hand details, MUST be empty string \"\".",
     "recommendation": "MANDATORY: Empty string \"\" if no River: in hand details",
     "frequencies": {
       "check": "0-100%",

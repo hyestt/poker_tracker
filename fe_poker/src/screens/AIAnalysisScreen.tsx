@@ -207,26 +207,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     console.log('Current hand analysis exists:', !!currentHand.analysis);
     console.log('Current hand analysis content:', currentHand.analysis ? 'YES' : 'NO');
 
-    // Check quota before starting analysis
-    const quotaStatus = await revenueCatService.canUseGTOAnalysis();
-    setQuotaInfo(quotaStatus);
-
-    if (!quotaStatus.canUse && (forceReanalyze || !currentHand.analysis)) {
-      Alert.alert(
-        'AI Solver Limit Reached',
-        quotaStatus.isPremium
-          ? 'Please try again later.'
-          : 'You\'ve used your 3 free weekly AI Solver analyses. Upgrade to Premium for unlimited analysis.',
-        quotaStatus.isPremium
-          ? [{ text: 'OK' }]
-          : [
-              { text: 'Maybe Later', style: 'cancel' },
-              { text: 'Upgrade to Premium', onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }) },
-            ]
-      );
-      setLoading(false);
-      return;
-    }
+    // 移除前置 canUse 檢查，改為使用 useGTOAnalysis 作為 gate，並在完成後背景刷新配額
 
     setLoading(true);
     const progressInterval = simulateProgress();
@@ -253,9 +234,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         return;
       }
 
-      // Update quota info after using analysis
-      const updatedQuotaStatus = await revenueCatService.canUseGTOAnalysis();
-      setQuotaInfo(updatedQuotaStatus);
+      // 背景刷新配額資訊（不阻塞分析）
+      revenueCatService.canUseGTOAnalysis().then(setQuotaInfo).catch(() => {});
 
       // Execute the actual AI analysis（優先使用傳入的 sessionOverride）
       const analysisResult = await performRealAIAnalysis(currentHand, sessionOverride ?? currentSession);
@@ -383,9 +363,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       console.log('🔍 Raw API result:', JSON.stringify(result, null, 2));
       const apiText: string = result.analysis || 'No analysis available';
       // 優先使用後端提供的 analysis_object（完整物件），否則退回 sections
-      let apiSections = (result.analysis_object
-        ? { summary: result.analysis_object.summary, preflop: result.analysis_object.preflop, flop: result.analysis_object.flop, turn: result.analysis_object.turn, river: result.analysis_object.river }
-        : (result.sections as { summary: any; preflop: any; flop: any; turn: any; river: any } | undefined));
+      let apiSections = (result.analysis_object as any) || (result.sections as any);
 
       // 最後備援：若 sections 缺失但 analysis 是可解析的 JSON（常見於只返回某一街道的情況），嘗試從 analysis 建立物件 sections
       if (!apiSections) {
@@ -395,7 +373,6 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
             const parsed = JSON.parse(trimmed);
             if (parsed && typeof parsed === 'object') {
               apiSections = {
-                summary: parsed.summary ?? undefined,
                 preflop: parsed.preflop ?? undefined,
                 flop: parsed.flop ?? undefined,
                 turn: parsed.turn ?? undefined,
@@ -404,6 +381,21 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
             }
           } catch {/* ignore */}
         }
+      }
+
+      // 若物件存在但所有街道都沒有可用內容，回退為 undefined 使用 text 解析
+      const hasStreetContent = (street: any) => {
+        if (!street) {return false;}
+        if (typeof street === 'string') {return !!street.trim();}
+        if (typeof street === 'object') {
+          const freqLen = street.frequencies && typeof street.frequencies === 'object' ? Object.keys(street.frequencies).length : 0;
+          const hasText = !!(street.player_action && String(street.player_action).trim()) || !!(street.recommendation && String(street.recommendation).trim()) || !!(street.rating && String(street.rating).trim());
+          return hasText || freqLen > 0;
+        }
+        return false;
+      };
+      if (apiSections && !hasStreetContent(apiSections.preflop) && !hasStreetContent(apiSections.flop) && !hasStreetContent(apiSections.turn) && !hasStreetContent(apiSections.river)) {
+        apiSections = undefined as any;
       }
 
       console.log('🔍 Extracted sections (prefer object, with analysis fallback):', JSON.stringify(apiSections, null, 2));
