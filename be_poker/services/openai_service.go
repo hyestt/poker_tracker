@@ -203,7 +203,7 @@ func (s *OpenAIService) callResponsesRaw(input string) (string, error) {
 	body := map[string]any{
 		"model":             s.modelName,
 		"input":             input,
-		"max_output_tokens": 7000,
+		"max_output_tokens": 4000,
 		"reasoning":         map[string]any{"effort": "low"},
 		// Responses API updated: use text.format for structured outputs
 		"text": map[string]any{

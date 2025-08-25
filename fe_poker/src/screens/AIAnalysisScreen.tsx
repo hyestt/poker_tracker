@@ -8,6 +8,17 @@ import { useSessionStore } from '../viewmodels/sessionStore';
 import revenueCatService from '../services/RevenueCatService';
 import { UserPreferencesService } from '../services/UserPreferences';
 import { generateShareText } from '../utils/handTextGenerator';
+
+// 將撲克牌符號轉換為完整英文表示
+const convertCardSymbolsToEnglish = (cardString: string): string => {
+  if (!cardString) return cardString;
+  
+  return cardString
+    .replace(/♠/g, ' of spades')    // 黑桃 → of spades
+    .replace(/♥/g, ' of hearts')    // 紅心 → of hearts  
+    .replace(/♦/g, ' of diamonds')  // 方塊 → of diamonds
+    .replace(/♣/g, ' of clubs');    // 梅花 → of clubs
+};
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -301,13 +312,13 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         handHistoryText = shareText.replace('\n\nShared from AI Solver', '');
       } else {
         const villainsText = (handData.villains || [])
-          .map((v, i) => `Villain ${i + 1}: ${v.position || 'Unknown'} - ${v.holeCards || 'Unknown'}`)
+          .map((v, i) => `Villain ${i + 1}: ${v.position || 'Unknown'} - ${convertCardSymbolsToEnglish(v.holeCards || 'Unknown')}`)
           .join('\n');
         handHistoryText = [
           'Poker Hand Details',
           '',
-          `Hero: ${handData.position || 'Unknown'} - ${handData.holeCards || 'Unknown'}`,
-          `Board: ${handData.board || 'No flop shown'}`,
+          `Hero: ${handData.position || 'Unknown'} - ${convertCardSymbolsToEnglish(handData.holeCards || 'Unknown')}`,
+          `Board: ${convertCardSymbolsToEnglish(handData.board || 'No flop shown')}`,
           villainsText ? `Villains:\n${villainsText}` : 'Villains: None',
           '',
           'Hand Details:',
@@ -753,8 +764,11 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     lines.forEach((line, index) => {
       const trimmedLine = line.trim();
 
-      // 解法1：通過 system prompt 防止 AI 生成重複的頻率文字
-      // 不再需要前端過濾器
+      // // 跳過頻率相關的文字行（如 "Bet 75%: 60%", "Check: 40%" 等），只保留視覺化的頻率圖表
+      // // 這樣可以避免重複顯示頻率信息
+      // if (/^(Call|Check|Fold|Raise|Bet|All[- ]?in|Overbet)\s*(\d+[xX%]?)?\s*:\s*\d+%/.test(trimmedLine)) {
+      //   return; // 跳過這行
+      // }
 
       if (trimmedLine.startsWith('### ')) {
         // 處理 ### 標題
