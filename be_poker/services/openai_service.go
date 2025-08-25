@@ -30,7 +30,7 @@ func NewOpenAIService() *OpenAIService {
 	client := openai.NewClient(option.WithAPIKey(apiKey))
 	return &OpenAIService{
 		client:    client,
-		modelName: "gpt-5-mini", // 預設模型
+		modelName: "gpt-5-mini", // default
 	}
 }
 
