@@ -840,3 +840,48 @@
   - Debug功能只在開發模式(__DEV__)下顯示，正式發布版本中不會出現
   - Settings畫面現在應該顯示完整的Debug & Testing區塊
   - 提供開發和測試時必要的調試工具
+
+### 2025-01-22 - 修復AI分析回應過長問題：強化prompt長度限制
+- **Task**: 解決GTO Recommendation內容過長的問題，AI沒有遵守1-3句的限制
+- **問題**: AI產生的分析內容過長，違反system prompt中每個street應該1-3句的要求
+- **Files Modified**: 
+  - `be_poker/prompts/system_prompt.txt`: 強化長度限制要求
+- **Changes Made**:
+  - ✅ 在GTO Recommendation Output Content開頭添加"CRITICAL: Each street's recommendation must be EXACTLY 1-3 sentences. No exceptions."
+  - ✅ 在末尾添加"STRICT LENGTH REQUIREMENT: Maximum 3 sentences per street recommendation"
+  - ✅ 更新JSON模板中的註釋：flop/turn/river的recommendation改為"MAXIMUM 3 sentences"
+  - ✅ 重新啟動後端服務應用新的prompt設定
+- **Expected Result**:
+  - AI分析每個street的recommendation將嚴格限制在1-3句
+  - 用戶界面將顯示更簡潔的分析內容
+  - 保持分析品質的同時提升可讀性
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 強化了prompt中的長度要求，使用"CRITICAL"和"EXACTLY"等強調詞彙
+  - 後端服務已重新啟動，新的prompt設定將應用於後續的AI分析
+  - 建議測試新的手牌分析確認內容長度符合要求
+
+### 2025-01-22 - 添加訂閱畫面Privacy Policy和Terms of Service連結
+- **Task**: 在SubscriptionScreen中為Privacy和Terms按鈕添加實際的網頁連結功能
+- **Links Added**:
+  - Privacy Policy: https://poker-aisolver.com/privacy
+  - Terms of Service: https://poker-aisolver.com/terms
+- **Files Modified**: 
+  - `fe_poker/src/screens/SubscriptionScreen.tsx`: 添加Linking模組和連結處理函數
+- **Changes Made**:
+  - ✅ 導入React Native的Linking模組
+  - ✅ 新增`handleOpenPrivacyPolicy()`函數處理隱私政策連結
+  - ✅ 新增`handleOpenTermsOfService()`函數處理服務條款連結
+  - ✅ 為Terms和Privacy按鈕添加對應的onPress事件處理
+  - ✅ 包含錯誤處理：檢查URL支援度和捕獲連結失敗
+- **Features**:
+  - 點擊"Terms"按鈕將開啟服務條款網頁
+  - 點擊"Privacy"按鈕將開啟隱私政策網頁
+  - 包含完整的錯誤處理和用戶友好的錯誤訊息
+  - 使用Linking.canOpenURL()檢查URL支援度
+- **Status**: ✅ 完成
+- **Notes**: 
+  - 連結會在設備的預設瀏覽器中開啟
+  - 包含了適當的錯誤處理，確保用戶體驗良好
+  - 無linting錯誤，代碼品質符合標準
+  - 符合App Store審核要求，提供隱私政策和服務條款的存取途徑

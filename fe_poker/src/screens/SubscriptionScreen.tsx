@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Linking,
 } from 'react-native';
 import { theme } from '../theme';
 import revenueCatService, { SubscriptionPlan, PremiumFeatures } from '../services/RevenueCatService';
@@ -223,6 +224,36 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
     }
   };
 
+  const handleOpenPrivacyPolicy = async () => {
+    try {
+      const url = 'https://poker-aisolver.com/privacy';
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Unable to open privacy policy link. Please try again later.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open privacy policy. Please try again later.');
+      console.error('Failed to open privacy policy:', error);
+    }
+  };
+
+  const handleOpenTermsOfService = async () => {
+    try {
+      const url = 'https://poker-aisolver.com/terms';
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', 'Unable to open terms of service link. Please try again later.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open terms of service. Please try again later.');
+      console.error('Failed to open terms of service:', error);
+    }
+  };
+
 
 
 
@@ -370,10 +401,10 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
         <TouchableOpacity onPress={handleRestorePurchases}>
           <Text style={styles.footerLink}>Restore Purchases</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.footerLinkRight}>
+        <TouchableOpacity style={styles.footerLinkRight} onPress={handleOpenTermsOfService}>
           <Text style={styles.footerLink}>Terms</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.footerLinkRight}>
+        <TouchableOpacity style={styles.footerLinkRight} onPress={handleOpenPrivacyPolicy}>
           <Text style={styles.footerLink}>Privacy</Text>
         </TouchableOpacity>
       </View>
