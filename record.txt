@@ -900,3 +900,15 @@
   - 發送給 AI 的 `hand_data` 現在呈現為簡短格式（board/hero/villain 皆為短碼），例如 `9h 9d`，提高一致性與可讀性。
   - `session_info.date` 與 `villains[].id` 已移除，符合隱私與需求。
 - **Status**: ✅ 完成（已通過 `go build`，無 linter 錯誤）
+
+### 2025-08-26 - Simplify handDetails to user input only
+- **Task**: 前端 `handDetails` 僅傳黑色輸入框內容，移除重複資訊
+- **Changes**:
+  - `fe_poker/src/screens/AIAnalysisScreen.tsx`:
+    - 刪除以 `generateShareText`/後備模板組裝的 hand history；
+    - `handDetails` 現在為 `String(handData.details).trim()`；
+    - 其他結構化欄位（hero/board/villains/session）保持原樣傳遞。
+- **Impact**:
+  - 避免 `hand_details` 與結構化 `hand_data` 重複；
+  - 後端接收更乾淨的使用者描述文字；
+- **Status**: ✅ 完成（前端無 linter 錯誤；後端 `go build` 綠燈）

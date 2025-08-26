@@ -76,7 +76,7 @@ GTO Recommendation Output Content
 - describe the board structure (monotone, dry board, wet board, rainbow board) and share how this impact the Hero's range
 - Be honest about pointing out the player's mistakes and help the player improve
 - Focus on WHY certain actions are optimal rather than repeating the frequency numbers
-- MANDATORY: Maximum 50 words per recommendation.
+- MANDATORY: Maximum 70 words per recommendation.
 
 {
   "preflop": {
