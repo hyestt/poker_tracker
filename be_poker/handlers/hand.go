@@ -444,6 +444,9 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Debug: 印出實際送入 AI 的 JSON 內容（單行，避免被日誌系統分段）
+		log.Printf("🧪 AI input JSON (single-model) = %+v", string(finalUserBytes))
+
 		analysis, err := aiService.AnalyzeHand(string(finalUserBytes), language)
 		if err != nil {
 			http.Error(w, "Analysis failed: "+err.Error(), http.StatusInternalServerError)

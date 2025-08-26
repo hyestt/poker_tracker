@@ -209,6 +209,62 @@ func normalizeSuits(s string) string {
 	return out
 }
 
+// extractShortCards parses any card notation in a string and returns short codes like "9c", "Ad".
+// It understands inputs like:
+// - "9♣ A♦ K♦ J♠ 2♦"
+// - "9 of clubs A of diamonds ..."
+// - "9-clubs A-diamonds" (after normalizeSuits)
+// - "Ac Kh Qd Js 2d"
+func extractShortCards(s string) []string {
+    if s == "" { return nil }
+
+    // 1) Normalize suit symbols and words to single-letter suffix
+    //    Convert unicode suits → letters
+    repl := strings.NewReplacer(
+        "♣", "c",
+        "♦", "d",
+        "♥", "h",
+        "♠", "s",
+        "-", " ",
+    )
+    out := repl.Replace(s)
+    // convert words "of" and suit words to letters for easier matching
+    out = strings.ReplaceAll(out, " of ", " ")
+    out = regexp.MustCompile(`(?i)\bclubs\b`).ReplaceAllString(out, "c")
+    out = regexp.MustCompile(`(?i)\bdiamonds\b`).ReplaceAllString(out, "d")
+    out = regexp.MustCompile(`(?i)\bhearts\b`).ReplaceAllString(out, "h")
+    out = regexp.MustCompile(`(?i)\bspades\b`).ReplaceAllString(out, "s")
+
+    // 2) Find tokens like "10c" "9h" "Ac" etc (allow spaces between rank and suit)
+    re := regexp.MustCompile(`(?i)\b(10|[2-9]|[tjqka])\s*([cdhs])\b`)
+    matches := re.FindAllStringSubmatch(out, -1)
+    var cards []string
+    for _, m := range matches {
+        rank := m[1]
+        suit := strings.ToLower(m[2])
+        // canonicalize rank: 10 → T, letters uppercase
+        if rank == "10" { rank = "T" }
+        rank = strings.ToUpper(rank)
+        cards = append(cards, rank+suiteToLetter(suit))
+    }
+    return cards
+}
+
+func suiteToLetter(s string) string {
+    switch strings.ToLower(s) {
+    case "c":
+        return "c"
+    case "d":
+        return "d"
+    case "h":
+        return "h"
+    case "s":
+        return "s"
+    default:
+        return s
+    }
+}
+
 // 新方法：獲取 JSON 格式的 user prompt
 func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, holeCards, board, result, notes string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "user_prompt.json")
@@ -235,17 +291,20 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 
 	// 處理 board 卡片
 	if board != "" {
-		// 先正規化，再切分
+		// 先正規化
 		normalizedBoard := normalizeSuits(board)
-		boardCards := strings.Fields(normalizedBoard)
-		if len(boardCards) >= 3 {
-			prompt.HandData.Board.Flop = strings.Join(boardCards[:3], " ")
+		// 從字串中擷取完整的「<rank> of <suit>」卡牌片段
+		cardRe := regexp.MustCompile(`(?i)\b(10|[2-9]|[tjqka])\s+of\s+(clubs|diamonds|hearts|spades)\b`)
+		cards := cardRe.FindAllString(normalizedBoard, -1)
+
+		if len(cards) >= 3 {
+			prompt.HandData.Board.Flop = strings.Join(cards[:3], " ")
 		}
-		if len(boardCards) >= 4 {
-			prompt.HandData.Board.Turn = boardCards[3]
+		if len(cards) >= 4 {
+			prompt.HandData.Board.Turn = cards[3]
 		}
-		if len(boardCards) >= 5 {
-			prompt.HandData.Board.River = boardCards[4]
+		if len(cards) >= 5 {
+			prompt.HandData.Board.River = cards[4]
 		}
 	}
 

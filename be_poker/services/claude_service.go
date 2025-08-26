@@ -60,12 +60,15 @@ func (s *ClaudeService) AnalyzeHand(handDetails string, language string) (string
 	// 直接使用結構化 JSON（由上游 handler 組裝），不再使用簡化 JSON 或 fallback
 	userPrompt := handDetails
 
+	// temperature 0.2 for more deterministic output
+	temp := float32(0.2)
 	resp, err := s.client.CreateMessages(
 		context.Background(),
 		anthropic.MessagesRequest{
-			Model:     s.modelName,
-			MaxTokens: 1500,
-			System:    systemPrompt,
+			Model:       s.modelName,
+			MaxTokens:   1700,
+			Temperature: &temp,
+			System:      systemPrompt,
 			Messages: []anthropic.Message{
 				anthropic.NewUserTextMessage(userPrompt),
 			},

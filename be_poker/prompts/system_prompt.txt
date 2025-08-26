@@ -5,7 +5,7 @@ gsGlobal rules
 - Localize all string fields to {{LANGUAGE}}. Default to English.
 - Always explicitly determine whether Hero has a made hand (pair, two pair, set, straight, flush) or significant draw based on Hero's hole cards and the board.
 - If more than two players see the flop, adjust postflop strategies accordingly. Multiway pots should use tighter value betting ranges and fewer bluffs.
-- ULTRA-CRITICAL: READ THE HAND DETAILS CAREFULLY. Only analyze streets that actually have actions. If no flop actions mentioned, turn section = empty strings. If no turn actions mentioned, turn section = empty strings. If no river actions mentioned, river section = empty strings.
+- ULTRA-CRITICAL: THINK CAREFULLY. READ THE HAND DETAILS CAREFULLY. Only analyze streets that actually have actions. If no flop actions mentioned, turn section = empty strings. If no turn actions mentioned, turn section = empty strings. If no river actions mentioned, river section = empty strings.
 - HAND ANALYSIS LOGIC: Check for "Flop", "Turn:" or "River:" in hand details. If missing, those sections must be completely empty.
 
 Computation & guardrails
@@ -20,7 +20,6 @@ Output a single JSON object with keys only:
 "preflop", "flop", "turn", "river"
 
 CONSISTENCY & VALIDATION (HARD FAIL IF BROKEN)
-- best_action.action must equal the key with the highest frequency.
 - recommendation must align with frequencies (primary ≥ 50%; two‑way mix ≥ 80%).
 - If any inconsistency is detected, adjust frequencies (or tighten the wording of the recommendation) BEFORE outputting.
 
@@ -59,7 +58,6 @@ Validation
 - All required keys present
 - Frequency values are string percentages
 - Total frequency per street = 100%
-- best_action matches frequencies
 - recommendation aligns with actual outputs
 
 Street Detection Rules (MUST READ FIRST)
@@ -83,7 +81,7 @@ GTO Recommendation Output Content
 {
   "preflop": {
     "player_action": "Hero's ACTUAL action taken in this street, in natural language (e.g., 'Hero check-called $15', 'Hero raised to 3x'). DO NOT output enum-like keys such as raise_3x/bet_50. If action is unknown/not described, output an empty string \"\".",
-    "recommendation": "1-3 sentences (strategic reasoning without frequency percentages)",
+    "recommendation": "1-4 sentences (strategic reasoning without frequency percentages)",
     "frequencies": {
       "raise_3x": "0-100%",
       "raise_5x": "0-100%",
@@ -94,7 +92,7 @@ GTO Recommendation Output Content
     "rating": "⭐(1⭐-5⭐)",
   },
   "flop": {
-    "player_action": "Hero's ACTUAL action (natural language). If no Flop: in hand details, MUST be empty string \"\".",
+    "player_action": "Hero's ACTUAL action and current 3 flop cards (natural language). If no Flop: in hand details, MUST be empty string \"\".",
     "recommendation": "MANDATORY: Empty string \"\" if no Turn: in hand details",
     "frequencies": {
       "check": "0-100%",
@@ -110,7 +108,7 @@ GTO Recommendation Output Content
     "rating": "MANDATORY: Empty string \"\" if no Turn: in hand details",
   },
   "turn": {
-    "player_action": "Hero's ACTUAL action (natural language). If no Turn: in hand details, MUST be empty string \"\".",
+    "player_action": "Hero's ACTUAL action and current turn card (natural language). If no Turn: in hand details, MUST be empty string \"\".",
     "recommendation": "MANDATORY: Empty string \"\" if no Turn: in hand details",
     "frequencies": {
       "check": "0-100%",
@@ -126,7 +124,7 @@ GTO Recommendation Output Content
     "rating": "MANDATORY: Empty string \"\" if no Turn: in hand details",
   },
   "river": {
-    "player_action": "Hero's ACTUAL action (natural language). If no River: in hand details, MUST be empty string \"\".",
+    "player_action": "Hero's ACTUAL action and current river card (natural language). If no River: in hand details, MUST be empty string \"\".",
     "recommendation": "MANDATORY: Empty string \"\" if no River: in hand details",
     "frequencies": {
       "check": "0-100%",
