@@ -885,3 +885,18 @@
   - 包含了適當的錯誤處理，確保用戶體驗良好
   - 無linting錯誤，代碼品質符合標準
   - 符合App Store審核要求，提供隱私政策和服務條款的存取途徑
+
+### 2025-08-26 - Normalize AI input JSON: short cards, remove date and villain id
+- **Task**: 將 AI 輸入 JSON 中的卡面統一為短碼並移除敏感/冗餘欄位
+- **Changes**:
+  - `be_poker/services/prompt_manager.go`:
+    - 新增 `ToShortCardString()` 輔助函式，將任意卡面字串轉為短碼（例："9 of hearts 9 of diamonds" → "9h 9d"）。
+    - `JSONPrompt.HandData.Villains[].ID` 標記為 `omitempty`。
+    - `GetJSONUserPrompt()` 將 `hero.hole_cards` 與 `board` 轉為短碼，若解析失敗回退至正規化文字。
+  - `be_poker/handlers/hand.go`:
+    - 在注入 `session_info` 時不再填入 `date`。
+    - 注入 `villains` 時移除 `id`，並將 `hole_cards` 轉為短碼。
+- **Impact**:
+  - 發送給 AI 的 `hand_data` 現在呈現為簡短格式（board/hero/villain 皆為短碼），例如 `9h 9d`，提高一致性與可讀性。
+  - `session_info.date` 與 `villains[].id` 已移除，符合隱私與需求。
+- **Status**: ✅ 完成（已通過 `go build`，無 linter 錯誤）

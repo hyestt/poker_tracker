@@ -125,7 +125,7 @@ type JSONPrompt struct {
 			StackSize string `json:"stack_size,omitempty"`
 		} `json:"hero"`
 		Villains []struct {
-			ID        string `json:"id"`
+			ID        string `json:"id,omitempty"`
 			Position  string `json:"position"`
 			HoleCards string `json:"hole_cards"`
 			StackSize string `json:"stack_size,omitempty"`
@@ -216,53 +216,67 @@ func normalizeSuits(s string) string {
 // - "9-clubs A-diamonds" (after normalizeSuits)
 // - "Ac Kh Qd Js 2d"
 func extractShortCards(s string) []string {
-    if s == "" { return nil }
+	if s == "" {
+		return nil
+	}
 
-    // 1) Normalize suit symbols and words to single-letter suffix
-    //    Convert unicode suits → letters
-    repl := strings.NewReplacer(
-        "♣", "c",
-        "♦", "d",
-        "♥", "h",
-        "♠", "s",
-        "-", " ",
-    )
-    out := repl.Replace(s)
-    // convert words "of" and suit words to letters for easier matching
-    out = strings.ReplaceAll(out, " of ", " ")
-    out = regexp.MustCompile(`(?i)\bclubs\b`).ReplaceAllString(out, "c")
-    out = regexp.MustCompile(`(?i)\bdiamonds\b`).ReplaceAllString(out, "d")
-    out = regexp.MustCompile(`(?i)\bhearts\b`).ReplaceAllString(out, "h")
-    out = regexp.MustCompile(`(?i)\bspades\b`).ReplaceAllString(out, "s")
+	// 1) Normalize suit symbols and words to single-letter suffix
+	//    Convert unicode suits → letters
+	repl := strings.NewReplacer(
+		"♣", "c",
+		"♦", "d",
+		"♥", "h",
+		"♠", "s",
+		"-", " ",
+	)
+	out := repl.Replace(s)
+	// convert words "of" and suit words to letters for easier matching
+	out = strings.ReplaceAll(out, " of ", " ")
+	out = regexp.MustCompile(`(?i)\bclubs\b`).ReplaceAllString(out, "c")
+	out = regexp.MustCompile(`(?i)\bdiamonds\b`).ReplaceAllString(out, "d")
+	out = regexp.MustCompile(`(?i)\bhearts\b`).ReplaceAllString(out, "h")
+	out = regexp.MustCompile(`(?i)\bspades\b`).ReplaceAllString(out, "s")
 
-    // 2) Find tokens like "10c" "9h" "Ac" etc (allow spaces between rank and suit)
-    re := regexp.MustCompile(`(?i)\b(10|[2-9]|[tjqka])\s*([cdhs])\b`)
-    matches := re.FindAllStringSubmatch(out, -1)
-    var cards []string
-    for _, m := range matches {
-        rank := m[1]
-        suit := strings.ToLower(m[2])
-        // canonicalize rank: 10 → T, letters uppercase
-        if rank == "10" { rank = "T" }
-        rank = strings.ToUpper(rank)
-        cards = append(cards, rank+suiteToLetter(suit))
-    }
-    return cards
+	// 2) Find tokens like "10c" "9h" "Ac" etc (allow spaces between rank and suit)
+	re := regexp.MustCompile(`(?i)\b(10|[2-9]|[tjqka])\s*([cdhs])\b`)
+	matches := re.FindAllStringSubmatch(out, -1)
+	var cards []string
+	for _, m := range matches {
+		rank := m[1]
+		suit := strings.ToLower(m[2])
+		// canonicalize rank: 10 → T, letters uppercase
+		if rank == "10" {
+			rank = "T"
+		}
+		rank = strings.ToUpper(rank)
+		cards = append(cards, rank+suiteToLetter(suit))
+	}
+	return cards
 }
 
 func suiteToLetter(s string) string {
-    switch strings.ToLower(s) {
-    case "c":
-        return "c"
-    case "d":
-        return "d"
-    case "h":
-        return "h"
-    case "s":
-        return "s"
-    default:
-        return s
-    }
+	switch strings.ToLower(s) {
+	case "c":
+		return "c"
+	case "d":
+		return "d"
+	case "h":
+		return "h"
+	case "s":
+		return "s"
+	default:
+		return s
+	}
+}
+
+// ToShortCardString converts any recognizable card tokens into a compact
+// space-separated string like "9h Ad Kd". Returns empty string if none found.
+func ToShortCardString(s string) string {
+	codes := extractShortCards(s)
+	if len(codes) == 0 {
+		return ""
+	}
+	return strings.Join(codes, " ")
 }
 
 // 新方法：獲取 JSON 格式的 user prompt
@@ -281,30 +295,29 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 		return "", fmt.Errorf("failed to parse JSON prompt: %v", err)
 	}
 
-	// 替換變數（花色正規化）
+	// 替換變數（花色正規化 + 短碼）
 	prompt.HandData.HandDetails = normalizeSuits(handDetails)
 	prompt.AnalysisRequirements.Language = language
 	prompt.HandData.Hero.Position = heroPosition
-	prompt.HandData.Hero.HoleCards = normalizeSuits(holeCards)
+	if sh := ToShortCardString(holeCards); sh != "" {
+		prompt.HandData.Hero.HoleCards = sh
+	} else {
+		prompt.HandData.Hero.HoleCards = normalizeSuits(holeCards)
+	}
 	prompt.HandData.Result = result
 	prompt.HandData.Notes = normalizeSuits(notes)
 
-	// 處理 board 卡片
+	// 處理 board 卡片使用短碼
 	if board != "" {
-		// 先正規化
-		normalizedBoard := normalizeSuits(board)
-		// 從字串中擷取完整的「<rank> of <suit>」卡牌片段
-		cardRe := regexp.MustCompile(`(?i)\b(10|[2-9]|[tjqka])\s+of\s+(clubs|diamonds|hearts|spades)\b`)
-		cards := cardRe.FindAllString(normalizedBoard, -1)
-
-		if len(cards) >= 3 {
-			prompt.HandData.Board.Flop = strings.Join(cards[:3], " ")
+		shorts := extractShortCards(board)
+		if len(shorts) >= 3 {
+			prompt.HandData.Board.Flop = strings.Join(shorts[:3], " ")
 		}
-		if len(cards) >= 4 {
-			prompt.HandData.Board.Turn = cards[3]
+		if len(shorts) >= 4 {
+			prompt.HandData.Board.Turn = shorts[3]
 		}
-		if len(cards) >= 5 {
-			prompt.HandData.Board.River = cards[4]
+		if len(shorts) >= 5 {
+			prompt.HandData.Board.River = shorts[4]
 		}
 	}
 

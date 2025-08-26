@@ -422,17 +422,26 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		userObj.HandData.SessionInfo.Location = request.Session.Location
 		userObj.HandData.SessionInfo.Stakes.SmallBlind = request.Session.SmallBlind
 		userObj.HandData.SessionInfo.Stakes.BigBlind = request.Session.BigBlind
-		userObj.HandData.SessionInfo.Date = request.Session.Date
 		userObj.HandData.SessionInfo.TableType = request.Session.TableSize
 		if len(request.Villains) > 0 {
 			userObj.HandData.Villains = nil
 			for _, v := range request.Villains {
+				shortVillain := services.ToShortCardString(v.HoleCards)
 				userObj.HandData.Villains = append(userObj.HandData.Villains, struct {
-					ID        string `json:"id"`
+					ID        string `json:"id,omitempty"`
 					Position  string `json:"position"`
 					HoleCards string `json:"hole_cards"`
 					StackSize string `json:"stack_size,omitempty"`
-				}{ID: v.ID, Position: v.Position, HoleCards: v.HoleCards, StackSize: v.StackSize})
+				}{
+					Position: v.Position,
+					HoleCards: func() string {
+						if shortVillain != "" {
+							return shortVillain
+						}
+						return v.HoleCards
+					}(),
+					StackSize: v.StackSize,
+				})
 			}
 		}
 		if len(request.StreetsToAnalyze) > 0 {
