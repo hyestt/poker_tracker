@@ -372,10 +372,10 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 
 	// 單模型（向後相容）：當未開啟 validate 時，沿用原有流程
 	if !request.Validate {
-		// 獲取模型設定，如果沒有則使用預設值（OpenAI GPT-4）
+		// 獲取模型設定；預設改為 Claude Sonnet 4
 		modelName := request.Model
 		if modelName == "" {
-			modelName = "gpt-5-mini"
+			modelName = "claude-sonnet-4-20250514"
 		}
 
 		log.Printf("ℹ️ Using language: %s and model: %s for analysis", language, modelName)
