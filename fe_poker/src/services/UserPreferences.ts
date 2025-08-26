@@ -9,6 +9,7 @@ export interface UserPreferences {
   lastTag: string;
   pokerKeyboardEnabled: boolean;
   language: string;
+  aiModel?: string; // 可選：AI 分析模型（若為空則使用後端預設）
   customLocations: string[];
   customCurrencies: string[];
   customTableSizes: string[];
@@ -27,6 +28,7 @@ const defaultPreferences: UserPreferences = {
   lastTag: '',
   pokerKeyboardEnabled: true,
   language: 'English',
+  aiModel: '',
   customLocations: ['Live Casino', 'Home Game', 'Online', 'Club'],
   customCurrencies: [
     '🇺🇸 USD ($)',

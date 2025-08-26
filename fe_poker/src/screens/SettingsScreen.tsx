@@ -25,6 +25,8 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const [isTestMode, setIsTestMode] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('English');
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [currentModel, setCurrentModel] = useState<string>('');
+  const [showModelModal, setShowModelModal] = useState(false);
 
   const languageOptions = [
     { label: 'English', value: 'English' },
@@ -42,6 +44,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       try {
         const preferences = await UserPreferencesService.getPreferences();
         setCurrentLanguage(preferences.language);
+        setCurrentModel(preferences.aiModel || '');
       } catch (error) {
         console.error('Failed to load language preference:', error);
       }
@@ -210,6 +213,26 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     }
   };
 
+  const modelOptions = [
+    { label: 'Backend Default', value: '' },
+    { label: 'Claude Sonnet 4', value: 'claude-sonnet-4-20250514' },
+    { label: 'GPT‑4o', value: 'gpt-4o' },
+    { label: 'GPT‑5 mini', value: 'gpt-5-mini' },
+    { label: 'GPT‑5', value: 'gpt-5' },
+  ];
+
+  const handleModelSelect = async (model: string) => {
+    try {
+      const prefs = await UserPreferencesService.getPreferences();
+      await UserPreferencesService.savePreferences({ ...prefs, aiModel: model });
+      setCurrentModel(model);
+      setShowModelModal(false);
+      Alert.alert('AI Model Updated', model ? model : 'Backend Default');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update AI model');
+    }
+  };
+
   const getCurrentLanguageLabel = () => {
     const option = languageOptions.find(opt => opt.value === currentLanguage);
     return option ? option.label : currentLanguage;
@@ -324,6 +347,15 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Debug & Testing</Text>
 
+            {/* AI Model Switcher (Debug) */}
+            <TouchableOpacity style={styles.menuItem} onPress={() => setShowModelModal(true)}>
+              <Text style={styles.menuText}>AI Model (Debug)</Text>
+              <View style={styles.languageDisplay}>
+                <Text style={styles.languageText}>{currentModel || 'Backend Default'}</Text>
+                <Text style={styles.menuArrow}>›</Text>
+              </View>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.menuItem} onPress={handleToggleTestPremium}>
               <Text style={styles.menuText}>
                 Toggle Premium Status (Test Mode)
@@ -411,6 +443,31 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               style={styles.cancelButton}
               onPress={() => setShowLanguageModal(false)}
             >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Model Selection Modal */}
+      <Modal
+        visible={showModelModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowModelModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select AI Model</Text>
+            {modelOptions.map((option, index) => (
+              <TouchableOpacity key={option.value || 'default'}
+                style={[styles.languageOption, index === modelOptions.length - 1 && styles.lastLanguageOption]}
+                onPress={() => handleModelSelect(option.value)}>
+                <Text style={styles.languageOptionText}>{option.label}</Text>
+                {currentModel === option.value && <Text style={styles.checkmark}>✓</Text>}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowModelModal(false)}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>

@@ -20,7 +20,7 @@ export const FrequenciesChart: React.FC<Props> = ({ entries, noteMayNotSum100 })
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>Frequencies</Text>
+        <Text style={styles.sectionTitle}>GTO Frequencies</Text>
         {noteMayNotSum100 && (
           <Text style={styles.noteText}>May not sum to 100%</Text>
         )}

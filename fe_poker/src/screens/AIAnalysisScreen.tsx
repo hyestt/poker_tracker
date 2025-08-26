@@ -316,7 +316,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         throw new Error('Session blinds missing');
       }
 
-      const requestPayload = {
+      const requestPayload: any = {
         hero_position: handData.position || '',
         hero_hole_cards: convertCardSymbolsToEnglish(handData.holeCards || ''),
         board: convertCardSymbolsToEnglish(handData.board || ''),
@@ -334,6 +334,14 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         handDetails: handHistoryText,
         language: userLanguage,
       };
+
+      // 注入使用者在設定中的模型偏好（若有）
+      try {
+        const prefs = await UserPreferencesService.getPreferences();
+        if (prefs.aiModel && prefs.aiModel.trim()) {
+          requestPayload.model = prefs.aiModel.trim();
+        }
+      } catch {}
 
       console.log('Sending AI analysis request:', requestPayload);
 
@@ -647,9 +655,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     if (!text) {return null;}
 
     // 將文本切成區塊
-    const labels = ['Rating', 'Rating & Summary', 'Player Action', 'GTO Recommendation', 'Frequencies'];
+    const labels = ['Rating', 'Rating & Summary', 'Player Action', 'GTO Recommendation', 'GTO Frequencies'];
     // 支援多種別名：Overall / Action / Recommendation / (Betting) Frequencies
-    const labelRegex = /^(Overall|Rating(?:\s*&\s*Summary)?|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies)\s*:\s*(.*)$/i;
+    const labelRegex = /^(Overall|Rating(?:\s*&\s*Summary)?|Player Action|Action|GTO Recommendation|Recommendation|GTO Frequencies|Frequencies|Frequency|Betting Frequencies)\s*:\s*(.*)$/i;
 
     type Block = { key: string; content: string[] };
     const blocks: Record<string, Block> = {};
@@ -660,7 +668,8 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       .replace(/GTO\s*\n\s*Recommendation\s*:/gi, 'GTO Recommendation:')
       .replace(/Player\s*\n\s*Action\s*:/gi, 'Player Action:')
       .replace(/Rating\s*&\s*\n\s*Summary\s*:/gi, 'Rating & Summary:')
-      .replace(/Betting\s*\n\s*Frequencies\s*:/gi, 'Betting Frequencies:');
+      .replace(/Betting\s*\n\s*Frequencies\s*:/gi, 'GTO Frequencies:')
+      .replace(/GTO\s*\n\s*Frequencies\s*:/gi, 'GTO Frequencies:');
 
     // 先處理明顯的 Overall 行（如 "Overall: ⭐⭐⭐⭐ ..."）
     const overallMatch = normalized.match(/^Overall\s*:\s*([⭐\s]+)([\s\S]*)$/i);
@@ -676,14 +685,14 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     }
 
     // 先進行全局掃描（比逐行更穩定）
-    const inlineRe = /(Overall|Rating\s*&\s*Summary|Rating|Player Action|Action|GTO Recommendation|Recommendation|Frequencies|Frequency|Betting Frequencies)\s*:/gi;
+    const inlineRe = /(Overall|Rating\s*&\s*Summary|Rating|Player Action|Action|GTO Recommendation|Recommendation|GTO Frequencies|Frequencies|Frequency|Betting Frequencies)\s*:/gi;
     const matches: Array<{ key: string; start: number }> = [];
     let mm: RegExpExecArray | null;
     while ((mm = inlineRe.exec(normalized)) !== null) {
       let k = mm[1].toLowerCase();
       if (k === 'action') {k = 'player action';}
       if (k === 'recommendation') {k = 'gto recommendation';}
-      if (k === 'frequency' || k === 'betting frequencies') {k = 'frequencies';}
+      if (k === 'gto frequencies' || k === 'frequency' || k === 'betting frequencies') {k = 'frequencies';}
       if (k === 'overall') {k = 'rating & summary';}
       matches.push({ key: k, start: mm.index });
     }
@@ -708,7 +717,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         // 別名標籤正規化
         if (key === 'action') {key = 'player action';}
         if (key === 'recommendation') {key = 'gto recommendation';}
-        if (key === 'frequency' || key === 'betting frequencies') {key = 'frequencies';}
+        if (key === 'gto frequencies' || key === 'frequency' || key === 'betting frequencies') {key = 'frequencies';}
         if (key === 'overall') {key = 'rating & summary';}
         currentKey = key;
         const firstLine = m[2]?.trim() ? [m[2].trim()] : [];
@@ -763,7 +772,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (k === 'player action') {pushBlock('Player Action', 'player action');}
       if (k === 'gto recommendation') {pushBlock('GTO Recommendation', 'gto recommendation');}
       // 跳過 frequencies 文字渲染，因為已經有頻率圖表了
-      // if (k === 'frequencies') {pushBlock('Frequencies', 'frequencies');}
+      // if (k === 'frequencies') {pushBlock('GTO Frequencies', 'frequencies');}
       // 移除 Summary 區塊渲染
     }
 
