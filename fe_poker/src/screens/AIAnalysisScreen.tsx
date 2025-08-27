@@ -21,6 +21,7 @@ const convertCardSymbolsToEnglish = (cardString: string): string => {
 };
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { HeaderBackButton } from '@react-navigation/elements';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [analysis, setAnalysis] = useState<string>('');
@@ -473,6 +474,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
   // 將 Re-analyze 放到右上角 header（確保在函式定義之後）
   useLayoutEffect(() => {
     navigation.setOptions({
+      headerLeft: (props: any) => (
+        <HeaderBackButton {...props} tintColor="#ffffff" onPress={() => navigation.goBack()} />
+      ),
       headerRight: () => (
         <TouchableOpacity onPress={handleReanalyze} style={styles.reanalyzeHeaderButton}>
           <Text style={styles.reanalyzeHeaderButtonText}>Re-analyze</Text>
