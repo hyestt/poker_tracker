@@ -1,0 +1,45 @@
+// Grafana Alloy config: scrape local Go app and remote_write to Grafana Cloud
+
+logging {
+  level = "info"
+}
+
+discovery.static "local_app" {
+  targets = [
+    {
+      __address__ = "host.docker.internal:8080"
+    },
+  ]
+}
+
+prometheus.scrape "poker_tracker_backend" {
+  scrape_interval = "15s"
+  job_name        = "poker-tracker-backend"
+
+  targets    = discovery.static.local_app.targets
+  forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+
+  metric_relabel_configs = [
+    {
+      action = "replace"
+      source_labels = ["__address__"]
+      target_label = "instance"
+    },
+  ]
+
+  scheme = "http"
+  metrics_path = "/metrics"
+}
+
+// Replace the url/username/password with your Grafana Cloud details
+prometheus.remote_write "grafana_cloud" {
+  endpoint {
+    url = "https://prometheus-blocks-prod-us-central-0.grafana.net/api/prom/push"
+    basic_auth {
+      username = "<GRAFANA_CLOUD_PROM_USER>"
+      password = "<GRAFANA_CLOUD_PROM_API_KEY>"
+    }
+  }
+}
+
+

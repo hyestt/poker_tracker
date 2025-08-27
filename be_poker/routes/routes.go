@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"poker_tracker_backend/handlers"
+	"poker_tracker_backend/metrics"
 )
 
 // CORS middleware
@@ -19,7 +20,9 @@ func enableCORS(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterRoutes() {
-	http.HandleFunc("/sessions", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/metrics", metrics.Handler)
+
+	http.HandleFunc("/sessions", metrics.WithMetrics("/sessions", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
@@ -32,9 +35,9 @@ func RegisterRoutes() {
 		case http.MethodDelete:
 			handlers.DeleteSession(w, r)
 		}
-	})
+	}))
 
-	http.HandleFunc("/session", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/session", metrics.WithMetrics("/session", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
@@ -45,9 +48,9 @@ func RegisterRoutes() {
 		case http.MethodPut:
 			handlers.UpdateSession(w, r)
 		}
-	})
+	}))
 
-	http.HandleFunc("/hands", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/hands", metrics.WithMetrics("/hands", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
@@ -60,9 +63,9 @@ func RegisterRoutes() {
 		case http.MethodDelete:
 			handlers.DeleteHand(w, r)
 		}
-	})
+	}))
 
-	http.HandleFunc("/hand", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/hand", metrics.WithMetrics("/hand", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
@@ -73,10 +76,10 @@ func RegisterRoutes() {
 		case http.MethodPut:
 			handlers.UpdateHand(w, r)
 		}
-	})
+	}))
 
 	// 健康檢查路由
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/health", metrics.WithMetrics("/health", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
@@ -91,58 +94,58 @@ func RegisterRoutes() {
 			},
 		}
 		json.NewEncoder(w).Encode(response)
-	})
+	}))
 
 	// 測試路由
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/test", metrics.WithMetrics("/test", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
 		}
 		w.Write([]byte("Test route works"))
-	})
+	}))
 
 	// Debug: call GPT-5-mini via backend (Responses API)
-	http.HandleFunc("/debug/gpt5mini", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/debug/gpt5mini", metrics.WithMetrics("/debug/gpt5mini", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
 		}
 		handlers.DebugGpt5Mini(w, r)
-	})
+	}))
 
 	// 暫時註釋掉analyze路由
-	http.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/analyze", metrics.WithMetrics("/analyze", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
 		}
 		handlers.AnalyzeHand(w, r)
-	})
+	}))
 
 	// 切換最愛狀態
-	http.HandleFunc("/toggle-favorite", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/toggle-favorite", metrics.WithMetrics("/toggle-favorite", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
 		}
 		handlers.ToggleFavorite(w, r)
-	})
+	}))
 
 	// 獲取可用的 AI 模型
-	http.HandleFunc("/models", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/models", metrics.WithMetrics("/models", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
 		}
 		handlers.GetAvailableModels(w, r)
-	})
+	}))
 
-	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/stats", metrics.WithMetrics("/stats", func(w http.ResponseWriter, r *http.Request) {
 		enableCORS(w, r)
 		if r.Method == "OPTIONS" {
 			return
 		}
 		handlers.GetStats(w, r)
-	})
+	}))
 }
