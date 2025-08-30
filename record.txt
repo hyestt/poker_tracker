@@ -912,3 +912,57 @@
   - 避免 `hand_details` 與結構化 `hand_data` 重複；
   - 後端接收更乾淨的使用者描述文字；
 - **Status**: ✅ 完成（前端無 linter 錯誤；後端 `go build` 綠燈）
+
+### 2025-01-22 - 將 GTO Frequencies 改為文字描述的 GTO Suggested Action
+- **Task**: 將目前的 GTO Frequencies 視覺化圖表改為文字描述的 GTO Suggested Action
+- **Changes**:
+  - **後端修改**:
+    - `be_poker/prompts/system_prompt.txt`: 移除所有 frequencies 物件定義，新增 suggested_action 文字欄位
+    - `be_poker/services/openai_service.go`: 更新 JSON schema，移除 frequencies 相關欄位，新增 suggested_action
+    - `be_poker/services/orchestrator_test.go`: 更新測試數據格式
+    - `be_poker/services/orchestrator.go`: 更新 whitelist 邏輯
+  - **前端修改**:
+    - `fe_poker/src/screens/AIAnalysisScreen.tsx`: 移除 FrequenciesChart 組件使用，新增 GTO Suggested Action 文字顯示
+    - `fe_poker/src/services/WelcomeDemoService.ts`: 更新範例數據格式
+- **Impact**:
+  - 用戶體驗從視覺化圖表改為簡潔的文字建議，更易於閱讀和理解
+  - 與現有的 GTO Recommendation 格式保持一致
+  - 減少複雜的圖表渲染邏輯，提升性能
+  - 文字格式更容易調整和客製化
+- **Status**: ✅ 完成
+- **Notes**:
+  - 後端編譯成功，所有測試通過
+  - 前端 linting 錯誤大幅減少，主要為現有問題
+  - 保持了向後兼容性，現有的分析結果仍能正常顯示
+  - AI 現在會產生 1-2 句簡潔的 GTO 建議動作，如 "Bet 75% pot for value" 或 "Check-call to control pot size"
+
+### 2025-01-22 - 修復 GTO Suggested Action 標題顏色一致性
+- **Task**: 將 GTO Suggested Action 標題的顏色調整為與其他元素一致
+- **問題**: GTO Suggested Action 使用了未定義的 `styles.sectionTitle`，導致顏色不一致
+- **Files Modified**: 
+  - `fe_poker/src/screens/AIAnalysisScreen.tsx`: 將 `styles.sectionTitle` 改為 `styles.analysisSubTitle`
+- **Changes Made**:
+  - ✅ 修復 GTO Suggested Action 標題樣式，使用與其他元素相同的 `analysisSubTitle` 樣式
+  - ✅ 確保標題顏色使用 `theme.colors.primary`，與 Player Action、GTO Recommendation 等元素保持一致
+  - ✅ 保持字體大小、字重等樣式屬性的一致性
+- **Status**: ✅ 完成
+- **Notes**:
+  - 現在 GTO Suggested Action 標題的顏色與其他分析元素完全一致
+  - 使用相同的 `analysisSubTitle` 樣式，確保視覺統一性
+  - 無 linting 錯誤，代碼品質良好
+
+### 2025-01-22 - 更新 Welcome Demo 的 GTO Suggested Action 格式
+- **Task**: 更新 Welcome demo 中 AK 手牌的 GTO Suggested Action 格式，使其與新的後端格式一致
+- **問題**: Welcome demo 的 `analysisSections` 中的 `suggested_action` 格式與新的後端要求不一致
+- **Files Modified**: 
+  - `fe_poker/src/services/WelcomeDemoService.ts`: 更新 `analysisSections` 中的 `suggested_action` 格式
+- **Changes Made**:
+  - ✅ 更新 Preflop 的 `suggested_action` 為 "3-bet to around $25 for value and isolation against the loose opens."
+  - ✅ 更新 Player Action 描述為更自然的語言格式
+  - ✅ 更新 GTO Recommendation 為更詳細的解釋
+  - ✅ 保持其他街道的 `suggested_action` 格式一致
+- **Status**: ✅ 完成
+- **Notes**:
+  - Welcome demo 現在使用與新後端完全一致的格式
+  - 所有街道的 GTO Suggested Action 都使用 1-2 句簡潔描述
+  - 無 linting 錯誤，代碼品質良好

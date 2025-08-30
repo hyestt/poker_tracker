@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Animated } from 'react-native';
 import { theme } from '../theme';
-import { buildFrequenciesViewModel } from '../viewmodels/FrequenciesViewModel';
-import { FrequenciesChart } from '../components/FrequenciesChart';
+
 import { Hand, Session } from '../models';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import revenueCatService from '../services/RevenueCatService';
 import { UserPreferencesService } from '../services/UserPreferences';
-import { generateShareText } from '../utils/handTextGenerator';
+
 
 // 將撲克牌符號轉換為完整英文表示
 const convertCardSymbolsToEnglish = (cardString: string): string => {
   if (!cardString) return cardString;
-  
   return cardString
     .replace(/♠/g, ' of spades')    // 黑桃 → of spades
-    .replace(/♥/g, ' of hearts')    // 紅心 → of hearts  
+    .replace(/♥/g, ' of hearts')    // 紅心 → of hearts
     .replace(/♦/g, ' of diamonds')  // 方塊 → of diamonds
     .replace(/♣/g, ' of clubs');    // 梅花 → of clubs
 };
@@ -25,7 +23,7 @@ import { HeaderBackButton } from '@react-navigation/elements';
 
 export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
   const [analysis, setAnalysis] = useState<string>('');
-  // sections 支援字串或物件（物件包含 frequencies/recommendation 等欄位）
+  // sections 支援字串或物件（物件包含 suggested_action/recommendation 等欄位）
   const [sections, setSections] = useState<{ summary: any; preflop: any; flop: any; turn: any; river: any } | null>(null);
   const [activeTab, setActiveTab] = useState<'summary' | 'preflop' | 'flop' | 'turn' | 'river'>('summary');
   const [loading, setLoading] = useState(true);
@@ -43,7 +41,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     const messages = [
       'Initializing AI Solver...',
       'Analyzing preflop strategy...',
-      'Calculating flop frequencies...',
+      'Calculating flop strategies...',
       'Evaluating turn decisions...',
       'Processing river scenarios...',
       'Generating recommendations...',
@@ -369,9 +367,9 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         if (!street) {return false;}
         if (typeof street === 'string') {return !!street.trim();}
         if (typeof street === 'object') {
-          const freqLen = street.frequencies && typeof street.frequencies === 'object' ? Object.keys(street.frequencies).length : 0;
+          const hasSuggestedAction = !!(street.suggested_action && String(street.suggested_action).trim());
           const hasText = !!(street.player_action && String(street.player_action).trim()) || !!(street.recommendation && String(street.recommendation).trim()) || !!(street.rating && String(street.rating).trim());
-          return hasText || freqLen > 0;
+          return hasText || hasSuggestedAction;
         }
         return false;
       };
@@ -457,7 +455,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (v == null) {return false;}
       if (typeof v === 'string') {return Boolean(v.trim());}
       if (typeof v === 'object') {
-        return Boolean(v.summary || v.recommendation || v.player_action || (v.frequencies && Object.keys(v.frequencies).length > 0) || v.rating);
+        return Boolean(v.summary || v.recommendation || v.player_action || v.suggested_action || v.rating);
       }
       return false;
     };
@@ -485,21 +483,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     });
   }, [navigation, handleReanalyze]);
 
-  // 將頻率 key 轉為友好顯示
-  const frequencyLabel = (key: string) => {
-    const map: Record<string, string> = {
-      raise_3x: 'Raise 3X',
-      raise_5x: 'Raise 5X',
-      check: 'Check',
-      fold: 'Fold',
-      bet_33: 'Bet 33%',
-      bet_50: 'Bet 50%',
-      bet_75: 'Bet 75%',
-      bet_100: 'Bet 100%',
-      overbet: 'Overbet',
-    };
-    return map[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
-  };
+
 
   // 以花色顏色渲染撲克牌文字（♠黑、♥紅、♦藍、♣綠）
   const renderColoredCardsText = (value?: string) => {
@@ -601,20 +585,17 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       );
     }
 
-    // Frequencies 物件（放在 Rating 下方）
+    // GTO Suggested Action（放在 Rating 下方）
     try {
-      if (obj && typeof obj === 'object' && obj.frequencies && typeof obj.frequencies === 'object') {
-        const vm = buildFrequenciesViewModel(obj.frequencies as Record<string, unknown>);
-        if (vm && vm.entries && vm.entries.length > 0) {
-          // 只在有非 0% 的數據時顯示圖表
-          nodes.push(
-            <View key={'freq-chart'} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
-              <FrequenciesChart entries={vm.entries} noteMayNotSum100={vm.mayNotSum100} />
-            </View>
-          );
-        } else {
-          // 沒有非 0% 的數據時，完全不顯示備援清單，避免出現一堆 0%
-        }
+      if (obj && typeof obj === 'object' && obj.suggested_action && typeof obj.suggested_action === 'string' && obj.suggested_action.trim()) {
+        nodes.push(
+          <View key={'suggested-action'} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
+            <Text style={styles.analysisSubTitle}>GTO Suggested Action</Text>
+            <Text style={styles.analysisText}>
+              {obj.suggested_action.trim()}
+            </Text>
+          </View>
+        );
       }
     } catch {}
 
@@ -631,7 +612,6 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     if (!text) {return null;}
 
     // 將文本切成區塊
-    const labels = ['Rating', 'Rating & Summary', 'Player Action', 'GTO Recommendation', 'GTO Frequencies'];
     // 支援多種別名：Overall / Action / Recommendation / (Betting) Frequencies
     const labelRegex = /^(Overall|Rating(?:\s*&\s*Summary)?|Player Action|Action|GTO Recommendation|Recommendation|GTO Frequencies|Frequencies|Frequency|Betting Frequencies)\s*:\s*(.*)$/i;
 
@@ -668,7 +648,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       let k = mm[1].toLowerCase();
       if (k === 'action') {k = 'player action';}
       if (k === 'recommendation') {k = 'gto recommendation';}
-      if (k === 'gto frequencies' || k === 'frequency' || k === 'betting frequencies') {k = 'frequencies';}
+      if (k === 'gto suggested action' || k === 'suggested action' || k === 'gto action') {k = 'suggested_action';}
       if (k === 'overall') {k = 'rating & summary';}
       matches.push({ key: k, start: mm.index });
     }
@@ -693,7 +673,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
         // 別名標籤正規化
         if (key === 'action') {key = 'player action';}
         if (key === 'recommendation') {key = 'gto recommendation';}
-        if (key === 'gto frequencies' || key === 'frequency' || key === 'betting frequencies') {key = 'frequencies';}
+        if (key === 'gto suggested action' || key === 'suggested action' || key === 'gto action') {key = 'suggested_action';}
         if (key === 'overall') {key = 'rating & summary';}
         currentKey = key;
         const firstLine = m[2]?.trim() ? [m[2].trim()] : [];
@@ -708,13 +688,10 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       return renderFormattedAnalysis(normalized);
     }
 
-    const order = ['rating', 'rating & summary', 'frequencies', 'player action', 'gto recommendation', 'summary'];
+    const order = ['rating', 'rating & summary', 'suggested_action', 'player action', 'gto recommendation', 'summary'];
     const nodes: React.ReactNode[] = [];
 
-    const normalizeFrequencies = (s: string) => {
-      // 把內嵌的 " - " 轉成換行條列
-      return s.replace(/\s*-\s+/g, '\n- ');
-    };
+
 
     const pushBlock = (title: string, key: string) => {
       const b = blocks[key];
@@ -726,10 +703,6 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       );
 
       let contentText = b.content.join('\n').trim();
-      if (key === 'frequencies') {
-        contentText = normalizeFrequencies(contentText);
-      }
-      // 若為頻率條列，行內本來就有 "- Key: xx%"，沿用通用渲染
       nodes.push(
         <View key={`c-${key}`}>
           {renderFormattedAnalysis(contentText)}
@@ -747,8 +720,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (k === 'rating & summary') {continue;} // 已處理
       if (k === 'player action') {pushBlock('Player Action', 'player action');}
       if (k === 'gto recommendation') {pushBlock('GTO Recommendation', 'gto recommendation');}
-      // 跳過 frequencies 文字渲染，因為已經有頻率圖表了
-      // if (k === 'frequencies') {pushBlock('GTO Frequencies', 'frequencies');}
+      if (k === 'suggested_action') {pushBlock('GTO Suggested Action', 'suggested_action');}
       // 移除 Summary 區塊渲染
     }
 

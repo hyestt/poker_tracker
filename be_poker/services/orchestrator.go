@@ -245,11 +245,11 @@ func deepMerge(dst any, src any, allowAll bool) any {
 
 // A minimal whitelist that is safe to auto-correct when confidence is medium.
 func whitelistedPath(key string) bool {
-	// Top-level streets and their frequencies are safe to normalize
+	// Top-level streets and their suggested_action are safe to normalize
 	switch key {
 	case "summary", "preflop", "flop", "turn", "river":
 		return true
-	case "frequencies", "pot", "actions":
+	case "suggested_action", "pot", "actions":
 		return true
 	default:
 		return false

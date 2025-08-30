@@ -135,56 +135,27 @@ func (s *OpenAIService) callResponsesRaw(input string) (string, error) {
 	}
 
 	// Build strict JSON schema matching system prompt contract
-	percentSchema := map[string]any{"type": "string", "pattern": "^(100|[0-9]{1,2})%$"}
-	preflopFreq := map[string]any{
-		"type":                 "object",
-		"additionalProperties": false,
-		"properties": map[string]any{
-			"raise_3x": percentSchema,
-			"raise_5x": percentSchema,
-			"check":    percentSchema,
-			"call":     percentSchema,
-			"fold":     percentSchema,
-		},
-		"required": []string{"raise_3x", "raise_5x", "check", "call", "fold"},
-	}
-	postflopFreq := map[string]any{
-		"type":                 "object",
-		"additionalProperties": false,
-		"properties": map[string]any{
-			"check":    percentSchema,
-			"bet_33":   percentSchema,
-			"bet_50":   percentSchema,
-			"bet_75":   percentSchema,
-			"bet_100":  percentSchema,
-			"call":     percentSchema,
-			"raise_3x": percentSchema,
-			"raise_5x": percentSchema,
-			"fold":     percentSchema,
-		},
-		"required": []string{"check", "bet_33", "bet_50", "bet_75", "bet_100", "call", "raise_3x", "raise_5x", "fold"},
-	}
-	streetObj := func(freq any) map[string]any {
+	streetObj := func() map[string]any {
 		return map[string]any{
 			"type":                 "object",
 			"additionalProperties": false,
 			"properties": map[string]any{
-				"player_action":  map[string]any{"type": "string"},
-				"recommendation": map[string]any{"type": "string"},
-				"frequencies":    freq,
-				"rating":         map[string]any{"type": "string"},
+				"player_action":   map[string]any{"type": "string"},
+				"recommendation":  map[string]any{"type": "string"},
+				"suggested_action": map[string]any{"type": "string"},
+				"rating":          map[string]any{"type": "string"},
 			},
-			"required": []string{"player_action", "recommendation", "frequencies", "rating"},
+			"required": []string{"player_action", "recommendation", "suggested_action", "rating"},
 		}
 	}
 	rootSchema := map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
 		"properties": map[string]any{
-			"preflop": streetObj(preflopFreq),
-			"flop":    streetObj(postflopFreq),
-			"turn":    streetObj(postflopFreq),
-			"river":   streetObj(postflopFreq),
+			"preflop": streetObj(),
+			"flop":    streetObj(),
+			"turn":    streetObj(),
+			"river":   streetObj(),
 		},
 		"required": []string{"preflop", "flop", "turn", "river"},
 	}

@@ -24,10 +24,10 @@ func Test_clipToJSONDoc(t *testing.T) {
 }
 
 func Test_mergeWithCorrections_AllVsWhitelist(t *testing.T) {
-	primary := `{"summary":"ok","preflop":{"frequencies":{"fold":"40%","call":"60%"}},"pot":100,"notes":"keep"}`
+	primary := `{"summary":"ok","preflop":{"suggested_action":"Call to see the flop in position"},"pot":100,"notes":"keep"}`
 
-	corrAll := json.RawMessage(`{"summary":"fixed","preflop":{"frequencies":{"fold":"50%","call":"50%"}},"pot":110,"notes":"replace"}`)
-	corrWL := json.RawMessage(`{"preflop":{"frequencies":{"fold":"50%","call":"50%"}},"pot":110,"notes":"replace"}`)
+	corrAll := json.RawMessage(`{"summary":"fixed","preflop":{"suggested_action":"Raise to 3x for value and isolation"},"pot":110,"notes":"replace"}`)
+	corrWL := json.RawMessage(`{"preflop":{"suggested_action":"Raise to 3x for value and isolation"},"pot":110,"notes":"replace"}`)
 
 	// allowAll=true should replace everything present in corrections
 	mergedAll, err := mergeWithCorrections(primary, corrAll, true)
@@ -56,14 +56,13 @@ func Test_mergeWithCorrections_AllVsWhitelist(t *testing.T) {
 	if wl["summary"] != "ok" {
 		t.Fatalf("summary should stay original when whitelist only")
 	}
-	// pot and preflop.frequencies are whitelisted -> should change
+	// pot and preflop.suggested_action are whitelisted -> should change
 	if wl["pot"].(float64) != 110 {
 		t.Fatalf("expected pot updated in whitelist mode")
 	}
 	pf := wl["preflop"].(map[string]any)
-	freq := pf["frequencies"].(map[string]any)
-	if freq["fold"] != "50%" || freq["call"] != "50%" {
-		t.Fatalf("frequencies not updated in whitelist mode")
+	if pf["suggested_action"] != "Raise to 3x for value and isolation" {
+		t.Fatalf("suggested_action not updated in whitelist mode")
 	}
 	if wl["notes"] != "keep" {
 		t.Fatalf("notes should not be overwritten in whitelist mode")
