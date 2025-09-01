@@ -67,7 +67,6 @@ export class DatabaseService {
         buy_in INTEGER,
         cash_out REAL,
         cash_out_time TEXT,
-        add_chips REAL DEFAULT 0,
         table_size INTEGER DEFAULT 6,
         tag TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -166,10 +165,6 @@ export class DatabaseService {
         await this.db.executeSql('ALTER TABLE sessions ADD COLUMN cash_out_time TEXT');
       }
 
-      if (!sessionColumns.has('add_chips')) {
-        console.log('Adding add_chips column to sessions table');
-        await this.db.executeSql('ALTER TABLE sessions ADD COLUMN add_chips REAL DEFAULT 0');
-      }
     } catch (error) {
       console.error('Database migration failed:', error);
       // 不拋出錯誤，因為遷移失敗不應該阻止應用運行
@@ -197,7 +192,6 @@ export class DatabaseService {
         buyIn: row.buy_in ?? undefined,
         cashOut: row.cash_out ?? undefined,
         cashOutTime: row.cash_out_time || undefined,
-        addChips: row.add_chips || 0,
         tableSize: row.table_size || 6,
         tag: row.tag || '',
         createdAt: row.created_at,
@@ -229,7 +223,6 @@ export class DatabaseService {
       buyIn: row.buy_in ?? undefined,
       cashOut: row.cash_out ?? undefined,
       cashOutTime: row.cash_out_time || undefined,
-      addChips: row.add_chips || 0,
       tableSize: row.table_size || 6,
       tag: row.tag || '',
       createdAt: row.created_at,
@@ -241,8 +234,8 @@ export class DatabaseService {
     if (!this.db) {throw new Error('Database not initialized');}
 
     const sql = `
-      INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, buy_in, cash_out, cash_out_time, add_chips, table_size, tag)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO sessions (id, location, date, small_blind, big_blind, currency, effective_stack, buy_in, cash_out, cash_out_time, table_size, tag)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await this.db.executeSql(sql, [
@@ -256,7 +249,6 @@ export class DatabaseService {
       session.buyIn ?? null,
       session.cashOut ?? null,
       session.cashOutTime || null,
-      session.addChips ?? 0,
       session.tableSize || 6,
       session.tag || '',
     ]);
@@ -268,7 +260,7 @@ export class DatabaseService {
     const sql = `
       UPDATE sessions 
       SET location = ?, date = ?, small_blind = ?, big_blind = ?, currency = ?, 
-          effective_stack = ?, buy_in = ?, cash_out = ?, cash_out_time = ?, add_chips = ?, table_size = ?, tag = ?, updated_at = CURRENT_TIMESTAMP
+          effective_stack = ?, buy_in = ?, cash_out = ?, cash_out_time = ?, table_size = ?, tag = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
 
@@ -282,7 +274,6 @@ export class DatabaseService {
       session.buyIn ?? null,
       session.cashOut ?? null,
       session.cashOutTime || null,
-      session.addChips ?? 0,
       session.tableSize || 6,
       session.tag || '',
       session.id,

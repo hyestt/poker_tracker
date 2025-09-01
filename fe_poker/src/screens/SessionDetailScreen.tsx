@@ -220,7 +220,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
         buyIn: (session.buyIn || 0) + amount,
       };
       
-      await endSession(sessionId, updatedSession.cashOut, updatedSession.cashOutTime, updatedSession.buyIn);
+      await useSessionStore.getState().updateSession(updatedSession);
       setShowAddChipsModal(false);
       setAddChipsAmount('');
     } catch (error) {
@@ -427,6 +427,31 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
         <Text style={styles.sessionSubtitle}>
           ${session.smallBlind}/${session.bigBlind} • {sortedHands.length} hand{sortedHands.length !== 1 ? 's' : ''}
         </Text>
+        
+        {/* Buy-in Display */}
+        <View style={styles.buyInContainer}>
+          <View style={styles.buyInCard}>
+            <Text style={styles.buyInLabel}>Buy-in</Text>
+            <Text style={styles.buyInAmount}>${Math.round(session.buyIn || 0)}</Text>
+          </View>
+          {session.cashOut !== undefined && (
+            <View style={styles.buyInCard}>
+              <Text style={styles.buyInLabel}>Cash-out</Text>
+              <Text style={styles.buyInAmount}>${Math.round(session.cashOut)}</Text>
+            </View>
+          )}
+          {session.cashOut !== undefined && (
+            <View style={[styles.buyInCard, styles.profitCard]}>
+              <Text style={styles.buyInLabel}>Profit/Loss</Text>
+              <Text style={[
+                styles.buyInAmount,
+                { color: (session.cashOut - (session.buyIn || 0)) >= 0 ? theme.colors.profit : theme.colors.loss }
+              ]}>
+                {(session.cashOut - (session.buyIn || 0)) >= 0 ? '+' : ''}${Math.round(session.cashOut - (session.buyIn || 0))}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Usage Hint */}
@@ -441,12 +466,6 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
         {sortedHands.length === 0 && (
           <View style={styles.emptyContainer}>
             <Text style={styles.empty}>No hands in this session</Text>
-            <TouchableOpacity
-              style={styles.addHandButton}
-              onPress={handleAddButtonPress}
-            >
-              <Text style={styles.addHandButtonText}>Add First Hand</Text>
-            </TouchableOpacity>
           </View>
         )}
 
@@ -961,5 +980,37 @@ const styles = StyleSheet.create({
   },
   rightInputContainer: {
     flex: 0.65,
+  },
+
+  // Buy-in display styles
+  buyInContainer: {
+    flexDirection: 'row',
+    marginTop: theme.spacing.md,
+    gap: theme.spacing.sm,
+  },
+  buyInCard: {
+    flex: 1,
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: 12,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  profitCard: {
+    backgroundColor: 'rgba(91, 141, 238, 0.1)',
+    borderColor: '#5B8DEE',
+  },
+  buyInLabel: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.gray,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  buyInAmount: {
+    fontSize: theme.font.size.subtitle,
+    color: theme.colors.text,
+    fontWeight: '700',
   },
 });

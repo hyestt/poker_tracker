@@ -148,6 +148,11 @@ export const SessionForm: React.FC<SessionFormProps> = ({
         buyIn: parseInt(formData.buyIn, 10) || 0,
         tableSize: parseInt(formData.tableSize, 10) || 6,
         tag: formData.tag,
+        // 保留現有的 cashOut 和 cashOutTime 資料
+        cashOut: initialSession?.cashOut,
+        cashOutTime: initialSession?.cashOutTime,
+        createdAt: initialSession?.createdAt,
+        updatedAt: initialSession?.updatedAt,
       };
 
       // 儲存使用者偏好

@@ -16,19 +16,28 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
   }
 
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const { updateSession, getSession, fetchSessions, fetchStats } = useSessionStore();
+  const { updateSession, sessions, fetchSessions, fetchStats } = useSessionStore();
 
   useEffect(() => {
-    loadSession();
-  }, [sessionId]);
-
+    // 首先嘗試從 store 中找到 session，避免重複的資料庫查詢
+    const existingSession = sessions.find(s => s.id === sessionId);
+    if (existingSession) {
+      console.log('Found session in store, using cached data');
+      setSession(existingSession);
+      setLoading(false);
+    } else {
+      console.log('Session not found in store, loading from database');
+      loadSession();
+    }
+  }, [sessionId, sessions]);
 
   const loadSession = async () => {
     try {
+      setLoading(true);
       console.log('Loading session with ID:', sessionId);
-      const sessionData = await getSession(sessionId);
+      const sessionData = await useSessionStore.getState().getSession(sessionId);
       console.log('Loaded session data:', sessionData);
 
       if (!sessionData) {
@@ -36,10 +45,10 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
       }
 
       setSession(sessionData);
-      setLoading(false);
     } catch (error) {
       console.error('Failed to load session:', error);
       console.error('Error details:', error instanceof Error ? error.message : String(error));
+    } finally {
       setLoading(false);
     }
   };
