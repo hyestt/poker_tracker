@@ -247,7 +247,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
   const handleQuickDelete = useCallback(() => {
     const currentDetails = getCurrentStageDetails();
-    const currentSelection = selectionRef.current;
+    const currentSelection = selection;  // 使用 state 而不是 ref
     const { start, end } = currentSelection;
 
     console.log('[DEBUG] handleQuickDelete called:', {
@@ -312,7 +312,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       return true; // 表示成功刪除
     }
     return false; // 表示無法刪除
-  }, []);
+  }, [selection, currentHandStage, preflopDetails, flopDetails, turnDetails, riverDetails]);
 
   const handleDeletePressIn = () => {
     // 開始長按，設置定時器
@@ -342,8 +342,15 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   };
 
   const handleDeleteClick = () => {
-    handleQuickDelete();
-    setLastInsertedText(''); // 清除記錄
+    const deleted = handleQuickDelete();
+    if (deleted) {
+      setLastInsertedText(''); // 清除記錄
+      // 更新選擇狀態
+      if (selection.start > 0) {
+        const newPosition = selection.start !== selection.end ? selection.start : selection.start - 1;
+        setSelection({ start: newPosition, end: newPosition });
+      }
+    }
   };
 
   const handleDetailsInputFocus = () => {
@@ -544,7 +551,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   };
 
   const removeVillain = (index: number) => {
+    console.log('[DEBUG] removeVillain called with index:', index);
+    console.log('[DEBUG] Current villains:', villains);
     const updatedVillains = villains.filter((_, i) => i !== index);
+    console.log('[DEBUG] Updated villains after removal:', updatedVillains);
     setVillains(updatedVillains);
   };
 
@@ -990,26 +1000,6 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             </View>
           </View>
 
-          {/* Villain Section */}
-          <View style={styles.fullWidthField}>
-            <View style={styles.villainHeaderRow}>
-              <Text style={styles.fieldLabel}>Villain</Text>
-              <TouchableOpacity onPress={addVillain} style={styles.addVillainButton}>
-                <Text style={styles.addVillainButtonText}>+ Add Villain</Text>
-              </TouchableOpacity>
-            </View>
-            {villains.map((villain, index) => (
-              <VillainInput
-                key={villain.id}
-                villain={villain}
-                index={index}
-                onUpdate={updateVillain}
-                onRemove={removeVillain}
-                onHoleCardsPress={handleVillainCardsSelect}
-                positions={positions}
-              />
-            ))}
-          </View>
 
           {/* Result Section */}
           <View style={styles.fullWidthField}>

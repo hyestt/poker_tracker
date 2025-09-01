@@ -152,13 +152,13 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           } catch (e) {
             console.warn('Failed to parse stored sections JSON, using Preflop-only fallback');
             setSections({ summary: '', preflop: latestHand.analysis, flop: '', turn: '', river: '' });
-            setActiveTab('preflop');
+            setActiveTab('summary');
             setLoading(false);
             return;
           }
         } else {
           setSections({ summary: '', preflop: latestHand.analysis, flop: '', turn: '', river: '' });
-          setActiveTab('preflop');
+          setActiveTab('summary');
           setLoading(false);
           return;
         }
@@ -431,17 +431,17 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (v == null) {return false;}
       if (typeof v === 'string') {return Boolean(v.trim());}
       if (typeof v === 'object') {
+        // 對於 summary 物件，檢查是否有任何有意義的內容
+        if (v.overall_rating || v.overall_assessment || v.key_mistake || v.improvement_tip) {
+          return true;
+        }
+        // 對於其他街道物件，檢查標準欄位
         return Boolean(v.summary || v.recommendation || v.player_action || v.suggested_action || v.rating);
       }
       return false;
     };
-    // 不再使用 summary 作為可選 tab
-    if (hasContent(s.preflop)) {return 'preflop' as const;}
-    if (hasContent(s.flop)) {return 'flop' as const;}
-    if (hasContent(s.turn)) {return 'turn' as const;}
-    if (hasContent(s.river)) {return 'river' as const;}
-    // 若皆無，回退到 preflop（避免選到已移除的 summary）
-    return 'preflop' as const;
+    // 永遠優先顯示 summary tab，即使內容為空
+    return 'summary' as const;
   };
 
 
@@ -590,7 +590,27 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     // GTO Recommendation
     pushText('GTO Recommendation', obj.recommendation);
 
-    // 移除 Summary 顯示（僅保留 GTO Recommendation 與其他必要區塊）
+    // Summary 特定欄位（對 summary tab 使用）
+    // Overall Rating 放最前面
+    if (obj.overall_rating) {
+      nodes.push(
+        <Text key={'overall-rating'} style={[styles.analysisSubTitle, { marginTop: 0 }]}>Overall Rating</Text>
+      );
+      nodes.push(
+        <Text key={'overall-rating-val'} style={styles.analysisText}>
+          {renderRatingStars(obj.overall_rating)}
+        </Text>
+      );
+    }
+    if (obj.overall_assessment) {
+      pushText('Overall Assessment', obj.overall_assessment);
+    }
+    if (obj.key_mistake) {
+      pushText('Key Mistake', obj.key_mistake);
+    }
+    if (obj.improvement_tip) {
+      pushText('Improvement Tip', obj.improvement_tip);
+    }
 
     return nodes.length ? nodes : null;
   };
@@ -708,7 +728,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       if (k === 'player action') {pushBlock('Player Action', 'player action');}
       if (k === 'gto recommendation') {pushBlock('GTO Recommendation', 'gto recommendation');}
       if (k === 'suggested_action') {pushBlock('GTO Suggested Action', 'suggested_action');}
-      // 移除 Summary 區塊渲染
+      if (k === 'summary') {pushBlock('Summary', 'summary');}
     }
 
     return nodes;
@@ -907,6 +927,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <View style={styles.analysisContent}>
             {sections ? (
               <>
+                {activeTab === 'summary' && renderStructuredAnalysis(sections.summary)}
                 {activeTab === 'preflop' && renderStructuredAnalysis(sections.preflop)}
                 {activeTab === 'flop' && renderStructuredAnalysis(sections.flop)}
                 {activeTab === 'turn' && renderStructuredAnalysis(sections.turn)}
@@ -927,6 +948,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           <View style={styles.bottomTabBar}>
             {(
               [
+                { key: 'summary', label: 'S' },
                 { key: 'preflop', label: 'PF' },
                 { key: 'flop', label: 'F' },
                 { key: 'turn', label: 'T' },

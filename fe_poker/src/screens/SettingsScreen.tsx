@@ -126,7 +126,7 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   };
 
   const handleJoinDiscord = async () => {
-    const discordUrl = 'https://discord.gg/MH74zefx';
+    const discordUrl = 'https://discord.gg/jVJMq6Kxez';
     try {
       const supported = await Linking.canOpenURL(discordUrl);
       if (supported) {
