@@ -411,10 +411,6 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
 
       {/* Session Info */}
       <View style={styles.sessionInfo}>
-        <Text style={styles.sessionTitle}>{session.location || 'Untitled Session'}</Text>
-        <Text style={styles.sessionSubtitle}>
-          ${session.smallBlind}/${session.bigBlind} • {sortedHands.length} hand{sortedHands.length !== 1 ? 's' : ''}
-        </Text>
         
         {/* Buy-in Display */}
         <View style={styles.buyInContainer}>
@@ -429,7 +425,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
             </View>
           )}
           {session.cashOut !== undefined && (
-            <View style={[styles.buyInCard, styles.profitCard]}>
+            <View style={styles.buyInCard}>
               <Text style={styles.buyInLabel}>Profit/Loss</Text>
               <Text style={[
                 styles.buyInAmount,
@@ -986,10 +982,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  profitCard: {
-    backgroundColor: 'rgba(91, 141, 238, 0.1)',
-    borderColor: '#5B8DEE',
-  },
+  // profitCard 樣式已移除，使用與 buyInCard 相同的樣式
   buyInLabel: {
     fontSize: theme.font.size.small,
     color: theme.colors.gray,

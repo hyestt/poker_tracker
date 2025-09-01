@@ -390,13 +390,8 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         { backgroundColor: getTagColor(session.tag) },
                       ]} />
                     )}
-                    <Text style={styles.sessionLocation}>
-                      {session.location || 'Untitled Session'}
-                    </Text>
+                    {/* 移除 location 和 stakes/hands 顯示 */}
                   </View>
-                  <Text style={styles.sessionSubtitle}>
-                    ${session.smallBlind}/${session.bigBlind} • {handCount} hand{handCount !== 1 ? 's' : ''}{duration ? ` • ${duration}` : ''}
-                  </Text>
                   <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
                 </View>
 
