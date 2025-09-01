@@ -31,16 +31,6 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
     initializeRevenueCat();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 進入訂閱頁時隱藏 TabBar，離開時恢復
-  useEffect(() => {
-    const parent = navigation?.getParent?.();
-    if (!parent) {return;}
-    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
-    parent.setOptions({ tabBarStyle: { display: 'none' } });
-    return () => {
-      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
-    };
-  }, [navigation]);
 
   const initializeRevenueCat = async () => {
     try {

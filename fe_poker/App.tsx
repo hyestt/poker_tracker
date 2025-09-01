@@ -60,105 +60,29 @@ import { SessionDetailScreen } from './src/screens/SessionDetailScreen';
 import RevenueCatService from './src/services/RevenueCatService';
 import { useSessionStore } from './src/viewmodels/sessionStore';
 
+const RootStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
 
-function HomeStack() {
+// Main Tab Navigator
+function MainTabs() {
   return (
-    <Stack.Navigator
+    <Tab.Navigator
       screenOptions={{
-        headerStyle: {
+        headerShown: false,
+        tabBarStyle: {
           backgroundColor: '#2D3748',
+          borderTopColor: '#4A5568',
         },
-        headerTintColor: '#F7FAFC',
-        headerTitleStyle: {
-          color: '#F7FAFC',
-        },
-        transitionSpec: {
-          open: {
-            animation: 'timing',
-            config: {
-              duration: 250,
-            },
-          },
-          close: {
-            animation: 'timing',
-            config: {
-              duration: 250,
-            },
-          },
-        },
-        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        tabBarActiveTintColor: '#5B8DEE',
+        tabBarInactiveTintColor: '#718096',
       }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
-      <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
-      <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
-      <Stack.Screen name="PokerKeyboard" component={PokerKeyboardScreen} options={{ title: 'Choose Cards' }} />
-      <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Solver' }} />
-    </Stack.Navigator>
+      <Tab.Screen name="Sessions" component={SessionsScreen} />
+      <Tab.Screen name="Hands" component={HomeScreen} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
+    </Tab.Navigator>
   );
 }
-
-const SessionsStack = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: '#2D3748',
-      },
-      headerTintColor: '#F7FAFC',
-      headerTitleStyle: {
-        color: '#F7FAFC',
-      },
-      transitionSpec: {
-        open: {
-          animation: 'timing',
-          config: {
-            duration: 250,
-          },
-        },
-        close: {
-          animation: 'timing',
-          config: {
-            duration: 250,
-          },
-        },
-      },
-      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-    }}
-  >
-    <Stack.Screen name="SessionsList" component={SessionsScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="NewSession" component={NewSessionScreen} options={{ title: 'New Session', headerBackTitle: 'Back' }} />
-    <Stack.Screen name="SessionDetail" component={SessionDetailScreen} options={{ title: 'Session Details', headerBackTitle: 'Back' }} />
-    <Stack.Screen name="EditSession" component={EditSessionScreen} options={{ title: 'Edit Session' }} />
-    <Stack.Screen name="RecordHand" component={RecordHandScreen} options={{ title: 'Record Hand', headerBackTitle: 'Back' }} />
-    <Stack.Screen name="EditHand" component={EditHandScreen} options={{ title: 'Edit Hand' }} />
-    <Stack.Screen name="HandDetail" component={HandDetailScreen} options={{ title: 'Hand Details', headerBackTitle: 'Back' }} />
-    <Stack.Screen name="AIAnalysis" component={AIAnalysisScreen} options={{ title: 'AI Solver' }} />
-    <Stack.Screen
-      name="PokerKeyboard"
-      component={PokerKeyboardScreen}
-      options={{
-        title: 'Choose Cards',
-        presentation: 'modal',
-        headerStyle: { backgroundColor: theme.colors.background },
-        headerTitleStyle: { color: theme.colors.text },
-        headerTintColor: theme.colors.primary,
-      }}
-    />
-  </Stack.Navigator>
-);
-
-const SettingsStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="SettingsMain" component={SettingsScreen} />
-    <Stack.Screen name="Subscription" component={SubscriptionScreen} />
-  </Stack.Navigator>
-);
 
 const App = () => {
   const { initialize: initializeSessionStore } = useSessionStore();
@@ -212,24 +136,117 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Tab.Navigator
+      <RootStack.Navigator
         screenOptions={{
           headerShown: false,
-          tabBarStyle: {
-            backgroundColor: '#2D3748',
-            borderTopColor: '#4A5568',
-          },
-          tabBarActiveTintColor: '#5B8DEE',
-          tabBarInactiveTintColor: '#718096',
+          cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+          gestureDirection: 'horizontal',
         }}
       >
-        <Tab.Screen name="Sessions" component={SessionsStack} />
-        <Tab.Screen
-          name="Hands"
-          component={HomeStack}
+        <RootStack.Screen name="MainTabs" component={MainTabs} />
+        
+        {/* Detail screens without tab bar */}
+        <RootStack.Screen 
+          name="SessionDetail" 
+          component={SessionDetailScreen as any} 
+          options={{ 
+            headerShown: true,
+            title: 'Sessions',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
         />
-        <Tab.Screen name="Settings" component={SettingsStack} />
-      </Tab.Navigator>
+        <RootStack.Screen 
+          name="NewSession" 
+          component={NewSessionScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'New Session',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
+        />
+        <RootStack.Screen 
+          name="EditSession" 
+          component={EditSessionScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'Edit Session',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
+        />
+        <RootStack.Screen 
+          name="RecordHand" 
+          component={RecordHandScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'Record Hand',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
+        />
+        <RootStack.Screen 
+          name="EditHand" 
+          component={EditHandScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'Edit Hand',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
+        />
+        <RootStack.Screen 
+          name="HandDetail" 
+          component={HandDetailScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'Hand Details',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
+        />
+        <RootStack.Screen 
+          name="AIAnalysis" 
+          component={AIAnalysisScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'AI Solver',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
+        />
+        <RootStack.Screen 
+          name="PokerKeyboard" 
+          component={PokerKeyboardScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'Choose Cards',
+            presentation: 'modal',
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTitleStyle: { color: theme.colors.text },
+            headerTintColor: theme.colors.primary,
+          }} 
+        />
+        <RootStack.Screen 
+          name="Subscription" 
+          component={SubscriptionScreen} 
+          options={{ 
+            headerShown: true,
+            title: 'Subscription',
+            headerStyle: { backgroundColor: '#2D3748' },
+            headerTintColor: '#F7FAFC',
+            headerBackTitle: 'Back',
+          }} 
+        />
+      </RootStack.Navigator>
     </NavigationContainer>
   );
 };

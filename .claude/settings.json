@@ -39,6 +39,7 @@
     "Bash(which*)",
     "Bash(whereis*)",
     "Bash(curl*)",
+    "Bash(gemini*)",
     "Bash(wget*)",
     "Bash(jq*)",
     "Bash(tree*)",

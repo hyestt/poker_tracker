@@ -18,12 +18,24 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
 
   const parseValue = (dateString: string): Date => {
     if (!dateString) {return new Date();}
-    const [datePart, timePart] = dateString.split(' ');
-    if (!datePart || !timePart) {return new Date();}
-    const [year, month, day] = datePart.split('/').map(Number);
-    const [hours, minutes] = timePart.split(':').map(Number);
-    if ([year, month, day, hours, minutes].some(isNaN)) {return new Date();}
-    return new Date(year, month - 1, day, hours, minutes);
+    
+    // 支援新格式 YYYY-MM-DDTHH:mm 和舊格式 YYYY/MM/DD HH:mm
+    if (dateString.includes('T')) {
+      // 新格式: 2025-08-08T20:30
+      const [datePart, timePart] = dateString.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      if ([year, month, day, hours, minutes].some(isNaN)) {return new Date();}
+      return new Date(year, month - 1, day, hours, minutes);
+    } else {
+      // 舊格式: 2025/08/08 20:30
+      const [datePart, timePart] = dateString.split(' ');
+      if (!datePart || !timePart) {return new Date();}
+      const [year, month, day] = datePart.split('/').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      if ([year, month, day, hours, minutes].some(isNaN)) {return new Date();}
+      return new Date(year, month - 1, day, hours, minutes);
+    }
   };
 
   const formatDate = (dateToFormat: Date): string => {
@@ -32,7 +44,7 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
     const day = String(dateToFormat.getDate()).padStart(2, '0');
     const hours = String(dateToFormat.getHours()).padStart(2, '0');
     const minutes = String(dateToFormat.getMinutes()).padStart(2, '0');
-    return `${year}/${month}/${day} ${hours}:${minutes}`;
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const currentDate = parseValue(value);

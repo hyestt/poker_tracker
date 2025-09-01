@@ -97,34 +97,6 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
     checkGTOQuotaAndLoadData();
   }, []);
 
-  // 在此頁隱藏所有上層的 TabBar（包含多層 Navigator）
-  const setAllParentsTabBarDisplay = (display: 'none' | 'flex') => {
-    let parent: any = navigation?.getParent?.();
-    let depth = 0;
-    while (parent && depth < 5) {
-      try { parent.setOptions?.({ tabBarStyle: { display } }); } catch {}
-      parent = parent.getParent?.();
-      depth += 1;
-    }
-  };
-
-  useEffect(() => {
-    // 進入與離開都強制隱藏
-    const hide = () => setAllParentsTabBarDisplay('none');
-    hide();
-    const unsub = navigation.addListener('state', hide);
-    return () => {
-      unsub?.();
-      hide();
-    };
-  }, [navigation]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      setAllParentsTabBarDisplay('none');
-      return () => setAllParentsTabBarDisplay('none');
-    }, [navigation])
-  );
 
   // 將 Re-analyze 放到右上角 header（在定義函式之後再設定）
 

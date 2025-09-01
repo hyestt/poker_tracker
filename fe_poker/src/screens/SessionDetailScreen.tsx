@@ -10,41 +10,44 @@ import { CustomDateTimePicker } from '../components/DateTimePicker';
 export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: { sessionId: string } } }> = ({ navigation, route }) => {
   const { sessionId } = route.params;
   const { sessions, hands, fetchSessions, fetchHands, deleteHand, toggleFavorite, endSession } = useSessionStore();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [, setIsPremium] = useState(false);
   const [showEndSessionModal, setShowEndSessionModal] = useState(false);
   const [cashOutAmount, setCashOutAmount] = useState('');
   const [cashOutTime, setCashOutTime] = useState('');
+  const [showAddChipsModal, setShowAddChipsModal] = useState(false);
+  const [addChipsAmount, setAddChipsAmount] = useState('');
 
+  // 在背景載入最新數據，但不阻塞 UI 顯示
   useEffect(() => {
-    const loadData = async () => {
+    const loadDataInBackground = async () => {
       try {
-        await Promise.all([fetchSessions(), fetchHands()]);
+        // 只在數據為空時才載入，避免不必要的請求
+        if (sessions.length === 0 || hands.length === 0) {
+          await Promise.all([
+            sessions.length === 0 ? fetchSessions() : Promise.resolve(),
+            hands.length === 0 ? fetchHands() : Promise.resolve()
+          ]);
+        }
       } catch (error) {
-        console.error('Error loading session detail data:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error loading data in background:', error);
       }
     };
 
-    loadData();
-  }, [fetchSessions, fetchHands]);
+    loadDataInBackground();
+  }, []);
 
-  // 每次進入頁面時檢查訂閱狀態並刷新數據
+  // 每次進入頁面時只檢查訂閱狀態，不重新載入 hands
   useFocusEffect(
     useCallback(() => {
-      const checkSubscriptionAndRefreshData = async () => {
-        console.log('🔄 SessionDetailScreen useFocusEffect triggered');
+      const checkSubscription = async () => {
         const premium = await revenueCatService.isPremiumUser();
         setIsPremium(premium);
-        // 刷新 hands 數據以確保顯示最新的 hands
-        console.log('🔄 About to call fetchHands from SessionDetail useFocusEffect');
-        await fetchHands();
-        console.log('✅ fetchHands completed from SessionDetail useFocusEffect');
       };
-      checkSubscriptionAndRefreshData();
-    }, [fetchHands])
+      checkSubscription();
+    }, [])
   );
+
 
 
   const session = sessions.find(s => s.id === sessionId);
@@ -90,20 +93,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
     }
 
     // Proceed with navigation
-    if (navigation.canGoBack()) {
-      const state = navigation.getState();
-      // Check if SessionsList is in the stack
-      const sessionListIndex = state.routes.findIndex((route: any) => route.name === 'SessionsList');
-      if (sessionListIndex !== -1 && sessionListIndex < state.index) {
-        // Pop to SessionsList
-        navigation.pop(state.index - sessionListIndex);
-      } else {
-        // Navigate to SessionsList
-        navigation.navigate('SessionsList');
-      }
-    } else {
-      navigation.navigate('SessionsList');
-    }
+    navigation.navigate('MainTabs', { screen: 'Sessions' });
   };
 
   // 動態設置標題和返回按鈕
@@ -192,7 +182,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
             {
               text: 'Upgrade',
               style: 'default',
-              onPress: () => navigation.navigate('Settings', { screen: 'Subscription' }),
+              onPress: () => navigation.navigate('Subscription'),
             },
           ]
         );
@@ -207,6 +197,38 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
       navigation.navigate('RecordHand', { sessionId });
     }
   };
+
+  const handleAddChips = () => {
+    setShowAddChipsModal(true);
+  };
+
+  const handleAddChipsConfirm = async () => {
+    if (!session || !addChipsAmount || addChipsAmount.trim() === '') {
+      Alert.alert('Error', 'Please enter a valid amount');
+      return;
+    }
+
+    const amount = parseFloat(addChipsAmount);
+    if (isNaN(amount) || amount <= 0) {
+      Alert.alert('Error', 'Please enter a valid positive amount');
+      return;
+    }
+
+    try {
+      const updatedSession = {
+        ...session,
+        buyIn: (session.buyIn || 0) + amount,
+      };
+      
+      await endSession(sessionId, updatedSession.cashOut, updatedSession.cashOutTime, updatedSession.buyIn);
+      setShowAddChipsModal(false);
+      setAddChipsAmount('');
+    } catch (error) {
+      console.error('Failed to add chips:', error);
+      Alert.alert('Error', 'Failed to add chips');
+    }
+  };
+
 
   const showHandActions = (handId: string) => {
     const hand = hands.find(h => h.id === handId);
@@ -243,7 +265,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
     // 如果 session 有保存的 cashOutTime，優先使用；如果沒有且當前狀態也沒有，才使用當前時間
     if (!cashOutTime && session && !session.cashOutTime) {
       const now = new Date();
-      const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       setCashOutTime(formattedDate);
     }
     // 不重置 cashOutAmount，保留用户之前的输入或数据库中的值
@@ -266,7 +288,15 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
     // 驗證 cash out 時間不能早於 session 開始時間
     if (session && session.date && cashOutTime) {
       const sessionStartTime = new Date(session.date).getTime();
-      const cashOutDateTime = new Date(cashOutTime.replace(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/, '$1-$2-$3T$4:$5')).getTime();
+      let cashOutDateTime: number;
+      
+      if (cashOutTime.includes('T')) {
+        // 新格式: 2025-08-08T20:30
+        cashOutDateTime = new Date(cashOutTime).getTime();
+      } else {
+        // 舊格式: 2025/08/08 20:30
+        cashOutDateTime = new Date(cashOutTime.replace(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/, '$1-$2-$3T$4:$5')).getTime();
+      }
 
       if (cashOutDateTime < sessionStartTime) {
         Alert.alert(
@@ -284,7 +314,7 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
 
       setShowEndSessionModal(false);
       // 返回到主 Sessions 頁面
-      navigation.navigate('SessionsList');
+      navigation.navigate('MainTabs', { screen: 'Sessions' });
     } catch (error) {
       console.error('Failed to end session:', error);
       Alert.alert('Error', 'Failed to end session');
@@ -474,13 +504,15 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
         })}
       </ScrollView>
 
-      {/* Floating Action Button - Fixed at bottom center */}
-      <TouchableOpacity
-        style={styles.fabButton}
-        onPress={handleAddButtonPress}
-      >
-        <Text style={styles.fabButtonText}>+</Text>
-      </TouchableOpacity>
+      {/* Fixed bottom action bar */}
+      <View style={styles.actionBar}>
+        <TouchableOpacity onPress={handleAddChips} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Add Chips</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleAddButtonPress} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>Add Hand</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* End Session Modal */}
       <Modal
@@ -540,6 +572,58 @@ export const SessionDetailScreen: React.FC<{ navigation: any; route: { params: {
                   onPress={handleConfirmEndSession}
                 >
                   <Text style={styles.confirmButtonText}>End Session</Text>
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Chips Modal */}
+      <Modal
+        visible={showAddChipsModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAddChipsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.endSessionModal}>
+            <SafeAreaView>
+              <Text style={styles.modalTitle}>Add Chips</Text>
+
+              <View style={styles.modalContent}>
+                <View style={styles.inputSection}>
+                  <View style={styles.horizontalInputRow}>
+                    <Text style={styles.leftLabel}>Amount</Text>
+                    <View style={styles.rightInputContainer}>
+                      <Input
+                        value={addChipsAmount}
+                        onChangeText={(value) => {
+                          const numericValue = value.replace(/[^0-9.]/g, '');
+                          const parts = numericValue.split('.');
+                          const validValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : numericValue;
+                          setAddChipsAmount(validValue);
+                        }}
+                        placeholder="Enter amount"
+                        keyboardType="numeric"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowAddChipsModal(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={handleAddChipsConfirm}
+                >
+                  <Text style={styles.confirmButtonText}>Add Chips</Text>
                 </TouchableOpacity>
               </View>
             </SafeAreaView>
@@ -719,28 +803,47 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: 'right',
   },
-  fabButton: {
+  actionBar: {
     position: 'absolute',
+    left: 0,
+    right: 0,
     bottom: 0,
-    left: '50%',
-    marginLeft: -35,
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.background,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.lg,
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: theme.colors.inputBg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingVertical: theme.spacing.md,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: theme.colors.text,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
-  fabButtonText: {
-    color: '#fff',
-    fontSize: 30,
-    fontWeight: '300',
-    lineHeight: 35,
+  secondaryButtonText: {
+    color: theme.colors.text,
+    fontWeight: '600',
+    fontSize: theme.font.size.body,
+  },
+  primaryButton: {
+    flex: 1,
+    backgroundColor: '#5B8DEE',
+    paddingVertical: theme.spacing.md,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: theme.font.size.body,
   },
   backButton: {
     backgroundColor: theme.colors.primary,

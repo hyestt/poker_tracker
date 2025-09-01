@@ -51,16 +51,6 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
     loadPokerKeyboardPreference();
   }, []);
 
-  // 隱藏底部 TabBar，離開時恢復
-  useEffect(() => {
-    const parent = navigation?.getParent?.();
-    if (!parent) {return;}
-    const defaultTabBarStyle = { backgroundColor: '#2D3748', borderTopColor: '#4A5568' } as const;
-    parent.setOptions({ tabBarStyle: { display: 'none' } });
-    return () => {
-      parent.setOptions({ tabBarStyle: defaultTabBarStyle });
-    };
-  }, [navigation]);
 
   const positions = ['UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB', 'Unknown'];
 

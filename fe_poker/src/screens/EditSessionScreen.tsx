@@ -24,6 +24,7 @@ export const EditSessionScreen: React.FC<{ navigation: any; route: any }> = ({ n
     loadSession();
   }, [sessionId]);
 
+
   const loadSession = async () => {
     try {
       console.log('Loading session with ID:', sessionId);

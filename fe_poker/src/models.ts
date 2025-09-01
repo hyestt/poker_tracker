@@ -11,6 +11,7 @@ export interface Session {
   tag: string;
   cashOut?: number;
   cashOutTime?: string;
+  addChips?: number;
   createdAt?: string;
   updatedAt?: string;
 }
