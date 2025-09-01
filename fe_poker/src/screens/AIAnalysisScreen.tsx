@@ -255,7 +255,7 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       const userPreferences = await UserPreferencesService.getPreferences();
       const userLanguage = userPreferences.language || 'English';
 
-      // 生成 handDetails：僅包含使用者黑色輸入框內容，避免與結構化欄位重複
+      // 生成 handDetails：包含分階段詳情
       const sessionToUse = sessionForRequest || currentSession;
       const handDetailsOnly = String(handData.details || '').trim();
 
@@ -275,6 +275,10 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
           hole_cards: convertCardSymbolsToEnglish(v.holeCards || ''),
         })),
         handDetails: handDetailsOnly,
+        preflop_details: handData.preflopDetails || '',
+        flop_details: handData.flopDetails || '',
+        turn_details: handData.turnDetails || '',
+        river_details: handData.riverDetails || '',
         language: userLanguage,
       };
 
@@ -571,8 +575,19 @@ export const AIAnalysisScreen: React.FC<{ navigation: any; route: any }> = ({ na
       }
     } catch {}
 
-    // Player Action / Recommendation
-    pushText('Player Action', obj.player_action);
+    // Player Action (放在 GTO Suggested Action 之後，Recommendation 之前)
+    if (obj.player_action && String(obj.player_action).trim()) {
+      nodes.push(
+        <View key={'player-action'} style={{ marginTop: nodes.length ? theme.spacing.md : 0 }}>
+          <Text style={styles.analysisSubTitle}>Player Action</Text>
+          <Text style={styles.analysisText}>
+            {String(obj.player_action).trim()}
+          </Text>
+        </View>
+      );
+    }
+    
+    // GTO Recommendation
     pushText('GTO Recommendation', obj.recommendation);
 
     // 移除 Summary 顯示（僅保留 GTO Recommendation 與其他必要區塊）

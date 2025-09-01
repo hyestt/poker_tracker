@@ -557,6 +557,10 @@ export const useSessionStore = create<State>((set, get) => ({
         board: hand.board || null,
         position: hand.position || null,
         details: hand.details || `${hand.holeCards || 'Unknown cards'} in ${hand.position || 'unknown'} position`,
+        preflopDetails: hand.preflopDetails || '',
+        flopDetails: hand.flopDetails || '',
+        turnDetails: hand.turnDetails || '',
+        riverDetails: hand.riverDetails || '',
         note: hand.note || null,
         date: hand.date || new Date().toISOString(),
         tag: hand.tag || '',
@@ -572,12 +576,59 @@ export const useSessionStore = create<State>((set, get) => ({
         const { UserPreferencesService } = await import('../services/UserPreferences');
         const preferences = await UserPreferencesService.getPreferences();
 
+        // 準備符合後端期待的扁平格式
+        const session = await DatabaseService.getSession(hand.sessionId);
+        
+        // Debug: 印出從資料庫讀取的分階段詳情
+        console.log('🎯 Hand details from DB:', {
+          preflopDetails: hand.preflopDetails,
+          flopDetails: hand.flopDetails,
+          turnDetails: hand.turnDetails,
+          riverDetails: hand.riverDetails,
+        });
+        
+        const requestBody = {
+          // 基本資訊
+          language: preferences.language,
+          hero_position: hand.position || '',
+          hero_hole_cards: hand.holeCards || '',
+          board: hand.board || '',
+          result: String(hand.result || 0),
+          notes: hand.note || '',
+          
+          // 分階段詳情（新增）
+          preflop_details: hand.preflopDetails || '',
+          flop_details: hand.flopDetails || '',
+          turn_details: hand.turnDetails || '',
+          river_details: hand.riverDetails || '',
+          
+          // Session 資訊
+          session: {
+            location: session?.location || '',
+            small_blind: String(session?.smallBlind || 1),
+            big_blind: String(session?.bigBlind || 2),
+            date: session?.date || '',
+            table_size: String(session?.tableSize || 6),
+          },
+          
+          // Villains 資訊
+          villains: (hand.villains || []).map(v => ({
+            id: v.id || '',
+            position: v.position || '',
+            hole_cards: v.holeCards || '',
+            stack_size: '',
+          })),
+          
+          // 保留舊格式以相容（可以之後移除）
+          handDetails: hand.details || '',
+        };
+        
+        // Debug: 印出要發送的請求內容
+        console.log('📤 Sending to analyze API:', requestBody);
+
         const response = await apiCall(`${API_BASE_URL}/analyze`, {
           method: 'POST',
-          body: JSON.stringify({
-            hand: handForAnalysis,
-            language: preferences.language,
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         // ⚠️ 重要：分析結果始終保存到本地 SQLite，不論任何模式

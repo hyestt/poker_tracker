@@ -134,6 +134,24 @@ export class DatabaseService {
         await this.db.executeSql('ALTER TABLE hands ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP');
       }
 
+      // 添加分階段詳情欄位
+      if (!handsColumns.has('preflop_details')) {
+        console.log('Adding preflop_details column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN preflop_details TEXT DEFAULT ""');
+      }
+      if (!handsColumns.has('flop_details')) {
+        console.log('Adding flop_details column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN flop_details TEXT DEFAULT ""');
+      }
+      if (!handsColumns.has('turn_details')) {
+        console.log('Adding turn_details column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN turn_details TEXT DEFAULT ""');
+      }
+      if (!handsColumns.has('river_details')) {
+        console.log('Adding river_details column to hands table');
+        await this.db.executeSql('ALTER TABLE hands ADD COLUMN river_details TEXT DEFAULT ""');
+      }
+
       // 為現有記錄設定時間戳值（如果為 NULL）
       console.log('Updating NULL timestamps in hands table');
       await this.db.executeSql(`
@@ -338,6 +356,10 @@ export class DatabaseService {
         note: row.note || '',
         villains: villains,
         tags: tags,
+        preflopDetails: row.preflop_details || '',
+        flopDetails: row.flop_details || '',
+        turnDetails: row.turn_details || '',
+        riverDetails: row.river_details || '',
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       });
@@ -394,6 +416,10 @@ export class DatabaseService {
       note: row.note || '',
       villains: villains,
       tags: tags,
+      preflopDetails: row.preflop_details || '',
+      flopDetails: row.flop_details || '',
+      turnDetails: row.turn_details || '',
+      riverDetails: row.river_details || '',
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -407,8 +433,9 @@ export class DatabaseService {
     const sql = `
       INSERT INTO hands (id, session_id, details, result_amount, date, analysis, analysis_date, analysis_sections,
                         hole_cards, position, is_favorite, tag, board, note, villains, tags,
+                        preflop_details, flop_details, turn_details, river_details,
                         created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `;
 
     // 序列化 villains 和 tags
@@ -432,6 +459,10 @@ export class DatabaseService {
       hand.note || '',
       villainsJson,
       tagsJson,
+      hand.preflopDetails || '',
+      hand.flopDetails || '',
+      hand.turnDetails || '',
+      hand.riverDetails || '',
     ]);
 
     console.log('✅ DatabaseService.insertHand completed successfully');
@@ -444,6 +475,7 @@ export class DatabaseService {
       UPDATE hands 
       SET session_id = ?, details = ?, result_amount = ?, date = ?, analysis = ?, analysis_date = ?, analysis_sections = ?,
           hole_cards = ?, position = ?, is_favorite = ?, tag = ?, board = ?, note = ?, villains = ?, tags = ?,
+          preflop_details = ?, flop_details = ?, turn_details = ?, river_details = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `;
@@ -468,6 +500,10 @@ export class DatabaseService {
       hand.note || '',
       villainsJson,
       tagsJson,
+      hand.preflopDetails || '',
+      hand.flopDetails || '',
+      hand.turnDetails || '',
+      hand.riverDetails || '',
       hand.id,
     ]);
   }
@@ -512,6 +548,10 @@ export class DatabaseService {
         board: row.board || '',
         note: row.note || '',
         villains: villains,
+        preflopDetails: row.preflop_details || '',
+        flopDetails: row.flop_details || '',
+        turnDetails: row.turn_details || '',
+        riverDetails: row.river_details || '',
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       });

@@ -43,9 +43,10 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 	// 使用新的資料庫結構欄位
 	stmt, err := db.DB.Prepare(`
                 INSERT INTO hands (
-                        id, session_id, position, hole_cards, details, result_amount,
-                        analysis, analysis_date, is_favorite, tag, board, note, villains, date
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                        id, session_id, position, hole_cards, details,
+                        preflop_details, flop_details, turn_details, river_details,
+                        result_amount, analysis, analysis_date, is_favorite, tag, board, note, villains, date
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         `)
 	if err != nil {
 		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
@@ -68,6 +69,10 @@ func CreateHand(w http.ResponseWriter, r *http.Request) {
 		hand.Position,
 		hand.HoleCards,
 		hand.Details,
+		hand.PreflopDetails,
+		hand.FlopDetails,
+		hand.TurnDetails,
+		hand.RiverDetails,
 		hand.Result,
 		hand.Analysis,
 		hand.AnalysisDate,
@@ -97,6 +102,10 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 			COALESCE(position, ''), 
 			COALESCE(hole_cards, ''), 
 			COALESCE(details, ''), 
+			COALESCE(preflop_details, ''), 
+			COALESCE(flop_details, ''), 
+			COALESCE(turn_details, ''), 
+			COALESCE(river_details, ''), 
 			COALESCE(result_amount, 0), 
 			COALESCE(analysis, ''), 
 			COALESCE(analysis_date, ''), 
@@ -126,6 +135,10 @@ func GetHands(w http.ResponseWriter, r *http.Request) {
 			&h.Position,
 			&h.HoleCards,
 			&h.Details,
+			&h.PreflopDetails,
+			&h.FlopDetails,
+			&h.TurnDetails,
+			&h.RiverDetails,
 			&h.Result,
 			&h.Analysis,
 			&h.AnalysisDate,
@@ -171,6 +184,10 @@ func GetHand(w http.ResponseWriter, r *http.Request) {
 			COALESCE(position, ''), 
 			COALESCE(hole_cards, ''), 
 			COALESCE(details, ''), 
+			COALESCE(preflop_details, ''), 
+			COALESCE(flop_details, ''), 
+			COALESCE(turn_details, ''), 
+			COALESCE(river_details, ''), 
 			COALESCE(result_amount, 0), 
 			COALESCE(analysis, ''), 
 			COALESCE(analysis_date, ''), 
@@ -193,6 +210,10 @@ func GetHand(w http.ResponseWriter, r *http.Request) {
 		&h.Position,
 		&h.HoleCards,
 		&h.Details,
+		&h.PreflopDetails,
+		&h.FlopDetails,
+		&h.TurnDetails,
+		&h.RiverDetails,
 		&h.Result,
 		&h.Analysis,
 		&h.AnalysisDate,
@@ -237,25 +258,25 @@ func UpdateHand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = $1, board = $2, position = $3, details = $4, note = $5, result_amount = $6, date = $7, villains = $8, is_favorite = $9, tag = $10, analysis = $11, analysis_sections = $12 WHERE id = $13`)
+	stmt, err := db.DB.Prepare(`UPDATE hands SET hole_cards = $1, board = $2, position = $3, details = $4, preflop_details = $5, flop_details = $6, turn_details = $7, river_details = $8, note = $9, result_amount = $10, date = $11, villains = $12, is_favorite = $13, tag = $14, analysis = $15, analysis_sections = $16 WHERE id = $17`)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Favorite, hand.Tag, hand.Analysis, hand.AnalysisJSON, id)
+	_, err = stmt.Exec(hand.HoleCards, hand.Board, hand.Position, hand.Details, hand.PreflopDetails, hand.FlopDetails, hand.TurnDetails, hand.RiverDetails, hand.Note, hand.Result, hand.Date, string(villainsJSON), hand.Favorite, hand.Tag, hand.Analysis, hand.AnalysisJSON, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// 返回更新後的手牌
-	row := db.DB.QueryRow(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag, COALESCE(analysis_sections, '') as analysis_sections FROM hands WHERE id = $1`, id)
+	row := db.DB.QueryRow(`SELECT id, COALESCE(session_id, '') as session_id, COALESCE(hole_cards, '') as hole_cards, COALESCE(board, '') as board, COALESCE(position, '') as position, COALESCE(details, '') as details, COALESCE(preflop_details, '') as preflop_details, COALESCE(flop_details, '') as flop_details, COALESCE(turn_details, '') as turn_details, COALESCE(river_details, '') as river_details, COALESCE(note, '') as note, COALESCE(result_amount, 0) as result_amount, COALESCE(date, '') as date, COALESCE(villains, '[]') as villains, COALESCE(analysis, '') as analysis, COALESCE(is_favorite, false) as is_favorite, COALESCE(tag, '') as tag, COALESCE(analysis_sections, '') as analysis_sections FROM hands WHERE id = $1`, id)
 	var updatedHand models.Hand
 	var updatedVillainsJSON string
 	var updatedAnalysisSectionsJSON string
-	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Board, &updatedHand.Position, &updatedHand.Details, &updatedHand.Note, &updatedHand.Result, &updatedHand.Date, &updatedVillainsJSON, &updatedHand.Analysis, &updatedHand.Favorite, &updatedHand.Tag, &updatedAnalysisSectionsJSON)
+	err = row.Scan(&updatedHand.ID, &updatedHand.SessionID, &updatedHand.HoleCards, &updatedHand.Board, &updatedHand.Position, &updatedHand.Details, &updatedHand.PreflopDetails, &updatedHand.FlopDetails, &updatedHand.TurnDetails, &updatedHand.RiverDetails, &updatedHand.Note, &updatedHand.Result, &updatedHand.Date, &updatedVillainsJSON, &updatedHand.Analysis, &updatedHand.Favorite, &updatedHand.Tag, &updatedAnalysisSectionsJSON)
 	if err != nil {
 		http.Error(w, "Failed to retrieve updated hand", http.StatusInternalServerError)
 		return
@@ -317,6 +338,13 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		Result           string   `json:"result"`
 		Notes            string   `json:"notes"`
 		StreetsToAnalyze []string `json:"streets_to_analyze"`
+		
+		// 新增：分階段詳情欄位
+		PreflopDetails string `json:"preflop_details"`
+		FlopDetails    string `json:"flop_details"`
+		TurnDetails    string `json:"turn_details"`
+		RiverDetails   string `json:"river_details"`
+		
 		Session          struct {
 			Location   string `json:"location"`
 			SmallBlind string `json:"small_blind"`
@@ -397,6 +425,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		
 		// 構建基於 @user_prompt.json 的結構化 user prompt
 		pm := services.NewPromptManager()
 		baseJSON, err := pm.GetJSONUserPrompt(
@@ -407,6 +436,10 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 			request.Board,
 			request.Result,
 			request.Notes,
+			request.PreflopDetails,
+			request.FlopDetails,
+			request.TurnDetails,
+			request.RiverDetails,
 		)
 		if err != nil {
 			http.Error(w, "Failed to build user prompt: "+err.Error(), http.StatusInternalServerError)
@@ -453,8 +486,6 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Debug: 印出實際送入 AI 的 JSON 內容（單行，避免被日誌系統分段）
-		log.Printf("🧪 AI input JSON (single-model) = %+v", string(finalUserBytes))
 
 		analysis, err := aiService.AnalyzeHand(string(finalUserBytes), language)
 		if err != nil {
@@ -462,8 +493,6 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Debug logging for analysis parsing
-		log.Printf("🔍 RAW ANALYSIS OUTPUT (first 300 chars): %s", truncate(analysis, 300))
 
 		// 嘗試將輸出清洗為合法 JSON（若可能），同時保留可解析的對象
 		canonical := strings.TrimSpace(analysis)
@@ -499,6 +528,7 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 		}
 		if analysisObj != nil {
 			response["analysis_object"] = analysisObj
+			// 直接使用 analysisObj 中的街道物件，保留完整結構
 			response["sections"] = map[string]any{
 				"preflop": analysisObj["preflop"],
 				"flop":    analysisObj["flop"],
@@ -506,7 +536,29 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 				"river":   analysisObj["river"],
 			}
 		} else {
-			response["sections"] = sections
+			// 當沒有結構化物件時，嘗試從 sections 解析 JSON
+			sectionsWithObjects := make(map[string]any)
+			
+			// 嘗試將每個街道的字串解析為 JSON 物件
+			parseStreetJSON := func(streetContent string) any {
+				if streetContent == "" {
+					return ""
+				}
+				// 嘗試解析為 JSON 物件
+				var streetObj map[string]any
+				if err := json.Unmarshal([]byte(streetContent), &streetObj); err == nil {
+					return streetObj
+				}
+				// 如果不是 JSON，返回原始字串
+				return streetContent
+			}
+			
+			sectionsWithObjects["preflop"] = parseStreetJSON(sections.Preflop)
+			sectionsWithObjects["flop"] = parseStreetJSON(sections.Flop)
+			sectionsWithObjects["turn"] = parseStreetJSON(sections.Turn)
+			sectionsWithObjects["river"] = parseStreetJSON(sections.River)
+			
+			response["sections"] = sectionsWithObjects
 		}
 		json.NewEncoder(w).Encode(response)
 		return
@@ -531,13 +583,31 @@ func AnalyzeHand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sections := services.ParseHandAnalysis(result.FinalOutput)
+	
+	// 處理 sections，嘗試解析 JSON 格式
+	sectionsWithObjects := make(map[string]any)
+	parseStreetJSON := func(streetContent string) any {
+		if streetContent == "" {
+			return ""
+		}
+		var streetObj map[string]any
+		if err := json.Unmarshal([]byte(streetContent), &streetObj); err == nil {
+			return streetObj
+		}
+		return streetContent
+	}
+	sectionsWithObjects["preflop"] = parseStreetJSON(sections.Preflop)
+	sectionsWithObjects["flop"] = parseStreetJSON(sections.Flop)
+	sectionsWithObjects["turn"] = parseStreetJSON(sections.Turn)
+	sectionsWithObjects["river"] = parseStreetJSON(sections.River)
+	
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	analysisDate := time.Now().Format(time.RFC3339)
 	response := map[string]interface{}{
 		"analysis":          result.FinalOutput,
 		"date":              analysisDate,
-		"sections":          sections,
+		"sections":          sectionsWithObjects,
 		"primary_output":    result.PrimaryOutput,
 		"validation_report": result.Validation,
 		"validation_status": result.ValidationState,

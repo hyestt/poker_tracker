@@ -279,8 +279,9 @@ func ToShortCardString(s string) string {
 	return strings.Join(codes, " ")
 }
 
+
 // 新方法：獲取 JSON 格式的 user prompt
-func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, holeCards, board, result, notes string) (string, error) {
+func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, holeCards, board, result, notes, preflopDetails, flopDetails, turnDetails, riverDetails string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "user_prompt.json")
 
 	// 讀取 JSON prompt 模板
@@ -319,6 +320,33 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 		if len(shorts) >= 5 {
 			prompt.HandData.Board.River = shorts[4]
 		}
+	}
+	
+	// 直接將分階段詳情合併成完整的手牌詳情
+	combinedDetails := ""
+	if preflopDetails != "" {
+		combinedDetails += "Preflop: " + normalizeSuits(preflopDetails) + "\n"
+	}
+	if flopDetails != "" {
+		combinedDetails += "Flop: " + normalizeSuits(flopDetails) + "\n"
+	}
+	if turnDetails != "" {
+		combinedDetails += "Turn: " + normalizeSuits(turnDetails) + "\n"
+	}
+	if riverDetails != "" {
+		combinedDetails += "River: " + normalizeSuits(riverDetails) + "\n"
+	}
+	
+	// 優先使用合併的分階段詳情，其次使用原始 handDetails
+	// 確保 hand_details 不為空
+	if combinedDetails != "" {
+		prompt.HandData.HandDetails = strings.TrimSpace(combinedDetails)
+	} else if handDetails != "" {
+		prompt.HandData.HandDetails = normalizeSuits(handDetails)
+	} else {
+		// 如果都沒有，至少提供基本資訊
+		prompt.HandData.HandDetails = fmt.Sprintf("Hero in %s with %s. Board: %s. Result: %s", 
+			heroPosition, holeCards, board, result)
 	}
 
 	// 將修改後的 JSON 轉換回字串

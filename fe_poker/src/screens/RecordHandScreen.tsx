@@ -7,6 +7,7 @@ import { PokerKeyboardView } from '../components/PokerKeyboardView';
 import { PokerQuickKeyboard } from '../components/PokerQuickKeyboard';
 import { VillainInput } from '../components/VillainInput';
 import { TagInput } from '../components/TagInput';
+import { HandDetailsTabs, HandStage } from '../components/HandDetailsTabs';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { UserPreferencesService } from '../services/UserPreferences';
@@ -20,6 +21,11 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [board, setBoard] = useState('');
   const [position, setPosition] = useState('');
   const [details, setDetails] = useState('');
+  const [preflopDetails, setPreflopDetails] = useState('');
+  const [flopDetails, setFlopDetails] = useState('');
+  const [turnDetails, setTurnDetails] = useState('');
+  const [riverDetails, setRiverDetails] = useState('');
+  const [currentHandStage, setCurrentHandStage] = useState<HandStage>('preflop');
   const [result, setResult] = useState('');
   const [villains, setVillains] = useState<Villain[]>([]);
   const [showPokerKeyboard, setShowPokerKeyboard] = useState(false);
@@ -30,6 +36,7 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const [showExample, setShowExample] = useState(false);
   const detailsInputRef = useRef<TextInput>(null);
+  const handDetailsTabsRef = useRef<TextInput>(null);
   const noteInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const { addHand, fetchHands, fetchStats, getAllUsedTags } = useSessionStore();
@@ -156,29 +163,17 @@ export const RecordHandScreen: React.FC<{ navigation: any; route: any }> = ({ na
 
   const handleInsertExample = (caseNumber: number) => {
     try {
-      let exampleText = '';
-
       if (caseNumber === 1) {
-        exampleText = `Preflop: UTG Bet $15 BTN Raise $45 UTG Call
-
-Flop: UTG Check BTN Bet $30 UTG Call
-
-Turn: BTN Bet $100 UTG Fold`;
+        setPreflopDetails('UTG Bet $15 BTN Raise $45 UTG Call');
+        setFlopDetails('UTG Check BTN Bet $30 UTG Call');
+        setTurnDetails('BTN Bet $100 UTG Fold');
+        setRiverDetails('');
       } else if (caseNumber === 2) {
-        exampleText = `Preflop: HJ Call $2 BTN Raise $10 HJ Call
-        
-Flop: HJ Check BTN Bet $20 HJ Call
-
-Turn: HJ Check BTN Check
-
-River: HJ Check BTN Check`;
+        setPreflopDetails('HJ Call $2 BTN Raise $10 HJ Call');
+        setFlopDetails('HJ Check BTN Bet $20 HJ Call');
+        setTurnDetails('HJ Check BTN Check');
+        setRiverDetails('HJ Check BTN Check');
       }
-
-      // 直接替換內容，不添加空行分隔
-      const textToInsert = exampleText;
-
-      // 直接設置文字，避免複雜的 selection 操作
-      setDetails(textToInsert);
 
       // 聚焦到輸入框
       setTimeout(() => {
@@ -211,11 +206,46 @@ River: HJ Check BTN Check`;
     selectionRef.current = selection;
   }, [selection]);
 
+  const handleStageDetailsChange = (stage: HandStage, details: string) => {
+    switch (stage) {
+      case 'preflop':
+        setPreflopDetails(details);
+        break;
+      case 'flop':
+        setFlopDetails(details);
+        break;
+      case 'turn':
+        setTurnDetails(details);
+        break;
+      case 'river':
+        setRiverDetails(details);
+        break;
+    }
+  };
+
+  const handleStageChange = (stage: HandStage) => {
+    setCurrentHandStage(stage);
+  };
+
+  const getCurrentStageDetails = () => {
+    switch (currentHandStage) {
+      case 'preflop': return preflopDetails;
+      case 'flop': return flopDetails;
+      case 'turn': return turnDetails;
+      case 'river': return riverDetails;
+      default: return '';
+    }
+  };
+
+  const setCurrentStageDetails = (newDetails: string) => {
+    handleStageDetailsChange(currentHandStage, newDetails);
+  };
+
   // Poker Keyboard 預設為隱藏，只在用戶主動點擊時顯示
 
   const handleQuickInsert = (text: string) => {
     const { start, end } = selection;
-    const currentDetails = details || '';
+    const currentDetails = getCurrentStageDetails() || '';
 
     console.log('[DEBUG RecordHand] handleQuickInsert called:', {
       text,
@@ -224,6 +254,7 @@ River: HJ Check BTN Check`;
       currentDetailsLength: currentDetails.length,
       selectionState: selection,
       hasSelection: start !== end,
+      currentStage: currentHandStage,
     });
 
     // 檢查是否需要在數字後自動添加空格（只在沒有選中文本時）
@@ -262,15 +293,15 @@ River: HJ Check BTN Check`;
       });
     }
 
-    setDetails(newDetails);
+    setCurrentStageDetails(newDetails);
     setLastInsertedText(textToInsert);
 
     // 保持TextInput的焦點並設置正確的游標位置
-    if (detailsInputRef.current) {
-      detailsInputRef.current.focus();
+    if (handDetailsTabsRef.current) {
+      handDetailsTabsRef.current.focus();
       // 先設置 TextInput 的實際游標位置
       console.log('[DEBUG RecordHand] Setting cursor position via setSelection immediately:', newPosition);
-      detailsInputRef.current.setSelection(newPosition, newPosition);
+      handDetailsTabsRef.current.setSelection(newPosition, newPosition);
 
       // 然後更新 React state
       setTimeout(() => {
@@ -282,7 +313,7 @@ River: HJ Check BTN Check`;
   };
 
   const handleQuickDelete = useCallback(() => {
-    const currentDetails = detailsRef.current;
+    const currentDetails = getCurrentStageDetails() || '';
     const currentSelection = selectionRef.current;
     const { start, end } = currentSelection;
 
@@ -302,56 +333,42 @@ River: HJ Check BTN Check`;
         // 有文本被選中，刪除選中的文本
         newDetails = currentDetails.slice(0, start) + currentDetails.slice(end);
         newPosition = start;
-
-        console.log('[DEBUG RecordHand] Deleting selected text:', {
-          selectedText: currentDetails.slice(start, end),
-          oldText: currentDetails,
-          newText: newDetails,
-          newPosition,
-        });
       } else if (start > 0) {
         // 沒有選中文本，刪除游標前的一個字符
         newDetails = currentDetails.slice(0, start - 1) + currentDetails.slice(start);
         newPosition = start - 1;
-
-        console.log('[DEBUG RecordHand] Deleting single character:', {
-          deletedChar: currentDetails.charAt(start - 1),
-          oldText: currentDetails,
-          newText: newDetails,
-          oldPosition: start,
-          newPosition,
-        });
       } else {
-        // 游標在最前面，無法刪除
+        // 游標在開頭，無法刪除
         return false;
       }
 
-      setDetails(newDetails);
+      setCurrentStageDetails(newDetails);
 
-      // 先設置 TextInput 的實際游標位置，再更新 React state
-      if (detailsInputRef.current) {
-        console.log('[DEBUG RecordHand] Setting cursor position after delete immediately:', newPosition);
-        detailsInputRef.current.setSelection(newPosition, newPosition);
-
-        // 然後更新 React state
-        setTimeout(() => {
-          setSelection({ start: newPosition, end: newPosition });
-        }, 0);
-      } else {
-        setSelection({ start: newPosition, end: newPosition });
-      }
+      // 立即更新selectionRef確保下次刪除使用正確位置
+      selectionRef.current = { start: newPosition, end: newPosition };
+      
+      // 設置新的游標位置
+      setSelection({ start: newPosition, end: newPosition });
 
       return true; // 表示成功刪除
     }
     return false; // 表示無法刪除
-  }, []);
+  }, [getCurrentStageDetails, setCurrentStageDetails]);
 
   const handleDeletePressIn = () => {
     // 開始長按，設置定時器
     const timer = setTimeout(() => {
       const intervalTimer = setInterval(() => {
-        const canDelete = handleQuickDelete();
-        if (!canDelete) {
+        const currentDetails = getCurrentStageDetails() || '';
+        if (currentDetails.length > 0) {
+          // 長按時始終從末尾刪除，避免游標位置問題
+          const newDetails = currentDetails.slice(0, -1);
+          const newPosition = newDetails.length;
+          
+          setCurrentStageDetails(newDetails);
+          setSelection({ start: newPosition, end: newPosition });
+          selectionRef.current = { start: newPosition, end: newPosition };
+        } else {
           // 沒有內容可刪除時停止
           clearInterval(intervalTimer);
           setDeleteTimer(null);
@@ -385,19 +402,19 @@ River: HJ Check BTN Check`;
       console.log('Setting showCustomKeyboard to true');
       setShowCustomKeyboard(true);
       // 當使用自定義鍵盤時，防止系統鍵盤彈出
-      if (detailsInputRef.current) {
-        detailsInputRef.current.blur();
+      if (handDetailsTabsRef.current) {
+        handDetailsTabsRef.current.blur();
         // 短暫延遲後重新聚焦，但不會觸發系統鍵盤
         setTimeout(() => {
-          if (detailsInputRef.current) {
-            detailsInputRef.current.focus();
+          if (handDetailsTabsRef.current) {
+            handDetailsTabsRef.current.focus();
           }
         }, 50);
       }
     } else if (!useCustomKeyboard) {
       // 不使用自定義鍵盤時，正常聚焦以顯示系統鍵盤
-      if (detailsInputRef.current) {
-        detailsInputRef.current.focus();
+      if (handDetailsTabsRef.current) {
+        handDetailsTabsRef.current.focus();
       }
     }
     // 如果 useCustomKeyboard 為 true 且 showCustomKeyboard 已經為 true，則不做任何操作
@@ -411,18 +428,18 @@ River: HJ Check BTN Check`;
       console.log('Setting showCustomKeyboard to true from Press');
       setShowCustomKeyboard(true);
       // 當使用自定義鍵盤時，防止系統鍵盤彈出
-      if (detailsInputRef.current) {
-        detailsInputRef.current.blur();
+      if (handDetailsTabsRef.current) {
+        handDetailsTabsRef.current.blur();
         setTimeout(() => {
-          if (detailsInputRef.current) {
-            detailsInputRef.current.focus();
+          if (handDetailsTabsRef.current) {
+            handDetailsTabsRef.current.focus();
           }
         }, 50);
       }
     } else if (!useCustomKeyboard) {
       // 不使用自定義鍵盤時，正常聚焦以顯示系統鍵盤
-      if (detailsInputRef.current) {
-        detailsInputRef.current.focus();
+      if (handDetailsTabsRef.current) {
+        handDetailsTabsRef.current.focus();
       }
     }
     // 如果已經顯示自定義鍵盤，則不重複觸發顯示邏輯
@@ -500,6 +517,10 @@ River: HJ Check BTN Check`;
       board,
       position,
       details,
+      preflopDetails,
+      flopDetails,
+      turnDetails,
+      riverDetails,
       note,
       result: parseFloat(result) || 0,
       date: now,
@@ -688,8 +709,8 @@ River: HJ Check BTN Check`;
                     } else {
                       setShowCustomKeyboard(false); // 關閉Poker鍵盤時隱藏它
                       // 關閉時主動讓 TextInput 失去焦點，防止系統鍵盤彈出
-                      if (detailsInputRef.current) {
-                        detailsInputRef.current.blur();
+                      if (handDetailsTabsRef.current) {
+                        handDetailsTabsRef.current.blur();
                       }
                     }
                   }}
@@ -714,10 +735,10 @@ River: HJ Check BTN Check`;
               <View style={styles.exampleContainer}>
                 <Text style={styles.exampleTitle}>Include these details for better AI analysis:</Text>
                 <Text style={styles.exampleText}>
-                  • One line per street: Preflop / Flop / Turn / River{'\n'}
+                  • Use the tabs above to organize by street: PF / F / T / R{'\n'}
                   • Write Position + Action + $Amount (only when betting){'\n'}
                   • Remember to add a $ sign in front of the amount{'\n'}
-                  • Example: Preflop: UTG Bet $15 BTN Raise $45 UTG Call{'\n'}
+                  • Example: UTG Bet $15 BTN Raise $45 UTG Call{'\n'}
                 </Text>
                 <View style={styles.exampleButtonsContainer}>
                   <TouchableOpacity
@@ -736,29 +757,25 @@ River: HJ Check BTN Check`;
               </View>
             )}
 
-            <TextInput
-              ref={detailsInputRef}
-              style={styles.detailsInput}
-              value={details}
-              onChangeText={setDetails}
-              onSelectionChange={(event) => {
-                const newSelection = event.nativeEvent.selection;
+            <HandDetailsTabs
+              inputRef={handDetailsTabsRef}
+              preflopDetails={preflopDetails}
+              flopDetails={flopDetails}
+              turnDetails={turnDetails}
+              riverDetails={riverDetails}
+              onDetailsChange={handleStageDetailsChange}
+              onStageChange={handleStageChange}
+              onSelectionChange={(selection) => {
                 console.log('[DEBUG RecordHand] onSelectionChange:', {
                   oldSelection: selection,
-                  newSelection,
-                  textLength: details.length,
+                  newSelection: selection,
+                  currentStage: currentHandStage,
                 });
-                setSelection(newSelection);
+                setSelection(selection);
               }}
-              placeholder="Enter detailed hand description..."
-              placeholderTextColor={theme.colors.gray}
-              multiline={true}
-              numberOfLines={8}
-              textAlignVertical="top"
               showSoftInputOnFocus={!useCustomKeyboard}
-              onFocus={handleDetailsInputFocus}
               onPressIn={handleDetailsInputPress}
-              onBlur={handleDetailsInputBlur}
+              onFocus={handleDetailsInputFocus}
             />
           </View>
 
@@ -774,44 +791,26 @@ River: HJ Check BTN Check`;
 
               <View style={styles.quickButtonsSection}>
 
-            {/* Round Buttons */}
+            {/* Player Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
                 <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Preflop: ')}
+                  style={[styles.quickButton, styles.positionButton]}
+                  onPress={() => handleQuickInsert('UTG ')}
                 >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Flop: ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Turn: ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('River: ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
+                  <Text style={styles.quickButtonText}>UTG</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG1 ')}
                 >
-                  <Text style={styles.quickButtonText}>U1</Text>
+                  <Text style={styles.quickButtonText}>UTG1</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG2 ')}
                 >
-                  <Text style={styles.quickButtonText}>U2</Text>
+                  <Text style={styles.quickButtonText}>UTG2</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
@@ -831,7 +830,7 @@ River: HJ Check BTN Check`;
             {/* Position Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
+                {['MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
                   <TouchableOpacity
                     key={position}
                     style={[styles.quickButton, styles.positionButton]}
@@ -848,9 +847,9 @@ River: HJ Check BTN Check`;
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Raise ')}
+                  onPress={() => handleQuickInsert('Fold ')}
                 >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Raise</Text>
+                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Fold</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
@@ -860,9 +859,9 @@ River: HJ Check BTN Check`;
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Fold ')}
+                  onPress={() => handleQuickInsert('Raise ')}
                 >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Fold</Text>
+                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Raise</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
@@ -888,12 +887,6 @@ River: HJ Check BTN Check`;
             {/* Percentage Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('straddle ')}
-                >
-                  <Text style={styles.quickButtonText}>str</Text>
-                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
                   onPress={() => handleQuickInsert('Limp ')}
@@ -929,15 +922,9 @@ River: HJ Check BTN Check`;
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={styles.quickButton}
-                  onPress={() => handleQuickInsert('Pot: ')}
+                  onPress={() => handleQuickInsert('straddle ')}
                 >
-                  <Text style={styles.quickButtonText}>Pot</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('/')}
-                >
-                  <Text style={styles.quickButtonText}>/</Text>
+                  <Text style={styles.quickButtonText}>str</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
@@ -964,7 +951,7 @@ River: HJ Check BTN Check`;
                 </TouchableOpacity>
               </View>
               <View style={styles.buttonRow}>
-                {[',', ' '].map((symbol) => (
+                {[' '].map((symbol) => (
                   <TouchableOpacity
                     key={symbol}
                     style={styles.quickButton}
@@ -1003,7 +990,7 @@ River: HJ Check BTN Check`;
           )}
         </View>
 
-        <View style={styles.spacer} />
+        <View style={styles.tightSpacer} />
 
         <View style={styles.bottomSection}>
           {/* Villain Section */}
@@ -1027,21 +1014,6 @@ River: HJ Check BTN Check`;
             ))}
           </View>
 
-          {/* Tags Section */}
-          <View style={styles.fullWidthField}>
-            <View style={styles.fieldHeaderRow}>
-              <Text style={styles.fieldLabel}>Tags</Text>
-              <View style={styles.fieldInputContainer}>
-                <TagInput
-                  tags={tags}
-                  onTagsChange={setTags}
-                  placeholder="Add hand tags..."
-                  availableTags={getAllUsedTags()}
-                />
-              </View>
-            </View>
-          </View>
-
           {/* Note Section */}
           <View style={styles.fullWidthField}>
             <View style={styles.fieldHeaderRow}>
@@ -1059,6 +1031,21 @@ River: HJ Check BTN Check`;
                   textAlignVertical="top"
                   scrollEnabled={false}
                   onFocus={() => handleInputFocus(noteInputRef)}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Tags Section */}
+          <View style={styles.fullWidthField}>
+            <View style={styles.fieldHeaderRow}>
+              <Text style={styles.fieldLabel}>Tags</Text>
+              <View style={styles.fieldInputContainer}>
+                <TagInput
+                  tags={tags}
+                  onTagsChange={setTags}
+                  placeholder="Add hand tags..."
+                  availableTags={getAllUsedTags()}
                 />
               </View>
             </View>
@@ -1323,7 +1310,7 @@ const styles = StyleSheet.create({
     minHeight: theme.spacing.xs / 2,
   },
   bottomSection: {
-    paddingTop: theme.spacing.sm,
+    paddingTop: 0,
   },
   resultInput: {
     marginBottom: theme.spacing.md,

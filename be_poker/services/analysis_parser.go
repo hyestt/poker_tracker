@@ -64,26 +64,18 @@ func tryParseJSON(s string) (AnalysisSections, bool) {
 		return AnalysisSections{}, false
 	}
 	res := AnalysisSections{}
-	// Handle preflop, flop, turn, river (both string and object formats)
+	// Handle preflop, flop, turn, river (return full JSON object as string)
 	extractStreetContent := func(key string) string {
 		if v, ok := tmp[key]; ok {
+			// 直接將整個街道物件轉為 JSON 字串，保留所有欄位
+			// 這樣前端可以解析完整的 player_action, recommendation, suggested_action, rating 等
 			if streetObj, ok := v.(map[string]interface{}); ok {
-				// Only extract specific text fields, not frequencies or other objects
-				var parts []string
-				if playerAction, ok := streetObj["player_action"]; ok {
-					if str := toString(playerAction); strings.TrimSpace(str) != "" {
-						parts = append(parts, str)
-					}
+				jsonBytes, err := json.Marshal(streetObj)
+				if err == nil {
+					return string(jsonBytes)
 				}
-				if recommendation, ok := streetObj["recommendation"]; ok {
-					if str := toString(recommendation); strings.TrimSpace(str) != "" {
-						parts = append(parts, str)
-					}
-				}
-				return strings.Join(parts, " ")
-			} else {
-				return toString(v)
 			}
+			return toString(v)
 		}
 		return ""
 	}

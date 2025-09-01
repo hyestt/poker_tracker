@@ -6,6 +6,7 @@ import { theme } from '../theme';
 import { Hand, Session, Villain } from '../models';
 import { formatDate } from '../utils/dateFormat';
 import { generateShareText } from '../utils/handTextGenerator';
+import { HandDetailsTabs, HandStage } from '../components/HandDetailsTabs';
 import revenueCatService from '../services/RevenueCatService';
 
 export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
@@ -210,10 +211,58 @@ export const HandDetailScreen: React.FC<{ navigation: any; route: any }> = ({ na
           </View>
         </View>
 
-        {/* Hand Details - 移到 Board 下方 */}
+        {/* Hand Details - 展開顯示所有階段 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hand Details</Text>
-          <Text style={styles.detailsText}>{hand.details || 'No details provided'}</Text>
+          
+          {/* Preflop */}
+          {(hand.preflopDetails || (hand.details && !hand.preflopDetails && !hand.flopDetails && !hand.turnDetails && !hand.riverDetails)) && (
+            <View style={styles.stageSection}>
+              <Text style={styles.stageTitle}>Preflop</Text>
+              <View style={styles.stageContent}>
+                <Text style={styles.stageText}>
+                  {hand.preflopDetails || hand.details}
+                </Text>
+              </View>
+            </View>
+          )}
+          
+          {/* Flop */}
+          {hand.flopDetails && (
+            <View style={styles.stageSection}>
+              <Text style={styles.stageTitle}>Flop</Text>
+              <View style={styles.stageContent}>
+                <Text style={styles.stageText}>{hand.flopDetails}</Text>
+              </View>
+            </View>
+          )}
+          
+          {/* Turn */}
+          {hand.turnDetails && (
+            <View style={styles.stageSection}>
+              <Text style={styles.stageTitle}>Turn</Text>
+              <View style={styles.stageContent}>
+                <Text style={styles.stageText}>{hand.turnDetails}</Text>
+              </View>
+            </View>
+          )}
+          
+          {/* River */}
+          {hand.riverDetails && (
+            <View style={styles.stageSection}>
+              <Text style={styles.stageTitle}>River</Text>
+              <View style={styles.stageContent}>
+                <Text style={styles.stageText}>{hand.riverDetails}</Text>
+              </View>
+            </View>
+          )}
+          
+          {/* 如果沒有任何詳情 */}
+          {!hand.preflopDetails && !hand.flopDetails && !hand.turnDetails && !hand.riverDetails && !hand.details && (
+            <View style={styles.stageContent}>
+              <Text style={styles.noDataText}>No hand details provided</Text>
+            </View>
+          )}
         </View>
 
         {/* Villains */}
@@ -446,6 +495,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: theme.font.size.body,
     textAlign: 'center',
+  },
+  stageSection: {
+    marginBottom: theme.spacing.md,
+  },
+  stageTitle: {
+    fontSize: theme.font.size.body,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    marginBottom: theme.spacing.xs,
+  },
+  stageContent: {
+    backgroundColor: theme.colors.inputBg,
+    borderRadius: theme.radius.input,
+    padding: theme.spacing.sm,
+    minHeight: 60,
+  },
+  stageText: {
+    fontSize: theme.font.size.body,
+    color: theme.colors.text,
+    lineHeight: 22,
   },
   aiAnalysisButtonDisabled: {
     backgroundColor: theme.colors.gray,

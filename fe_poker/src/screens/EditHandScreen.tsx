@@ -7,6 +7,7 @@ import { PokerKeyboardView } from '../components/PokerKeyboardView';
 import { PokerQuickKeyboard } from '../components/PokerQuickKeyboard';
 import { VillainInput } from '../components/VillainInput';
 import { TagInput } from '../components/TagInput';
+import { HandDetailsTabs, HandStage } from '../components/HandDetailsTabs';
 import { theme } from '../theme';
 import { useSessionStore } from '../viewmodels/sessionStore';
 import { UserPreferencesService } from '../services/UserPreferences';
@@ -20,6 +21,11 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [board, setBoard] = useState('');
   const [position, setPosition] = useState('');
   const [details, setDetails] = useState('');
+  const [preflopDetails, setPreflopDetails] = useState('');
+  const [flopDetails, setFlopDetails] = useState('');
+  const [turnDetails, setTurnDetails] = useState('');
+  const [riverDetails, setRiverDetails] = useState('');
+  const [currentHandStage, setCurrentHandStage] = useState<HandStage>('preflop');
   const [result, setResult] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -31,6 +37,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const [useCustomKeyboard, setUseCustomKeyboard] = useState(false);
   const [selectedVillainIndex, setSelectedVillainIndex] = useState<number | null>(null);
   const detailsInputRef = useRef<TextInput>(null);
+  const handDetailsTabsRef = useRef<TextInput>(null);
   const noteInputRef = useRef<TextInput>(null);
   const resultInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -172,7 +179,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
   const handleQuickInsert = (text: string) => {
     const { start, end } = selection;
-    const currentDetails = details || '';
+    const currentDetails = getCurrentStageDetails() || '';
 
     console.log('[DEBUG] handleQuickInsert called:', {
       text,
@@ -219,15 +226,15 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       });
     }
 
-    setDetails(newDetails);
+    setCurrentStageDetails(newDetails);
     setLastInsertedText(textToInsert);
 
     // 保持TextInput的焦點並設置正確的游標位置
-    if (detailsInputRef.current) {
-      detailsInputRef.current.focus();
+    if (handDetailsTabsRef.current) {
+      handDetailsTabsRef.current.focus();
       // 先設置 TextInput 的實際游標位置
       console.log('[DEBUG] Setting cursor position via setSelection immediately:', newPosition);
-      detailsInputRef.current.setSelection(newPosition, newPosition);
+      handDetailsTabsRef.current.setSelection(newPosition, newPosition);
 
       // 然後更新 React state
       setTimeout(() => {
@@ -239,7 +246,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   };
 
   const handleQuickDelete = useCallback(() => {
-    const currentDetails = detailsRef.current;
+    const currentDetails = getCurrentStageDetails();
     const currentSelection = selectionRef.current;
     const { start, end } = currentSelection;
 
@@ -283,21 +290,21 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         return false;
       }
 
-      setDetails(newDetails);
+      setCurrentStageDetails(newDetails);
 
       // 只設置 TextInput 的實際游標位置，不更新 React state 以避免衝突
-      if (detailsInputRef.current) {
+      if (handDetailsTabsRef.current) {
         console.log('[DEBUG] Setting cursor position after delete (TextInput only):', newPosition);
         // 使用多重延遲確保設置成功
-        detailsInputRef.current.setSelection(newPosition, newPosition);
+        handDetailsTabsRef.current.setSelection(newPosition, newPosition);
         setTimeout(() => {
-          if (detailsInputRef.current) {
-            detailsInputRef.current.setSelection(newPosition, newPosition);
+          if (handDetailsTabsRef.current) {
+            handDetailsTabsRef.current.setSelection(newPosition, newPosition);
           }
         }, 10);
         setTimeout(() => {
-          if (detailsInputRef.current) {
-            detailsInputRef.current.setSelection(newPosition, newPosition);
+          if (handDetailsTabsRef.current) {
+            handDetailsTabsRef.current.setSelection(newPosition, newPosition);
           }
         }, 50);
       }
@@ -345,8 +352,8 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       setShowCustomKeyboard(true);
     }
     // Focus the TextInput to show cursor
-    if (detailsInputRef.current) {
-      detailsInputRef.current.focus();
+    if (handDetailsTabsRef.current) {
+      handDetailsTabsRef.current.focus();
     }
   };
 
@@ -356,8 +363,8 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       setShowCustomKeyboard(true);
     }
     // Focus the TextInput to show cursor
-    if (detailsInputRef.current) {
-      detailsInputRef.current.focus();
+    if (handDetailsTabsRef.current) {
+      handDetailsTabsRef.current.focus();
     }
   };
 
@@ -368,6 +375,41 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
   const hideCustomKeyboard = () => {
     console.log('hideCustomKeyboard called');
     setShowCustomKeyboard(false);
+  };
+
+  const handleStageDetailsChange = (stage: HandStage, details: string) => {
+    switch (stage) {
+      case 'preflop':
+        setPreflopDetails(details);
+        break;
+      case 'flop':
+        setFlopDetails(details);
+        break;
+      case 'turn':
+        setTurnDetails(details);
+        break;
+      case 'river':
+        setRiverDetails(details);
+        break;
+    }
+  };
+
+  const handleStageChange = (stage: HandStage) => {
+    setCurrentHandStage(stage);
+  };
+
+  const getCurrentStageDetails = () => {
+    switch (currentHandStage) {
+      case 'preflop': return preflopDetails;
+      case 'flop': return flopDetails;
+      case 'turn': return turnDetails;
+      case 'river': return riverDetails;
+      default: return '';
+    }
+  };
+
+  const setCurrentStageDetails = (newDetails: string) => {
+    handleStageDetailsChange(currentHandStage, newDetails);
   };
 
   useEffect(() => {
@@ -387,6 +429,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
         setBoard(hand.board || '');
         setPosition(hand.position || '');
         setDetails(hand.details || '');
+        setPreflopDetails(hand.preflopDetails || '');
+        setFlopDetails(hand.flopDetails || '');
+        setTurnDetails(hand.turnDetails || '');
+        setRiverDetails(hand.riverDetails || '');
         setNote(hand.note || '');
         setResult(hand.result.toString());
         setSessionId(hand.sessionId);
@@ -437,6 +483,10 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       board,
       position,
       details,
+      preflopDetails,
+      flopDetails,
+      turnDetails,
+      riverDetails,
       note,
       result: parseFloat(result) || 0,
       date: now,
@@ -456,7 +506,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
       console.error('Failed to update hand:', error);
       Alert.alert('Error', 'Failed to update hand');
     }
-  }, [handId, sessionId, holeCards, board, position, details, note, result, villains, favorite, tags, updateHand, navigation]);
+  }, [handId, sessionId, holeCards, board, position, details, preflopDetails, flopDetails, turnDetails, riverDetails, note, result, villains, favorite, tags, updateHand, navigation]);
 
   const handleSaveRef = useRef(handleSave);
 
@@ -650,30 +700,20 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 />
               </View>
             </View>
-            <TextInput
-              ref={detailsInputRef}
-              style={[styles.detailsInput, styles.detailsInputWrapper]}
-              value={details}
-              onChangeText={setDetails}
-              onSelectionChange={(event) => {
-                const newSelection = event.nativeEvent.selection;
-                console.log('[DEBUG] onSelectionChange:', {
-                  oldSelection: selection,
-                  newSelection,
-                  textLength: details.length,
-                });
-                setSelection(newSelection);
+            <HandDetailsTabs
+              inputRef={handDetailsTabsRef}
+              preflopDetails={preflopDetails}
+              flopDetails={flopDetails}
+              turnDetails={turnDetails}
+              riverDetails={riverDetails}
+              onDetailsChange={handleStageDetailsChange}
+              onStageChange={handleStageChange}
+              onSelectionChange={(selection) => {
+                setSelection(selection);
               }}
-              // selection={selection} // Removed to avoid conflicts with manual setSelection calls
-              placeholder="Enter detailed hand description..."
-              placeholderTextColor={theme.colors.gray}
-              multiline={true}
-              numberOfLines={8}
-              textAlignVertical="top"
               showSoftInputOnFocus={!useCustomKeyboard}
               onPressIn={handleDetailsInputPress}
               onFocus={handleDetailsInputFocus}
-              editable={true}
             />
           </View>
 
@@ -689,44 +729,26 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
 
               <View style={styles.quickButtonsSection}>
 
-            {/* Round Buttons */}
+            {/* Player Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
                 <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Preflop: ')}
+                  style={[styles.quickButton, styles.positionButton]}
+                  onPress={() => handleQuickInsert('UTG ')}
                 >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>PF</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Flop: ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>F</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('Turn: ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>T</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.quickButton, styles.roundButton]}
-                  onPress={() => handleQuickInsert('River: ')}
-                >
-                  <Text style={[styles.quickButtonText, styles.roundButtonText]}>R</Text>
+                  <Text style={styles.quickButtonText}>UTG</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG1 ')}
                 >
-                  <Text style={styles.quickButtonText}>U1</Text>
+                  <Text style={styles.quickButtonText}>UTG1</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
                   onPress={() => handleQuickInsert('UTG2 ')}
                 >
-                  <Text style={styles.quickButtonText}>U2</Text>
+                  <Text style={styles.quickButtonText}>UTG2</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.positionButton]}
@@ -746,7 +768,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             {/* Position Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                {['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
+                {['MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'].map((position) => (
                   <TouchableOpacity
                     key={position}
                     style={[styles.quickButton, styles.positionButton]}
@@ -765,9 +787,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Raise ')}
+                  onPress={() => handleQuickInsert('Fold ')}
                 >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Raise</Text>
+                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Fold</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
@@ -777,9 +799,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
-                  onPress={() => handleQuickInsert('Fold ')}
+                  onPress={() => handleQuickInsert('Raise ')}
                 >
-                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Fold</Text>
+                  <Text style={[styles.quickButtonText, styles.actionButtonText]}>Raise</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.quickButton, styles.actionButton]}
@@ -805,12 +827,6 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
             {/* Percentage Buttons */}
             <View style={styles.buttonCategory}>
               <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('straddle ')}
-                >
-                  <Text style={styles.quickButtonText}>str</Text>
-                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
                   onPress={() => handleQuickInsert('Limp ')}
@@ -846,15 +862,9 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={styles.quickButton}
-                  onPress={() => handleQuickInsert('Pot: ')}
+                  onPress={() => handleQuickInsert('straddle ')}
                 >
-                  <Text style={styles.quickButtonText}>Pot</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickButton}
-                  onPress={() => handleQuickInsert('/')}
-                >
-                  <Text style={styles.quickButtonText}>/</Text>
+                  <Text style={styles.quickButtonText}>str</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickButton}
@@ -881,7 +891,7 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
                 </TouchableOpacity>
               </View>
               <View style={styles.buttonRow}>
-                {[',', ' '].map((symbol) => (
+                {[' '].map((symbol) => (
                   <TouchableOpacity
                     key={symbol}
                     style={styles.quickButton}
@@ -918,6 +928,27 @@ export const EditHandScreen: React.FC<{ navigation: any; route: any }> = ({ navi
           </View>
             </View>
           )}
+        </View>
+
+        {/* Villain Section */}
+        <View style={styles.fullWidthField}>
+          <View style={styles.villainHeaderRow}>
+            <Text style={styles.fieldLabel}>Villain</Text>
+            <TouchableOpacity onPress={addVillain} style={styles.addVillainButton}>
+              <Text style={styles.addVillainButtonText}>+ Add Villain</Text>
+            </TouchableOpacity>
+          </View>
+          {villains.map((villain, index) => (
+            <VillainInput
+              key={villain.id}
+              villain={villain}
+              index={index}
+              onUpdate={updateVillain}
+              onRemove={removeVillain}
+              onHoleCardsPress={handleVillainCardsSelect}
+              positions={positions}
+            />
+          ))}
         </View>
 
         {/* Hand Details Section */}

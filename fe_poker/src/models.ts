@@ -28,6 +28,10 @@ export interface Hand {
   holeCards?: string;
   board?: string;
   details: string;
+  preflopDetails?: string;
+  flopDetails?: string;
+  turnDetails?: string;
+  riverDetails?: string;
   note?: string;
   result: number;
   analysis?: string;

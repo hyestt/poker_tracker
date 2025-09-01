@@ -97,21 +97,15 @@ export class WelcomeDemoService {
       position: 'BTN',
       holeCards: 'A♠ K♠',
       board: 'A♥ 7♣ 2♦ 5♠ K♣',
-      details: `Preflop: 
-UTG Bet $6 UTG2 Call Hero Raise $25 UTG1 Call
-
-Flop: 
-UTG Check Hero Bet $25 UTG1 Call 
-
-Turn: 
-UTG Check Hero Check 
-
-River: 
-UTG Check Hero Bet $50 Villain Call`,
+      details: '', // 保持為空，使用新的分階段欄位
+      preflopDetails: 'UTG raises to $6, UTG2 calls $6, Hero (BTN) 3-bets to $25, UTG folds, UTG2 calls $25. Pot: $53',
+      flopDetails: 'Flop: A♥ 7♣ 2♦. UTG2 checks, Hero bets $25, UTG2 calls. Pot: $103',
+      turnDetails: 'Turn: 5♠. UTG2 checks, Hero checks back. Pot: $103',
+      riverDetails: 'River: K♣. UTG2 checks, Hero bets $50, UTG2 calls. Pot: $203. Hero shows A♠K♠ for two pair, UTG2 mucks.',
       note: 'Strong starting hand in position. Made two pair on river for solid value.',
       result: 205,
       analysis: this.getGTOAnalysis(),
-      analysisSections: '{"summary":"{\\\"rating\\\":\\\"⭐⭐⭐⭐\\\",\\\"summary\\\":\\\"The hand was played well overall, with strong preflop aggression and a solid river value bet. The turn could have seen more aggression to extract value from weaker hands.\\\"}","preflop":"{\\\"suggested_action\\\":\\\"3-bet to around $25 for value and isolation against the loose opens.\\\",\\\"player_action\\\":\\\"Hero raised to $25 from the button after UTG bet $6 and UTG2 called\\\",\\\"rating\\\":\\\"⭐⭐⭐⭐⭐\\\",\\\"recommendation\\\":\\\"This is a premium hand that plays excellently as a 3-bet for value from the button. The sizing to $25 (4.2x) is appropriate given the multiway action with UTG\'s open and UTG2\'s call, building a substantial pot with a strong holding.\\\"}","flop":"{\\\"suggested_action\\\":\\\"Bet 75% pot for value with top pair, top kicker on this dry board.\\\",\\\"player_action\\\":\\\"Hero bet $25 on a flop of A♥ 7♣ 2♦ after UTG checked.\\\",\\\"rating\\\":\\\"⭐⭐⭐⭐\\\",\\\"recommendation\\\":\\\"With top pair, top kicker on a dry board, a continuation bet is standard to extract value.\\\"}","turn":"{\\\"suggested_action\\\":\\\"Bet 50% pot to extract value from weaker aces and protect against draws.\\\",\\\"player_action\\\":\\\"Hero checked back on the turn 5♠ after UTG checked.\\\",\\\"rating\\\":\\\"⭐⭐⭐\\\",\\\"recommendation\\\":\\\"Checking is reasonable, but betting could extract more value from weaker aces or draws.\\\"}","river":"{\\\"suggested_action\\\":\\\"Bet 75% pot for maximum value with two pair on this runout.\\\",\\\"player_action\\\":\\\"Hero bet $50 on the river K♣ after UTG checked.\\\",\\\"rating\\\":\\\"⭐⭐⭐⭐⭐\\\",\\\"recommendation\\\":\\\"Betting for value with two pair is optimal, targeting weaker aces and potential calls.\\\"}"}',
+      analysisSections: '{"preflop":{"player_action":"Hero 3-bet to $25 from BTN after UTG raised to $6 and UTG2 called","recommendation":"AKs is a premium hand that should be 3-bet for value from the button. The sizing to $25 is appropriate given the multiway action.","suggested_action":"3-bet to $20-25 for value and isolation","rating":"⭐⭐⭐⭐⭐"},"flop":{"player_action":"Hero bet $25 into $53 pot on A♥ 7♣ 2♦ flop after UTG2 checked","recommendation":"With top pair top kicker on a dry board, betting for value is standard. The half-pot sizing is reasonable.","suggested_action":"Bet 50-75% pot for value with TPTK","rating":"⭐⭐⭐⭐"},"turn":{"player_action":"Hero checked back on 5♠ turn after UTG2 checked","recommendation":"Checking back is fine for pot control, but betting thin for value against weaker aces is also viable.","suggested_action":"Consider betting 40-50% pot for thin value","rating":"⭐⭐⭐"},"river":{"player_action":"Hero bet $50 into $103 pot on K♣ river after UTG2 checked","recommendation":"With two pair on a safe runout, value betting is mandatory. The sizing targets weaker aces and one-pair hands.","suggested_action":"Bet 50-75% pot for value with two pair","rating":"⭐⭐⭐⭐⭐"}}',
       analysisDate: '2025-08-08T17:27:52.647Z',
       favorite: false,
       tag: 'welcome',

@@ -25,6 +25,10 @@ type Hand struct {
 	Board        *string   `json:"board"`     // 公共牌
 	Position     *string   `json:"position"`  // 位置 - 使用指針處理 null
 	Details      string    `json:"details"`
+	PreflopDetails *string `json:"preflopDetails,omitempty"` // Preflop 階段詳情
+	FlopDetails    *string `json:"flopDetails,omitempty"`    // Flop 階段詳情
+	TurnDetails    *string `json:"turnDetails,omitempty"`    // Turn 階段詳情
+	RiverDetails   *string `json:"riverDetails,omitempty"`   // River 階段詳情
 	Note         *string   `json:"note"` // 筆記
 	Result       int       `json:"result"`
 	Date         string    `json:"date"`
