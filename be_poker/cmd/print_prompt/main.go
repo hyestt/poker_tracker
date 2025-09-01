@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"poker_tracker_backend/services"
 )
@@ -12,7 +12,7 @@ func main() {
 	// Assuming we run this tool from be_poker directory
 	handPath := filepath.Join("..", "hand_history.txt")
 
-	content, err := ioutil.ReadFile(handPath)
+	content, err := os.ReadFile(handPath)
 	if err != nil {
 		log.Fatalf("failed to read hand history: %v", err)
 	}

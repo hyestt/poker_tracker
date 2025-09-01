@@ -3,7 +3,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -24,7 +24,7 @@ func (pm *PromptManager) GetHandAnalysisPrompt(handDetails string, language stri
 	promptPath := filepath.Join(pm.promptsDir, "hand_analysis.txt")
 
 	// 讀取prompt文件
-	content, err := ioutil.ReadFile(promptPath)
+	content, err := os.ReadFile(promptPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read prompt file: %v", err)
 	}
@@ -47,7 +47,7 @@ func (pm *PromptManager) GetSystemPrompt(language string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "system_prompt.txt")
 
 	// 讀取system prompt文件
-	content, err := ioutil.ReadFile(promptPath)
+	content, err := os.ReadFile(promptPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read system prompt file: %v", err)
 	}
@@ -66,7 +66,7 @@ func (pm *PromptManager) GetUserPrompt(handDetails string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, "user_prompt.txt")
 
 	// 讀取user prompt文件
-	content, err := ioutil.ReadFile(promptPath)
+	content, err := os.ReadFile(promptPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read user prompt file: %v", err)
 	}
@@ -80,7 +80,7 @@ func (pm *PromptManager) GetUserPrompt(handDetails string) (string, error) {
 
 // 獲取所有可用的prompt文件列表
 func (pm *PromptManager) ListPrompts() ([]string, error) {
-	files, err := ioutil.ReadDir(pm.promptsDir)
+	files, err := os.ReadDir(pm.promptsDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read prompts directory: %v", err)
 	}
@@ -98,7 +98,7 @@ func (pm *PromptManager) ListPrompts() ([]string, error) {
 // 讀取原始prompt內容（用於編輯）
 func (pm *PromptManager) GetRawPrompt(filename string) (string, error) {
 	promptPath := filepath.Join(pm.promptsDir, filename)
-	content, err := ioutil.ReadFile(promptPath)
+	content, err := os.ReadFile(promptPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read prompt file: %v", err)
 	}
@@ -285,7 +285,7 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 	promptPath := filepath.Join(pm.promptsDir, "user_prompt.json")
 
 	// 讀取 JSON prompt 模板
-	content, err := ioutil.ReadFile(promptPath)
+	content, err := os.ReadFile(promptPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read JSON prompt file: %v", err)
 	}
@@ -363,7 +363,7 @@ func (pm *PromptManager) GetJSONUserPrompt(handDetails, language, heroPosition, 
 // 讀取 Validator Prompt 模板，並替換 {{LANGUAGE}}, {{ORIGINAL_HAND_JSON}}, {{PRIMARY_OUTPUT}}
 func (pm *PromptManager) GetValidatorPrompt(originalHandJSON, primaryOutput, language string) (string, error) {
 	path := filepath.Join(pm.promptsDir, "validator_prompt.txt")
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("failed to read validator prompt: %v", err)
 	}
