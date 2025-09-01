@@ -390,7 +390,16 @@ export const SessionsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
                         { backgroundColor: getTagColor(session.tag) },
                       ]} />
                     )}
-                    {/* 移除 location 和 stakes/hands 顯示 */}
+                    <View style={styles.sessionTextInfo}>
+                      <Text style={styles.sessionLocation}>
+                        {session.location || 'Unknown'}
+                      </Text>
+                      {session.smallBlind && session.bigBlind && (
+                        <Text style={styles.sessionStakes}>
+                          • ${session.smallBlind}/${session.bigBlind}
+                        </Text>
+                      )}
+                    </View>
                   </View>
                   <Text style={styles.sessionDate}>{formatDate(session.date)}</Text>
                 </View>
@@ -695,11 +704,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginRight: theme.spacing.xs,
   },
+  sessionTextInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   sessionLocation: {
     fontSize: theme.font.size.body,
     fontWeight: '600',
     color: theme.colors.text,
-    marginRight: theme.spacing.xs,
+  },
+  sessionStakes: {
+    fontSize: theme.font.size.small,
+    color: theme.colors.textSecondary,
+    marginLeft: theme.spacing.xs,
   },
   sessionSubtitle: {
     fontSize: theme.font.size.small,
