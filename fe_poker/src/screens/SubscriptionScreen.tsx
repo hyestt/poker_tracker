@@ -12,7 +12,7 @@ import {
 import { theme } from '../theme';
 import revenueCatService, { SubscriptionPlan, PremiumFeatures } from '../services/RevenueCatService';
 
-export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+export const SubscriptionScreen: React.FC<{ navigation: any }> = () => {
   const [_plans, _setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);
@@ -258,20 +258,6 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
 
   return (
     <View style={styles.container}>
-      {/* Header with back button */}
-      <View style={styles.headerWithNav}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            console.log('Back button pressed');
-            navigation.goBack();
-          }}
-          activeOpacity={0.7}
-          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-        >
-          <Text style={styles.backButtonText}>✕</Text>
-        </TouchableOpacity>
-      </View>
 
       {/* Header with AI Solver Logo */}
       <View style={styles.header}>
@@ -319,19 +305,20 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
           {/* Annual Plan */}
           <TouchableOpacity
             style={[styles.planCard, styles.planCardHalf, selectedPlan === 'annual' && styles.selectedPlan]}
-            onPress={() => setSelectedPlan('annual')}
+            onPress={() => {
+              console.log('🔴 Annual plan clicked!');
+              setSelectedPlan('annual');
+            }}
             activeOpacity={0.7}
           >
-            <View style={styles.discountBadgeCenterContainer}>
-              <View style={styles.discountBadgeCenter}>
-                <Text style={styles.discountText}>33% OFF</Text>
-              </View>
+            <View style={styles.discountBadgeInline}>
+              <Text style={styles.discountText}>33% OFF</Text>
             </View>
             <View style={styles.planHeader}>
               <View style={styles.planLeft}>
                 <Text style={styles.planTitle}>Year</Text>
-                <Text style={styles.planPrice}>$120</Text>
-                <Text style={styles.planSubPrice}>$10/month</Text>
+                <Text style={styles.planPrice}>$75</Text>
+                <Text style={styles.planSubPrice}>$6.25/month</Text>
               </View>
               <View style={[styles.radioButton, selectedPlan === 'annual' && styles.radioSelected]}>
                 {selectedPlan === 'annual' && <View style={styles.radioInner} />}
@@ -342,13 +329,16 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
           {/* Monthly Plan */}
           <TouchableOpacity
             style={[styles.planCard, styles.planCardHalf, selectedPlan === 'monthly' && styles.selectedPlan]}
-            onPress={() => setSelectedPlan('monthly')}
+            onPress={() => {
+              console.log('🟢 Monthly plan clicked!');
+              setSelectedPlan('monthly');
+            }}
             activeOpacity={0.7}
           >
             <View style={styles.planHeader}>
               <View style={styles.planLeft}>
                 <Text style={styles.planTitle}>Month</Text>
-                <Text style={styles.planPrice}>$14.99/mo</Text>
+                <Text style={styles.planPrice}>$8.99/mo</Text>
                 <Text style={styles.planSubPrice}>Billed monthly</Text>
               </View>
               <View style={[styles.radioButton, selectedPlan === 'monthly' && styles.radioSelected]}>
@@ -370,7 +360,7 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = ({ navigation }
             id: productId,
             title: 'AI Solver Premium',
             description: 'All premium features unlocked',
-            price: selectedPlan === 'annual' ? '$120/year' : '$14.99/month',
+            price: selectedPlan === 'annual' ? '$75/year' : '$8.99/month',
             period: selectedPlan === 'annual' ? 'Year' : 'Month',
             features: [],
             isPopular: selectedPlan === 'annual',
@@ -407,32 +397,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  headerWithNav: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: theme.spacing.md,
-    paddingTop: 50,
-    paddingBottom: theme.spacing.sm,
-    zIndex: 10,
-  },
-  backButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: theme.colors.gray,
-    fontSize: 18,
-    fontWeight: '400',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -445,7 +409,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   header: {
-    paddingTop: 85,
+    paddingTop: 20,
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
     alignItems: 'center',
@@ -517,6 +481,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: theme.spacing.sm,
   },
+  planCardWrapper: {
+    flex: 1,
+    position: 'relative',
+  },
   planCard: {
     backgroundColor: theme.colors.card,
     borderRadius: 12,
@@ -524,7 +492,6 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
     borderWidth: 2,
     borderColor: 'transparent',
-    position: 'relative',
   },
   planCardHalf: {
     flex: 1,
@@ -592,9 +559,9 @@ const styles = StyleSheet.create({
   discountBadgeInline: {
     alignSelf: 'flex-start',
     backgroundColor: '#FF6B35',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
     marginBottom: theme.spacing.xs,
   },
   discountBadgeCenterContainer: {
@@ -604,6 +571,7 @@ const styles = StyleSheet.create({
     top: -8,
     alignItems: 'center',
     zIndex: 2,
+    pointerEvents: 'none', // 確保不會阻擋點擊事件
   },
   discountBadgeCenter: {
     backgroundColor: '#FF6B35',
@@ -635,7 +603,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: theme.spacing.xs, // 更靠近 Subscribe 按鈕
-    marginBottom: theme.spacing.lg,
+    marginBottom: 40, // 調整底部間距
+    paddingBottom: 10, // 調整內邊距
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
