@@ -81,9 +81,8 @@ export const SettingsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       }
     } catch (error) {
       console.error('❌ [SettingsScreen] Failed to fetch subscription status:', error);
-      if (!__DEV__) {
-        Alert.alert('Error', 'Failed to fetch subscription status.');
-      }
+      // Silently fail in production - don't show error alert
+      // RevenueCat may not be configured yet or network issue
     } finally {
       console.log('🔄 [SettingsScreen] Subscription check completed');
       setIsLoading(false);

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Image,
   Linking,
 } from 'react-native';
 import { theme } from '../theme';
@@ -259,11 +258,6 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = () => {
   return (
     <View style={styles.container}>
 
-      {/* Header with AI Solver Logo */}
-      <View style={styles.header}>
-        <Image source={require('../../assets/appstore.png')} style={styles.logoImage} resizeMode="contain" />
-        <Text style={styles.title}>AI Solver Pro</Text>
-      </View>
 
       {/* Features List */}
       <View style={styles.featuresContainer}>
@@ -303,28 +297,33 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = () => {
       <View style={styles.pricingContainer}>
         <View style={styles.planRow}>
           {/* Annual Plan */}
-          <TouchableOpacity
-            style={[styles.planCard, styles.planCardHalf, selectedPlan === 'annual' && styles.selectedPlan]}
-            onPress={() => {
-              console.log('🔴 Annual plan clicked!');
-              setSelectedPlan('annual');
-            }}
-            activeOpacity={0.7}
-          >
-            <View style={styles.discountBadgeInline}>
+          <View style={styles.planCardWrapper}>
+            {/* Discount Badge on Top Left */}
+            <View style={styles.discountBadgeTopLeft}>
               <Text style={styles.discountText}>33% OFF</Text>
             </View>
-            <View style={styles.planHeader}>
-              <View style={styles.planLeft}>
-                <Text style={styles.planTitle}>Year</Text>
-                <Text style={styles.planPrice}>$75</Text>
-                <Text style={styles.planSubPrice}>$6.25/month</Text>
+            <TouchableOpacity
+              style={[styles.planCard, styles.planCardHalf, selectedPlan === 'annual' && styles.selectedPlan]}
+              onPress={() => {
+                console.log('🔴 Annual plan clicked!');
+                setSelectedPlan('annual');
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.planHeader}>
+                <View style={styles.planLeft}>
+                  <Text style={styles.planTitle}>Year</Text>
+                  <View style={styles.priceRow}>
+                    <Text style={styles.planPrice}>$6.25/mo</Text>
+                  </View>
+                  <Text style={styles.planSubPrice}>Billed at $75/yr</Text>
+                </View>
+                <View style={[styles.radioButton, selectedPlan === 'annual' && styles.radioSelected]}>
+                  {selectedPlan === 'annual' && <View style={styles.radioInner} />}
+                </View>
               </View>
-              <View style={[styles.radioButton, selectedPlan === 'annual' && styles.radioSelected]}>
-                {selectedPlan === 'annual' && <View style={styles.radioInner} />}
-              </View>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
 
           {/* Monthly Plan */}
           <TouchableOpacity
@@ -338,7 +337,9 @@ export const SubscriptionScreen: React.FC<{ navigation: any }> = () => {
             <View style={styles.planHeader}>
               <View style={styles.planLeft}>
                 <Text style={styles.planTitle}>Month</Text>
-                <Text style={styles.planPrice}>$8.99/mo</Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.planPrice}>$8.99/mo</Text>
+                </View>
                 <Text style={styles.planSubPrice}>Billed monthly</Text>
               </View>
               <View style={[styles.radioButton, selectedPlan === 'monthly' && styles.radioSelected]}>
@@ -414,16 +415,10 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.md,
     alignItems: 'center',
   },
-  logoImage: {
-    width: 72,
-    height: 72,
-    marginBottom: theme.spacing.sm,
-    borderRadius: 16,
-  },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FF6B35',
+    color: theme.colors.text,
     marginBottom: theme.spacing.xs,
     textAlign: 'center',
   },
@@ -436,6 +431,7 @@ const styles = StyleSheet.create({
   featuresContainer: {
     paddingHorizontal: theme.spacing.lg,
     marginBottom: theme.spacing.md,
+    paddingTop: theme.spacing.lg,
   },
   featureItem: {
     flexDirection: 'row',
@@ -484,6 +480,16 @@ const styles = StyleSheet.create({
   planCardWrapper: {
     flex: 1,
     position: 'relative',
+  },
+  discountBadgeTopLeft: {
+    position: 'absolute',
+    top: -10,
+    left: 10,
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
+    zIndex: 1,
   },
   planCard: {
     backgroundColor: theme.colors.card,
@@ -563,6 +569,10 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
     marginBottom: theme.spacing.xs,
+  },
+  priceRow: {
+    height: 24,
+    justifyContent: 'center',
   },
   discountBadgeCenterContainer: {
     position: 'absolute',

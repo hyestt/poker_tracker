@@ -240,7 +240,7 @@ const App = () => {
           component={SubscriptionScreen} 
           options={{ 
             headerShown: true,
-            title: 'Subscription',
+            title: 'AI Solver Pro',
             headerStyle: { backgroundColor: '#2D3748' },
             headerTintColor: '#F7FAFC',
             headerBackTitle: 'Back',
